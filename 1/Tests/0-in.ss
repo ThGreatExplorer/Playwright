@@ -1,7 +1,7 @@
 ((Someone has created files that contain information of this shape)
     (An Example is one of)
         (a Name like this)
-        (a Number like this 22.5 or this -14.3)
+        (a Number like this 22.5 or this -14.3 or this -999.9 or this 999.9)
         (a sequence of space separated Examples wrapped in ( and ))
     () () ()
 )
