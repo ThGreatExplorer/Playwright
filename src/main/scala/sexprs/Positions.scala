@@ -13,7 +13,6 @@ case class Position(line: Int, col: Int) extends Ordered[Position] {
 
 }
 
-
 trait Positioned {
 
   private[this] var _pos: Option[Position] = None
@@ -22,7 +21,7 @@ trait Positioned {
     _pos = Some(pos)
     this
   }
-    
+
   def setPos(that: Positioned): this.type = {
     _pos = Some(that.getPos)
     this
