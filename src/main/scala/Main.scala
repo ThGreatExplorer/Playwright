@@ -1,5 +1,4 @@
 
-// From https://github.com/regb/scala-sexprs?? How to attritribute idk
 import sexprs.Lexer
 import sexprs.Parser
 import sexprs.SExprs._
@@ -11,10 +10,10 @@ import scala.io.StdIn.readLine
 @main def hello(): Unit =
   println("Hello world!")
 
-  val reader1 = new StringReader("""
-    (test "test")
-  """)
-  // val reader1 = new StringReader(readLine())
+  // val reader1 = new StringReader("""
+  //   (test "test")
+  // """)
+  val reader1 = new StringReader(readLine())
   val lexer1 = new Lexer(reader1)
   val parser1 = new Parser(lexer1)
   val parsed1 = parser1.parse
@@ -40,9 +39,3 @@ import scala.io.StdIn.readLine
   println(msg)
 
 def msg = "All parsed well!"
-
-
-enum Example:
-  case aName
-  case aNumber
-  case aSeq(examples :List[Example])
