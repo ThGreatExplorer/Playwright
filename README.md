@@ -14,4 +14,4 @@ For more information on the sbt-dotty plugin, see the
 ### Attribution
 
 As a part of Assignment 1, we imported an open source [s-expression parsing library](https://github.com/regb/scala-sexprs). The code
-is unmodified and contained within `sexprs` package.
+is contained within `sexprs` package. The lexer was slightly modified to allow parsing of negative numbers. 

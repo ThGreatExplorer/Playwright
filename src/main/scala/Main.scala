@@ -35,7 +35,7 @@ def readSexp(input :String): SExpr =
   */
 def counter(input :SExpr): Int = 
   input match 
-    case SSymbol(x) => 1 //{println(x); 1}
-    case SDouble(x) => 0 // {println(x); 0}
-    case SList(elements) => elements.map(counter).sum // {println(elements); elements.map(counter).sum} 
+    case SSymbol(x) => 1 
+    case SDouble(x) => 0 
+    case SList(elements) => elements.map(counter).sum 
     case _ => throw new Exception("SExpr not part of Example Structure: " + input)
