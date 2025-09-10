@@ -113,6 +113,37 @@ class Lexer(reader: java.io.Reader) {
         }
         StringLit(new String(buffer.toArray))
       }
+      // NOTE: can refactor
+      case '-' => {
+        // int/double case
+        if (peek.toChar.isDigit) {
+          val intPart = readInt(nextChar, 10)
+          if (peek != '.')
+            IntLit(-intPart)
+          else {
+            nextChar
+            var fracPart: Double = 0
+            var base             = 10
+            while (peek.toChar.isDigit) {
+              fracPart += nextChar.asDigit
+              fracPart *= 10
+              base *= 10
+            }
+            DoubleLit(-intPart.toDouble - fracPart / base)
+          }
+        } 
+        // symbol case with separator
+        else if (isSeparator(peek.toChar))
+          SymbolLit("-")
+        // symbol case without separator
+        else {
+          val sym = readSymbol('-')
+          if (peek == ':') {
+            nextChar
+            QualifiedSymbol(Some(sym), readSymbol(nextChar))
+          } else SymbolLit(sym)
+        }
+      }
       case '#' => {
         val radix     = nextChar
         val base: Int = radix match {
