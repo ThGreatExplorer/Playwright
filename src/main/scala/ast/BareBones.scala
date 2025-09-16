@@ -1,7 +1,9 @@
 package ast
 
 // Program    ::= (Statement^* Expression)
-case class Program(stmts: List[Statement], expr: Expression)
+enum Program:
+    case Prog(stmts: List[Statement], expr: Expression)
+    case Err(e: ProgErr)
 
 //   Statement  ::= (Variable = Expression)
 //                | (if0 Expression Block Block)
@@ -10,12 +12,14 @@ enum Statement:
     case Assign(rhs: Expression.Var, lhs: Expression)
     case Ifelse(guard: Expression, tbranch: Block, ebranch: Block)
     case While(gurad: Expression, body: Block)
+    case Err(e: StatementErr)
 
 //   Block      ::= Statement
 //                | (block Statement^+)
 enum Block:
     case One(stmt: Statement)
     case Many(stmts: List[Statement])
+    case Err(e: BlockErr)
 
 //   Expression ::= GoodNumber
 //                | Variable
@@ -28,3 +32,4 @@ enum Expression:
     case Add(lhs: Var, rhs: Var)
     case Div(lhs: Var, rhs: Var)
     case Equals(lhs: Var, rhs: Var)
+    case Err(e: ExpressionErr)
