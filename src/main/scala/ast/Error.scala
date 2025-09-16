@@ -1,8 +1,37 @@
 package ast
 
-enum ParseErr:
+trait Error {}
+
+class ParserError extends Error {}
+
+enum ProgErr extends ParserError:
     // Program
     case ProgNotList
-    case ProgNoStmts
     case ProgNoExpr
 
+enum StmtErr extends ParserError:
+    case StmtAssignBadLHS
+    case StmtAssignBadRHS
+    case StmtIfelseNoGuard
+    case StmtIfelseNoTBranch
+    case StmtIfelseNoEBranch
+    case StmtWhileNoGuard
+    case StmtWhileNoBody
+    case StmtFailedAssignIfWhileMatch
+
+enum BlockErr extends ParserError:
+    case BlockManyNoStmts
+    case BlockOneNoStmt
+    case BlockFailedOneManyBlockMatch
+
+enum ExprErr extends ParserError:
+    case ExprBadNumber
+    case ExprBadVar
+    case ExprAddBadLHS
+    case ExprAddBadRHS
+    case ExprDivBadLHS
+    case ExprDivBadRHS
+    case ExprEqualsBadLHS
+    case ExprEqualsBadRHS
+    case ExprBadOperand
+    case ExprFailedNumVarAddDivEqualsMatch

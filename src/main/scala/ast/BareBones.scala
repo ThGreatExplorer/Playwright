@@ -1,5 +1,7 @@
 package ast
 
+import Error._
+
 // Program    ::= (Statement^* Expression)
 enum Program:
     case Prog(stmts: List[Statement], expr: Expression)
@@ -11,8 +13,8 @@ enum Program:
 enum Statement:
     case Assign(rhs: Expression.Var, lhs: Expression)
     case Ifelse(guard: Expression, tbranch: Block, ebranch: Block)
-    case While(gurad: Expression, body: Block)
-    case Err(e: StatementErr)
+    case While(guard: Expression, body: Block)
+    case Err(e: StmtErr)
 
 //   Block      ::= Statement
 //                | (block Statement^+)
@@ -32,4 +34,4 @@ enum Expression:
     case Add(lhs: Var, rhs: Var)
     case Div(lhs: Var, rhs: Var)
     case Equals(lhs: Var, rhs: Var)
-    case Err(e: ExpressionErr)
+    case Err(e: ExprErr)
