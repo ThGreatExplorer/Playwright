@@ -5,9 +5,8 @@ trait Error {}
 class ParserError extends Error {}
 
 enum ProgErr extends ParserError:
-    // Program
     case ProgNotList
-    case ProgNoExpr
+    case ProgEmptyList
 
 enum StmtErr extends ParserError:
     case StmtAssignBadLHS
