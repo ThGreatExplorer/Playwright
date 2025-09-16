@@ -105,6 +105,37 @@ class ParserTests extends FunSuite {
         expr = Expression.Equals(Expression.Var("foo"), Expression.Var("bar"))
       ),
       false
+    ),
+    (
+      """((foo = (bar + baz)) (if0 qux (block (baz = 1.0)) (block (foo = -0.5))) bar)""",
+      Program.Prog(
+        stmts = List(
+          Statement.Assign(
+            rhs = Expression.Var("foo"),
+            lhs = Expression.Add(
+              lhs = Expression.Var("bar"),
+              rhs = Expression.Var("baz")
+            )
+          ),
+          Statement.Ifelse(
+            guard = Expression.Var("qux"),
+            tbranch = Block.Many(List(
+              Statement.Assign(
+                rhs = Expression.Var("baz"),
+                lhs = Expression.Num(1.0)
+              )
+            )),
+            ebranch = Block.Many(List(
+              Statement.Assign(
+                rhs = Expression.Var("foo"),
+                lhs = Expression.Num(-0.5)
+              )
+            ))
+          )
+        ),
+        expr = Expression.Var("bar")
+        ),
+      false
     )
   // Add more cases as needed
   )

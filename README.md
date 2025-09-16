@@ -8,6 +8,12 @@ Developed by Anfisa Bogdanenko and Daniel Yu.
 
 This is a normal `sbt` project compiled with Scala 3. You can compile code with `sbt compile`, run it with `sbt run`, and `sbt console` will start a Scala 3 REPL.
 
+#### Building
+HW 2:
+```
+make build DIR=2 EXE=xparse TESTS=5
+```
+
 For more information on the sbt-dotty plugin, see the
 [scala3-example-project](https://github.com/scala/scala3-example-project/blob/main/README.md).
 
