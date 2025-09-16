@@ -1,5 +1,18 @@
-one:
-	sbt test
-	sbt assembly
-	cp target/scala-3.7.2/xcount.jar 1/Other/xcount.jar
-	cd 1 && ./xcount < Tests/0-in.ss | diff - Tests/0-out.ss
+# DIR -> directory to build
+# EXE -> name of the executable
+# TESTS -> number of tests, using format n-in.ss and n-out.ss for 0 to n exclusive
+
+build:
+		mkdir -p $(DIR) $(DIR)/Other $(DIR)/Tests
+	  printf "#!/bin/bash\njava -jar ./Other/$(EXE)\n" > $(DIR)/$(EXE).sh && chmod +x $(DIR)/$(EXE).sh
+		sbt test
+		sbt -DEXECUTABLE=$(EXE) -DHW="hw$(DIR)" assembly
+		cp target/scala-3.7.2/$(EXE) $(DIR)/Other/$(EXE)
+		make test
+
+test:
+		cd $(DIR) && \
+		for t in $$(seq 0 $$(($(TESTS)-1))); do \
+				echo "Running test $$t..."; \
+				./$(EXE).sh < Tests/$$t-in.ss | diff - Tests/$$t-out.ss; \
+		done
