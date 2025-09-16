@@ -1,10 +1,12 @@
+package main
 
 import sexprs.Lexer
 import sexprs.Parser
 import sexprs.SExprs._
-
 import java.io.StringReader
 import scala.io.StdIn.readLine
+import ParserAST.Parser as ParserAST
+
 
 @main def main(): Unit =
   val inputString = Iterator.
@@ -12,11 +14,16 @@ import scala.io.StdIn.readLine
     takeWhile(_ != null).
     mkString("\n")
 
-  val inputSexp = readSexp(inputString)
-  val nameCount = counter(inputSexp)
-  println(s"\"$nameCount\"")
+  val inputSexp = MainFuncs.readSexp(inputString)
+  val prog = ParserAST.parse(inputSexp)
+  val has_error = ParserAST.hasError(prog)
+  if has_error then
+    println("parser error")
+  else
+    println("belongs")
 
-/** Parses given input string into an SExpr
+object MainFuncs {
+  /** Parses given input string into an SExpr
   *
   * @param input string, obtained from stdio
   * @return a signle parsed SExpr
@@ -29,6 +36,8 @@ def readSexp(input :String): SExpr =
 
 /** Counts number of aNames in a given Example s-expression
   * Throws an exception if an unexpected SExpr node is found
+  * 
+  * NOTE: For HW1
   *
   * @param input SExpr read from stdio
   * @return integer count of aName elements
@@ -39,3 +48,5 @@ def counter(input :SExpr): Int =
     case SDouble(x) => 0 
     case SList(elements) => elements.map(counter).sum 
     case _ => throw new Exception("SExpr not part of Example Structure: " + input)
+}
+

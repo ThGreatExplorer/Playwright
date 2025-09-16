@@ -26,11 +26,7 @@ enum BlockErr extends ParserError:
 enum ExprErr extends ParserError:
     case ExprBadNumber
     case ExprBadVar
-    case ExprAddBadLHS
-    case ExprAddBadRHS
-    case ExprDivBadLHS
-    case ExprDivBadRHS
-    case ExprEqualsBadLHS
-    case ExprEqualsBadRHS
+    case ExprBadLHS
+    case ExprBadRHS
     case ExprBadOperand
     case ExprFailedNumVarAddDivEqualsMatch
