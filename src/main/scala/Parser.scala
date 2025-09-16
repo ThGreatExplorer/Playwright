@@ -3,7 +3,31 @@ import sexprs.SExprs._
 
 object Parser:
 
-    def hasError(p: Program): Boolean = true
+    def hasError(p: Program): Boolean = 
+        def stmtHasError(s: Statement): Boolean =
+            s match
+                case Statement.Err(_) => true
+                case Statement.Assign(_, lhs) => exprHasError(lhs)
+                case Statement.Ifelse(guard, tbranch, ebranch) =>
+                    exprHasError(guard) || blockHasError(tbranch) || blockHasError(ebranch)
+                case Statement.While(guard, body) =>
+                    exprHasError(guard) || blockHasError(body)
+
+        def blockHasError(b: Block): Boolean =
+            b match
+                case Block.Err(_) => true
+                case Block.One(stmt) => stmtHasError(stmt)
+                case Block.Many(stmts) => stmts.exists(s => stmtHasError(s))
+        
+        def exprHasError(e: Expression): Boolean = 
+            e match
+                case Expression.Err(_) => true
+                case _ => false
+        
+        p match
+            case Program.Err(_) => true
+            case Program.Prog(stmts, expr) =>
+                stmts.exists {s => stmtHasError(s)} || exprHasError(expr)
 
     def parse(sexpr: SExpr): Program =
         def parseProg(sexpr: SExpr): Program =
