@@ -3,7 +3,8 @@ import sexprs.SExprs._
 
 object Parser:
 
-    def hasError(p: Program): Boolean = true
+    def hasError(p: Program): Boolean = 
+        return p.hasError
 
     def parse(sexpr: SExpr): Program =
         def parseProg(sexpr: SExpr): Program =
