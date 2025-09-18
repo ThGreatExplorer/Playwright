@@ -16,11 +16,12 @@ import ParserAST.Parser as ParserAST
 
   val inputSexp = MainFuncs.readSexp(inputString)
   val prog = ParserAST.parse(inputSexp)
-  val has_error = ParserAST.hasError(prog)
-  if has_error then
-    println("parser error")
+
+  if ParserAST.hasError(prog) then
+    println("\"parser error\"")
   else
-    println("belongs")
+    println("\"belongs\"")
+
 
 object MainFuncs {
   /** Parses given input string into an SExpr
@@ -28,13 +29,13 @@ object MainFuncs {
   * @param input string, obtained from stdio
   * @return a signle parsed SExpr
   */
-def readSexp(input :String): SExpr =
-  val reader = new StringReader(input)
-  val lexer  = new Lexer(reader)
-  val parser = new Parser(lexer)
-  parser.parse
+  def readSexp(input :String): SExpr =
+    val reader = new StringReader(input)
+    val lexer  = new Lexer(reader)
+    val parser = new Parser(lexer)
+    parser.parse
 
-/** Counts number of aNames in a given Example s-expression
+  /** Counts number of aNames in a given Example s-expression
   * Throws an exception if an unexpected SExpr node is found
   * 
   * NOTE: For HW1
@@ -42,11 +43,11 @@ def readSexp(input :String): SExpr =
   * @param input SExpr read from stdio
   * @return integer count of aName elements
   */
-def counter(input :SExpr): Int = 
-  input match 
-    case SSymbol(x) => 1 
-    case SDouble(x) => 0 
-    case SList(elements) => elements.map(counter).sum 
-    case _ => throw new Exception("SExpr not part of Example Structure: " + input)
+  def counter(input :SExpr): Int = 
+    input match 
+      case SSymbol(x) => 1 
+      case SDouble(x) => 0 
+      case SList(elements) => elements.map(counter).sum 
+      case _ => throw new Exception("SExpr not part of Example Structure: " + input)
 }
 

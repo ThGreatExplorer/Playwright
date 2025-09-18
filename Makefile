@@ -4,15 +4,15 @@
 
 build:
 		mkdir -p $(DIR) $(DIR)/Other $(DIR)/Tests
-	  printf "#!/bin/bash\njava -jar ./Other/$(EXE)\n" > $(DIR)/$(EXE).sh && chmod +x $(DIR)/$(EXE).sh
+	  printf "#!/bin/bash\njava -jar ./Other/$(EXE).jar\n" > $(DIR)/$(EXE) && chmod +x $(DIR)/$(EXE)
 		sbt test
-		sbt -DEXECUTABLE=$(EXE) -DHW="hw$(DIR)" assembly
-		cp target/scala-3.7.2/$(EXE) $(DIR)/Other/$(EXE)
+		sbt -DEXECUTABLE=$(EXE).jar -DHW="hw$(DIR)" assembly
+		cp target/scala-3.7.2/$(EXE).jar $(DIR)/Other/$(EXE).jar
 		make test
 
 test:
 		cd $(DIR) && \
 		for t in $$(seq 0 $$(($(TESTS)-1))); do \
 				echo "Running test $$t..."; \
-				./$(EXE).sh < Tests/$$t-in.ss | diff - Tests/$$t-out.ss; \
+				./$(EXE) < Tests/$$t-in.ss | diff - Tests/$$t-out.ss; \
 		done
