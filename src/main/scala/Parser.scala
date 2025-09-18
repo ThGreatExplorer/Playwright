@@ -3,10 +3,17 @@ package ParserAST
 import ast._
 import sexprs.SExprs._
 
-val keywords: List[SSymbol] = List(SSymbol("="), SSymbol("if0"), SSymbol("while0"), SSymbol("block"), SSymbol("/"), SSymbol("+"), SSymbol("=="))
+val keywords: List[SSymbol] = 
+    List(SSymbol("="), SSymbol("if0"), SSymbol("while0"), SSymbol("block"), SSymbol("/"), SSymbol("+"), SSymbol("=="))
 
 object Parser:
 
+    /** Walks the AST and determines if any of the nodes contain an error. 
+      * Short-circuits.
+      * 
+      * @param p BareBones AST
+      * @return true if the AST contains error nodes
+      */
     def hasError(p: Program): Boolean = 
         def stmtHasError(s: Statement): Boolean =
             s match
@@ -16,23 +23,26 @@ object Parser:
                     exprHasError(guard) || blockHasError(tbranch) || blockHasError(ebranch)
                 case Statement.While(guard, body) =>
                     exprHasError(guard) || blockHasError(body)
-
         def blockHasError(b: Block): Boolean =
             b match
                 case Block.Err(_) => true
                 case Block.One(stmt) => stmtHasError(stmt)
                 case Block.Many(stmts) => stmts.exists(s => stmtHasError(s))
-        
         def exprHasError(e: Expression): Boolean = 
             e match
                 case Expression.Err(_) => true
                 case _ => false
-        
         p match
             case Program.Err(_) => true
             case Program.Prog(stmts, expr) =>
                 stmts.exists {s => stmtHasError(s)} || exprHasError(expr)
 
+    /** Parses the given sexpr into a BareBones program to the best of its ability.
+      * If grammar is invalid, an error node is inserted instead.
+      *
+      * @param sexpr SExpr read in from input
+      * @return BareBones AST with possible error nodes if grammar rules are violated
+      */
     def parse(sexpr: SExpr): Program =
         def parseProg(sexpr: SExpr): Program =
             sexpr match
@@ -48,18 +58,18 @@ object Parser:
                 case _ => Program.Err(ProgErr.ProgNotList)
         def parseStmt(sexpr: SExpr): Statement = 
             sexpr match
-                 // Assignment
+                 // Assignment: (Variable = Expression)
                 case SList(name :: SSymbol("=") :: expr :: Nil) =>
-                    parseVar(name, Expression.Err(ExprErr.ExprBadVar)) match
-                        // reassign the error to be a Statement Error
-                        case Expression.Err(e) => Statement.Err(StmtErr.StmtAssignBadLHS)
-                        case Expression.Var(v) => Statement.Assign(Expression.Var(v), parseExpr(expr))
-                case SList(name :: SSymbol("=") :: Nil) =>
-                    Statement.Err(StmtErr.StmtAssignBadRHS)
+                    Statement.Assign(
+                        parseVar(name), 
+                        parseExpr(expr)
+                    )
                 case SList(SSymbol("=") :: _) =>
                     Statement.Err(StmtErr.StmtAssignBadLHS)
-
-                // IfElse
+                case SList(name :: SSymbol("=") :: _) =>
+                    Statement.Err(StmtErr.StmtAssignBadRHS)
+                
+                // IfElse: (if0 Expression Block Block)
                 case SList(SSymbol("if0") :: grd :: thn :: els :: Nil) =>
                     Statement.Ifelse(
                         parseExpr(grd),
@@ -73,7 +83,7 @@ object Parser:
                 case SList(SSymbol("if0") :: Nil) =>
                     Statement.Err(StmtErr.StmtIfelseNoGuard)
 
-                // While
+                // While: (while0 Expression Block)
                 case SList(SSymbol("while0") :: grd :: body :: Nil) =>
                     Statement.While(
                         parseExpr(grd),
@@ -84,37 +94,52 @@ object Parser:
                 case SList(SSymbol("while0") :: Nil) =>
                     Statement.Err(StmtErr.StmtWhileNoGuard)
 
-                case _ => Statement.Err(StmtErr.StmtFailedAssignIfWhileMatch)
+                case _ => Statement.Err(StmtErr.StmtMalformed)
         def parseBlock(sexpr: SExpr): Block = 
             sexpr match
+                // Many: (block Statement^+)
+                case SList(SSymbol("block") :: Nil) => 
+                    Block.Err(BlockErr.BlockManyNoStmts)
                 case SList(SSymbol("block") :: xs) =>
                     Block.Many(xs.map(parseStmt))
+                // One: Statement
                 case _ => 
-                    Block.Err(BlockErr.BlockFailedOneManyBlockMatch)
+                    Block.One(parseStmt(sexpr))
         def parseExpr(sexpr: SExpr): Expression =
             sexpr match
-                case SDouble(n) => Expression.Num(n)
-                case SSymbol(s) => parseVar(SSymbol(s), Expression.Err(ExprErr.ExprBadVar))
-                // Note that an Expression's operations can only be variables so 
-                // strictly type check against SSymbols
-                case SList(SSymbol(s_1) :: SSymbol(op) :: SSymbol(s_2) :: Nil) => 
-                    (parseExpr(SSymbol(s_1)), parseExpr(SSymbol(s_2))) match
-                        case (Expression.Var(v1), Expression.Var(v2)) => 
-                            op match
-                                case "+" => Expression.Add(Expression.Var(v1), Expression.Var(v2))
-                                case "/" => Expression.Div(Expression.Var(v1), Expression.Var(v2))
-                                case "==" => Expression.Equals(Expression.Var(v1), Expression.Var(v2))
-                                case _ => Expression.Err(ExprErr.ExprBadOperand)
-                        case (Expression.Err(_), Expression.Var(_)) => Expression.Err(ExprErr.ExprBadLHS)
-                        case (Expression.Var(_), Expression.Err(_)) => Expression.Err(ExprErr.ExprBadRHS)
-                        case _ => Expression.Err(ExprErr.ExprBadLHS)
-                case _ => Expression.Err(ExprErr.ExprFailedNumVarAddDivEqualsMatch)
-        def parseVar(ssymbol: SExpr, err: Expression.Err): Expression.Var | Expression.Err = 
-            // make sure its not a keyword
+                // Num: the set of GoodNumbers comprises all inexact numbers
+                //      (doubles) between -1000.0 and +1000.0, inclusive.
+                case SDouble(n) => 
+                    if ((n >= -1000.0) && (n <= 1000.0))
+                        Expression.Num(n)
+                    else
+                        Expression.Err(ExprErr.ExprBadNumber)
+                // Var: the set of Variables consists of all symboSls, minus keywords
+                case SSymbol(s) => 
+                    parseVar(sexpr)
+                // Binops
+                // Add:    (Variable + Variable)
+                // Div:    (Variable / Variable)
+                // Equals: (Variable == Variable)
+                case SList(sexp1 :: SSymbol(op) :: sexp2 :: Nil) => {
+                    val (v1, v2) = (parseVar(sexp1), parseVar(sexp2))
+                    op match
+                        case "+" =>  Expression.Add(v1, v2)
+                        case "/" =>  Expression.Div(v1, v2)
+                        case "==" => Expression.Equals(v1, v2)
+                        case _ =>    Expression.Err(ExprErr.ExprBadOperand)
+                }
+                case _ => 
+                    Expression.Err(ExprErr.ExprMalformed)
+        def parseVar(ssymbol: SExpr): Expression.Var | Expression.Err = 
             ssymbol match
-                case SSymbol(s) => if !keywords.contains(SSymbol(s)) then Expression.Var(s) else err
-                case _ => err
-
+                // Var: the set of Variables consists of all symboSls, minus keywords
+                case SSymbol(s) => 
+                    if !keywords.contains(ssymbol) then
+                        Expression.Var(s) 
+                    else 
+                        Expression.Err(ExprErr.ExprVarIsKeyword)
+                case _ => Expression.Err(ExprErr.ExprBadVar)
         parseProg(sexpr)
         
 

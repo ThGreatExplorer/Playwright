@@ -11,7 +11,7 @@ enum Program:
 //                | (if0 Expression Block Block)
 //                | (while0 Expression Block)
 enum Statement:
-    case Assign(rhs: Expression.Var, lhs: Expression)
+    case Assign(rhs: Expression.Var | Expression.Err, lhs: Expression)
     case Ifelse(guard: Expression, tbranch: Block, ebranch: Block)
     case While(guard: Expression, body: Block)
     case Err(e: StmtErr)
@@ -31,7 +31,7 @@ enum Block:
 enum Expression:
     case Num(n: Double)
     case Var(x: String)
-    case Add(lhs: Var, rhs: Var)
-    case Div(lhs: Var, rhs: Var)
-    case Equals(lhs: Var, rhs: Var)
+    case Add(lhs: Var | Err, rhs: Var | Err)
+    case Div(lhs: Var | Err, rhs: Var | Err)
+    case Equals(lhs: Var | Err, rhs: Var | Err)
     case Err(e: ExprErr)

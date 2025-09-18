@@ -16,17 +16,14 @@ enum StmtErr extends ParserError:
     case StmtIfelseNoEBranch
     case StmtWhileNoGuard
     case StmtWhileNoBody
-    case StmtFailedAssignIfWhileMatch
+    case StmtMalformed
 
 enum BlockErr extends ParserError:
     case BlockManyNoStmts
-    case BlockOneNoStmt
-    case BlockFailedOneManyBlockMatch
 
 enum ExprErr extends ParserError:
     case ExprBadNumber
+    case ExprVarIsKeyword
     case ExprBadVar
-    case ExprBadLHS
-    case ExprBadRHS
     case ExprBadOperand
-    case ExprFailedNumVarAddDivEqualsMatch
+    case ExprMalformed
