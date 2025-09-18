@@ -8,35 +8,6 @@ val keywords: List[SSymbol] =
 
 object Parser:
 
-    /** Walks the AST and determines if any of the nodes contain an error. 
-      * Short-circuits.
-      * 
-      * @param p BareBones AST
-      * @return true if the AST contains error nodes
-      */
-    def hasError(p: Program): Boolean = 
-        def stmtHasError(s: Statement): Boolean =
-            s match
-                case Statement.Err(_) => true
-                case Statement.Assign(_, lhs) => exprHasError(lhs)
-                case Statement.Ifelse(guard, tbranch, ebranch) =>
-                    exprHasError(guard) || blockHasError(tbranch) || blockHasError(ebranch)
-                case Statement.While(guard, body) =>
-                    exprHasError(guard) || blockHasError(body)
-        def blockHasError(b: Block): Boolean =
-            b match
-                case Block.Err(_) => true
-                case Block.One(stmt) => stmtHasError(stmt)
-                case Block.Many(stmts) => stmts.exists(s => stmtHasError(s))
-        def exprHasError(e: Expression): Boolean = 
-            e match
-                case Expression.Err(_) => true
-                case _ => false
-        p match
-            case Program.Err(_) => true
-            case Program.Prog(stmts, expr) =>
-                stmts.exists {s => stmtHasError(s)} || exprHasError(expr)
-
     /** Parses the given sexpr into a BareBones program to the best of its ability.
       * If grammar is invalid, an error node is inserted instead.
       *
@@ -143,7 +114,37 @@ object Parser:
         parseProg(sexpr)
         
 
-    
+    /** Walks the AST and determines if any of the nodes contain an error. 
+      * Short-circuits.
+      * 
+      * @param p BareBones AST
+      * @return true if the AST contains error nodes
+      */
+    def hasError(p: Program): Boolean = 
+        def stmtHasError(s: Statement): Boolean =
+            s match
+                case Statement.Err(_) => true
+                case Statement.Assign(lhs, rhs) => exprHasError(lhs) || exprHasError(rhs)
+                case Statement.Ifelse(guard, tbranch, ebranch) =>
+                    exprHasError(guard) || blockHasError(tbranch) || blockHasError(ebranch)
+                case Statement.While(guard, body) =>
+                    exprHasError(guard) || blockHasError(body)
+        def blockHasError(b: Block): Boolean =
+            b match
+                case Block.Err(_) => true
+                case Block.One(stmt) => stmtHasError(stmt)
+                case Block.Many(stmts) => stmts.exists(s => stmtHasError(s))
+        def exprHasError(e: Expression): Boolean = 
+            e match
+                case Expression.Err(_) => true
+                case Expression.Add(lhs, rhs) => exprHasError(lhs) || exprHasError(rhs)
+                case Expression.Div(lhs, rhs) => exprHasError(lhs) || exprHasError(rhs)
+                case Expression.Equals(lhs, rhs) => exprHasError(lhs) || exprHasError(rhs)
+                case _ => false
+        p match
+            case Program.Err(_) => true
+            case Program.Prog(stmts, expr) =>
+                stmts.exists {s => stmtHasError(s)} || exprHasError(expr)
 
 
 
