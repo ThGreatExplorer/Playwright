@@ -139,7 +139,7 @@ class Lexer(reader: java.io.Reader) {
             (-1, readInt(nextChar, 10))
           else
             (1, readInt(d, 10))
-          
+
         if (peek != '.')
           IntLit(sign * intPart)
         else {

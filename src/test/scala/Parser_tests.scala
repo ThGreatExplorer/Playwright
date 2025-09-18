@@ -16,36 +16,39 @@ class ParserTests extends FunSuite {
         () () ()
     )"""
     val inputSexp = MainFuncs.readSexp(test_str1)
-    val prog = Parser.parse(inputSexp)
+    val prog      = Parser.parse(inputSexp)
     val has_error = Parser.hasError(prog)
-    assertEquals(prog, Program.Prog(
-      stmts = List(
-        Statement.Err(
-          e = StmtErr.StmtFailedAssignIfWhileMatch
+    assertEquals(
+      prog,
+      Program.Prog(
+        stmts = List(
+          Statement.Err(
+            e = StmtErr.StmtMalformed
+          ),
+          Statement.Err(
+            e = StmtErr.StmtMalformed
+          ),
+          Statement.Err(
+            e = StmtErr.StmtMalformed
+          ),
+          Statement.Err(
+            e = StmtErr.StmtMalformed
+          ),
+          Statement.Err(
+            e = StmtErr.StmtMalformed
+          ),
+          Statement.Err(
+            e = StmtErr.StmtMalformed
+          ),
+          Statement.Err(
+            e = StmtErr.StmtMalformed
+          )
         ),
-        Statement.Err(
-          e = StmtErr.StmtFailedAssignIfWhileMatch
-        ),
-        Statement.Err(
-          e = StmtErr.StmtFailedAssignIfWhileMatch
-        ),
-        Statement.Err(
-          e = StmtErr.StmtFailedAssignIfWhileMatch
-        ),
-        Statement.Err(
-          e = StmtErr.StmtFailedAssignIfWhileMatch
-        ),
-        Statement.Err(
-          e = StmtErr.StmtFailedAssignIfWhileMatch
-        ),
-        Statement.Err(
-          e = StmtErr.StmtFailedAssignIfWhileMatch
-        ),
-      ),
-      expr = Expression.Err(
-        e = ExprErr.ExprFailedNumVarAddDivEqualsMatch
+        expr = Expression.Err(
+          e = ExprErr.ExprMalformed
+        )
       )
-    ))
+    )
     assertEquals(has_error, true)
   }
 
@@ -64,18 +67,22 @@ class ParserTests extends FunSuite {
         stmts = List(
           Statement.Ifelse(
             Expression.Var("bar"),
-            Block.Many(List(
-              Statement.Assign(
-                rhs = Expression.Var("baz"),
-                lhs = Expression.Num(1.0)
+            Block.Many(
+              List(
+                Statement.Assign(
+                  rhs = Expression.Var("baz"),
+                  lhs = Expression.Num(1.0)
+                )
               )
-            )),
-            Block.Many(List(
-              Statement.Assign(
-                rhs = Expression.Var("qux"),
-                lhs = Expression.Num(-2.3)
+            ),
+            Block.Many(
+              List(
+                Statement.Assign(
+                  rhs = Expression.Var("qux"),
+                  lhs = Expression.Num(-2.3)
+                )
               )
-            ))
+            )
           )
         ),
         expr = Expression.Var("foo")
@@ -93,7 +100,7 @@ class ParserTests extends FunSuite {
                 Statement.Assign(
                   Expression.Var("foo"),
                   Expression.Num(10.0)
-                ), 
+                ),
                 Statement.Assign(
                   Expression.Var("bar"),
                   Expression.Num(-5.5)
@@ -119,31 +126,35 @@ class ParserTests extends FunSuite {
           ),
           Statement.Ifelse(
             guard = Expression.Var("qux"),
-            tbranch = Block.Many(List(
-              Statement.Assign(
-                rhs = Expression.Var("baz"),
-                lhs = Expression.Num(1.0)
+            tbranch = Block.Many(
+              List(
+                Statement.Assign(
+                  rhs = Expression.Var("baz"),
+                  lhs = Expression.Num(1.0)
+                )
               )
-            )),
-            ebranch = Block.Many(List(
-              Statement.Assign(
-                rhs = Expression.Var("foo"),
-                lhs = Expression.Num(-0.5)
+            ),
+            ebranch = Block.Many(
+              List(
+                Statement.Assign(
+                  rhs = Expression.Var("foo"),
+                  lhs = Expression.Num(-0.5)
+                )
               )
-            ))
+            )
           )
         ),
         expr = Expression.Var("bar")
-        ),
+      ),
       false
     )
-  // Add more cases as needed
+    // Add more cases as needed
   )
 
   cases.foreach { (input, expected, expectedError) =>
     test(s"Valid Parser Prog + hasError test for input: $input") {
       val inputSexp = MainFuncs.readSexp(input)
-      val prog = Parser.parse(inputSexp)
+      val prog      = Parser.parse(inputSexp)
       val has_error = Parser.hasError(prog)
       assertEquals(prog, expected)
       assertEquals(has_error, expectedError)

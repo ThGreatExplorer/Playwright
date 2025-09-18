@@ -1,7 +1,7 @@
 val scala3Version = "3.7.2"
 
 val executable = sys.props.getOrElse("EXECUTABLE", "xcount")
-val hw = sys.props.getOrElse("HW", "hw1")
+val hw         = sys.props.getOrElse("HW", "hw1")
 
 lazy val root = project
   .in(file("."))
