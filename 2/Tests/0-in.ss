@@ -1,1 +1,8 @@
-((foo = (bar + baz)) (if0 qux (block (baz = 1.0)) (block (foo = -0.5))) bar)
+((a = 0.0
+     (if0 (a == zero)
+          (block (b = 100.5)
+                 (c = (b / two))
+                 (while0 (c == target)
+                         (c = (c + increment))))
+           (a = one)))
+ a)

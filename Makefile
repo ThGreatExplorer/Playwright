@@ -10,6 +10,11 @@ build:
 		cp target/scala-3.7.2/$(EXE).jar $(DIR)/Other/$(EXE).jar
 		make test
 
+rebuild:
+		sbt -DEXECUTABLE=$(EXE).jar -DHW="hw$(DIR)" assembly
+		cp target/scala-3.7.2/$(EXE).jar $(DIR)/Other/$(EXE).jar
+		make test
+
 test:
 		cd $(DIR) && \
 		for t in $$(seq 0 $$(($(TESTS)-1))); do \
