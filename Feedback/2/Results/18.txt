@@ -1,0 +1,5 @@
+(testing /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./2/xparse)
+(testing /course/cs4400f25/ta4400/all-repos/students/2/???/Tests/0-in.ss /course/cs4400f25/ta4400/all-repos/students/2/???/Tests/0-out.ss)
+(results for test /course/cs4400f25/ta4400/all-repos/students/2/???/Tests/0-in.ss pass)
+((/course/cs4400f25/ta4400/all-repos/students/2/???/Tests/0-in.ss /course/cs4400f25/ta4400/all-repos/students/2/???/Tests/0-out.ss))
+((passed 1) (total 1) (partial-score 1))
