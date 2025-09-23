@@ -5,7 +5,7 @@ import sexprs.Parser
 import sexprs.SExprs._
 import java.io.StringReader
 import scala.io.StdIn.readLine
-import ExampleBB.Checker as EBBChecker
+import ExampleBB.Checker
 import ParserAST.Parser as ParserAST
 
 @main def main(): Unit =

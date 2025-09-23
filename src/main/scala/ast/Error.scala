@@ -22,7 +22,6 @@ enum BlockErr extends ParserError:
     case BlockManyNoStmts
 
 enum ExprErr extends ParserError:
-    case ExprBadNumber
     case ExprVarIsKeyword
     case ExprBadVar
     case ExprBadOperand

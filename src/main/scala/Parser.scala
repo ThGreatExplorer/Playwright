@@ -79,10 +79,7 @@ object Parser:
                 // Num: the set of GoodNumbers comprises all inexact numbers
                 //      (doubles) between -1000.0 and +1000.0, inclusive.
                 case SDouble(n) => 
-                    if ((n >= -1000.0) && (n <= 1000.0))
-                        Expression.Num(n)
-                    else
-                        Expression.Err(ExprErr.ExprBadNumber)
+                    Expression.Num(n)
                 // Var: the set of Variables consists of all symboSls, minus keywords
                 case SSymbol(s) => 
                     parseVar(sexpr)
