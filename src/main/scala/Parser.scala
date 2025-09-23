@@ -20,11 +20,21 @@ object Parser:
                     val stmts = elems.dropRight(1)
                     val expr = elems.last
                     Program.Prog(
-                        stmts.map(parseStmt),
+                        parseStmtsTail(stmts),
                         parseExpr(expr)
                     )
                 }
                 case _ => Program.Err(ProgErr.ProgNotList)
+        // use tail-recursion for parsing lists of statements to avoid stack overflow
+        // map uses recursion for Lists under the hood
+        def parseStmtsTail(stmts: List[SExpr]): List[Statement] =
+            @annotation.tailrec
+            def loop(remaining: List[SExpr], acc: List[Statement]): List[Statement] =
+                remaining match
+                    case Nil => acc.reverse
+                    case h :: t => loop(t, parseStmt(h) :: acc)
+            loop(stmts, Nil)
+
         def parseStmt(sexpr: SExpr): Statement = 
             sexpr match
                  // Assignment: (Variable = Expression)
@@ -70,7 +80,7 @@ object Parser:
                 case SList(SSymbol("block") :: Nil) => 
                     Block.Err(BlockErr.BlockManyNoStmts)
                 case SList(SSymbol("block") :: xs) =>
-                    Block.Many(xs.map(parseStmt))
+                    Block.Many(parseStmtsTail(xs))
                 // One: Statement
                 case _ => 
                     Block.One(parseStmt(sexpr))
@@ -128,7 +138,9 @@ object Parser:
             b match
                 case Block.Err(_) => true
                 case Block.One(stmt) => stmtHasError(stmt)
-                case Block.Many(stmts) => stmts.exists(s => stmtHasError(s))
+                // use an iterative approach to avoid stack overflow as exists is 
+                // recursively implemented on Lists
+                case Block.Many(stmts) => stmts.iterator.exists(s => stmtHasError(s))
         def exprHasError(e: Expression): Boolean = 
             e match
                 case Expression.Err(_) => true
@@ -139,7 +151,7 @@ object Parser:
         p match
             case Program.Err(_) => true
             case Program.Prog(stmts, expr) =>
-                stmts.exists {s => stmtHasError(s)} || exprHasError(expr)
+                stmts.iterator.exists {s => stmtHasError(s)} || exprHasError(expr)
 
 
 

@@ -56,11 +56,15 @@ object MainFuncs {
   * @param input SExpr read from stdio
   * @return integer count of aName elements
   */
-  def counter(input :SExpr): Int = 
-    input match 
-      case SSymbol(x) => 1 
-      case SDouble(x) => 0 
-      case SList(elements) => elements.map(counter).sum 
-      case _ => throw new Exception("SExpr not part of Example Structure: " + input)
+  def counter(input: SExpr): Int =
+    @annotation.tailrec
+    def loop(stack: List[SExpr], acc: Int): Int = 
+      stack match
+        case Nil => acc
+        case SSymbol(_) :: rest => loop(rest, acc + 1)
+        case SDouble(_) :: rest => loop(rest, acc)
+        case SList(elements) :: rest => loop(elements ++ rest, acc)
+        case head :: _ => throw new Exception("SExpr not part of Example Structure: " + head)
+    loop(List(input), 0)
 }
 
