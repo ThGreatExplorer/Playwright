@@ -29,7 +29,8 @@ class CSKMachine( var control : Control, var store : Map[String, Double], var ko
 
   def transition(state: CSKMachine) : CSKMachine = {
     (state.control, state.kont) match {
-      // assignment statements
+
+      // Assignment Statements
       case (Control.Search, Kont.Prog(Nil, expr)) => {
         new CSKMachine(
           control = Control.Value(expr),
@@ -55,7 +56,64 @@ class CSKMachine( var control : Control, var store : Map[String, Double], var ko
           case Expression.Err(e) => _construct_error_state(new RuntimeError.UnreachableState("Assignment to malformed variable, passed malformed program into CSK machine"))
         }
       }
-      // expresssions
+
+      // While Loops
+      case (Control.Value(Expression.Num(n)), Kont.Prog(Statement.While(tst, body) :: rest, expr)) =>
+        if (n == 0) 
+          new CSKMachine(
+            control = Control.Search,
+            store = state.store,
+            kont = Kont.Prog(body :: Statement.While(tst, body) :: rest, expr)
+          )
+        else 
+          new CSKMachine(
+            control = Control.Search,
+            store = state.store,
+            kont = Kont.Prog(rest, expr)
+          )
+      case (Control.Search, Kont.Prog(Statement.While(tst, body) :: rest, expr)) =>
+        new CSKMachine(
+          control = Control.Value(tst),
+          store = state.store,
+          kont = Kont.Prog(Statement.While(tst, body) :: rest, expr)
+        )
+
+      // Conditionals
+      case (Control.Value(Expression.Num(n)), Kont.Prog(Statement.Ifelse(tst, thn, els) :: rest, expr)) =>
+        if (n == 0) 
+          new CSKMachine(
+            control = Control.Search,
+            store = state.store,
+            kont = Kont.Prog(thn :: rest, expr)
+          )
+        else 
+          new CSKMachine(
+            control = Control.Search,
+            store = state.store,
+            kont = Kont.Prog(els :: rest, expr)
+          )
+      case (Control.Search, Kont.Prog(Statement.Ifelse(tst, thn, els) :: rest, expr)) =>
+        new CSKMachine(
+          control = Control.Value(tst),
+          store = state.store,
+          kont = Kont.Prog(Statement.Ifelse(tst, thn, els) :: rest, expr)
+        )
+
+      // Block Statements
+      case (Control.Search, Kont.Prog(Block.One(stmt) :: rest, expr)) =>
+        new CSKMachine(
+          control = Control.Search,
+          store = state.store,
+          kont = Kont.Prog(stmt :: rest, expr)
+        )
+      case (Control.Search, Kont.Prog(Block.Many(stmts) :: rest, expr)) =>
+        new CSKMachine(
+          control = Control.Search,
+          store = state.store,
+          kont = Kont.Prog(stmts ::: rest, expr)
+        )
+
+      // Expresssions
       case (Control.Value(Expression.Var(x)), _) => {
         if state.store.contains(x) then
           new CSKMachine(
@@ -143,7 +201,7 @@ class CSKMachine( var control : Control, var store : Map[String, Double], var ko
     state.control match {
       case Control.Value(n) => n
       case Control.Err(e) => Control.Err(e)
-      case Control.Search() => throw new Exception("Machine still searching")
+      case Control.Search => throw new Exception("Machine still searching")
     }
   }
 }
