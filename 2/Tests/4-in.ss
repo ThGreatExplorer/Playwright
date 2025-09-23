@@ -4,7 +4,7 @@
       (z = (x / if0))
       (block (temp = (x / y))
              (tempp = (y + temp))
-             (if0 (temp2 == zero)
+             (if0 (tempp == zero)
                   (while0 (temp == tempp)
                           (tempp = (tempp + x)))
                   (while0 (temp == tempp)

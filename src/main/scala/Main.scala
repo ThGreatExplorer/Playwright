@@ -5,16 +5,14 @@ import sexprs.Parser
 import sexprs.SExprs._
 import java.io.StringReader
 import scala.io.StdIn.readLine
+import ExampleBB.Checker as EBBChecker
 import ParserAST.Parser as ParserAST
 
-
 @main def main(): Unit =
-  val inputString = Iterator.
-    continually(readLine).
-    takeWhile(_ != null).
-    mkString("\n")
-
+  val inputString = MainFuncs.getMultilineInput()
   val inputSexp = MainFuncs.readSexp(inputString)
+  ExampleBB.Checker.assertExampleBB(inputSexp)
+
   val prog = ParserAST.parse(inputSexp)
 
   if ParserAST.hasError(prog) then
@@ -24,6 +22,17 @@ import ParserAST.Parser as ParserAST
 
 
 object MainFuncs {
+
+  /** Reads in multi-line input from stdin (w/ readLine) until EOF
+    *
+    * @return possibly multiline String read-in from stdin
+    */
+  def getMultilineInput(): String = 
+    Iterator.
+    continually(readLine).
+    takeWhile(_ != null).
+    mkString("\n")
+
   /** Parses given input string into an SExpr
   *
   * @param input string, obtained from stdio

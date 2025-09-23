@@ -2,9 +2,7 @@ package ParserAST
 
 import ast._
 import sexprs.SExprs._
-
-val keywords: List[SSymbol] = 
-    List(SSymbol("="), SSymbol("if0"), SSymbol("while0"), SSymbol("block"), SSymbol("/"), SSymbol("+"), SSymbol("=="))
+import ExampleBB.bbKeywords
 
 object Parser:
 
@@ -106,7 +104,7 @@ object Parser:
             ssymbol match
                 // Var: the set of Variables consists of all symboSls, minus keywords
                 case SSymbol(s) => 
-                    if !keywords.contains(ssymbol) then
+                    if !bbKeywords.contains(s) then
                         Expression.Var(s) 
                     else 
                         Expression.Err(ExprErr.ExprVarIsKeyword)
