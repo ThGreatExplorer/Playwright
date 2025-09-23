@@ -1,5 +1,6 @@
 import ast._
 import scala.annotation.static
+import scala.collection.mutable.Map
 
 enum Control {
   case Value(n : Expression)
@@ -7,7 +8,12 @@ enum Control {
   case Search
 }
 
-class CSKMachine( var control : Control, var store : Map[String, Double], var kont: Program) {
+enum Kont {
+  case Prog(stmts: List[Statement], blocks: List[Block], expr: Expression)
+  case Empty
+}
+
+class CSKMachine( var control : Control, var store : Map[String, Double], var kont: Kont) {
 
   def load(prog: Program) : CSKMachine = {
     new CSKMachine(
@@ -64,24 +70,32 @@ class CSKMachine( var control : Control, var store : Map[String, Double], var ko
               store = state.store + (x -> n),
               kont = Program.Prog(rest, expr)
             )
-          case Expression.Err(e) =>
-            new CSKMachine(
-              control = Control.Err(new UnreachableStateError("RHS of assignment is an error expression -> Passed malformed program to CSK machine")),
-              store = state.store,
-              kont = state.kont
-            )
+          case Expression.Err(e) => _
         }
-        
       }
       // expresssions
+      case (Control.Value(Expression.Var(x)), _) => {
+        if state.store.contains(x) then
+          new CSKMachine(
+            control = Control.Value(Expression.Num(state.store(x))),
+            store = state.store,
+            kont = state.kont
+          )
+        else
+          _construct_error_state(new VarNotFoundError("Variable " + x + " not found in store"))
+      }
       
-      case Program.Err(e) => new CSKMachine(
-          control = Control.Err(new UnreachableStateError("Passed a malformed program to the CSK machine")),
-          store = state.store,
-          kont = state.kont
-      )
+      case Program.Err(e) => _construct_error_state(new UnreachableStateError("Passed a malformed program to the CSK machine"))
     }
   }
+
+  private def _construct_error_state(e: RuntimeError) : CSKMachine = {
+    new CSKMachine(
+      control = Control.Err(e),
+      store = Map(),
+      kont = Kont.Empty
+    )
+  } 
 
   def isFinal(state: CSKMachine) : Boolean = {
     state.control match { }
