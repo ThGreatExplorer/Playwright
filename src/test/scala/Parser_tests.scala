@@ -56,7 +56,7 @@ class ParserTests extends FunSuite {
     (
       "((foo = 123.4) bar)",
       Program.Prog(
-        stmts = List(Statement.Assign(rhs = Expression.Var("foo"), lhs = Expression.Num(123.4))),
+        stmts = List(Statement.Assign(lhs = Expression.Var("foo"), rhs = Expression.Num(123.4))),
         expr = Expression.Var("bar")
       ),
       false
@@ -70,16 +70,16 @@ class ParserTests extends FunSuite {
             Block.Many(
               List(
                 Statement.Assign(
-                  rhs = Expression.Var("baz"),
-                  lhs = Expression.Num(1.0)
+                  lhs = Expression.Var("baz"),
+                  rhs = Expression.Num(1.0)
                 )
               )
             ),
             Block.Many(
               List(
                 Statement.Assign(
-                  rhs = Expression.Var("qux"),
-                  lhs = Expression.Num(-2.3)
+                  Expression.Var("qux"),
+                  Expression.Num(-2.3)
                 )
               )
             )
@@ -118,8 +118,8 @@ class ParserTests extends FunSuite {
       Program.Prog(
         stmts = List(
           Statement.Assign(
-            rhs = Expression.Var("foo"),
-            lhs = Expression.Add(
+            lhs = Expression.Var("foo"),
+            rhs = Expression.Add(
               lhs = Expression.Var("bar"),
               rhs = Expression.Var("baz")
             )
@@ -129,16 +129,16 @@ class ParserTests extends FunSuite {
             tbranch = Block.Many(
               List(
                 Statement.Assign(
-                  rhs = Expression.Var("baz"),
-                  lhs = Expression.Num(1.0)
+                  lhs = Expression.Var("baz"),
+                  rhs = Expression.Num(1.0)
                 )
               )
             ),
             ebranch = Block.Many(
               List(
                 Statement.Assign(
-                  rhs = Expression.Var("foo"),
-                  lhs = Expression.Num(-0.5)
+                  lhs = Expression.Var("foo"),
+                  rhs = Expression.Num(-0.5)
                 )
               )
             )
