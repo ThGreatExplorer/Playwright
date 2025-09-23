@@ -1,6 +1,7 @@
 import ast.Error
 
-class RuntimeError extends Error {}
-
-class VarNotFoundError(msg: String) extends RuntimeError {}
-class UnreachableStateError(val msg : String) extends RuntimeError {}
+enum RuntimeError extends Error {
+  case VarNotFound(msg: String)
+  case UnreachableState(msg: String)
+  case DivisionByZero(msg: String)
+}

@@ -1,6 +1,7 @@
 import ast._
 import scala.annotation.static
 import scala.collection.mutable.Map
+import scala.quoted.Expr
 
 enum Control {
   case Value(n : Expression)
@@ -19,43 +20,24 @@ class CSKMachine( var control : Control, var store : Map[String, Double], var ko
     new CSKMachine(
       control = Control.Search,
       store = Map(),
-      kont = prog
+      kont = prog match {
+        case Program.Prog(stmts, expr) => Kont.Prog(stmts, expr)
+        case Program.Err(e) => Kont.Empty
+      }
     )
   }
 
   def transition(state: CSKMachine) : CSKMachine = {
     (state.control, state.kont) match {
-      case (Control.Search, Program.Prog(Nil, Expression.Num(v))) => {
+      // assignment statements
+      case (Control.Search, Kont.Prog(Nil, expr)) => {
         new CSKMachine(
-          control = Control.Value(Expression.Num(v)),
+          control = Control.Value(expr),
           store = state.store,
           kont = state.kont
         )
       }
-      // in final state
-      case (Control.Value(n), Program.Prog(Nil, Expression.Num(v))) => {
-        new CSKMachine(
-          // should this be n or v?
-          control = Control.Value(n),
-          store = state.store,
-          kont = state.kont
-        )
-      }
-      case (Control.Search, Program.Prog(Nil, Expression.Var(x))) => {
-        if state.store.contains(x) then
-          new CSKMachine(
-            control = Control.Value(state.store(x)),
-            store = state.store,
-            kont = state.kont
-          )
-        else
-          new CSKMachine(
-            control = Control.Err(new VarNotFoundError(x)),
-            store = state.store,
-            kont = state.kont
-          )
-      }
-      case (Control.Search, Program.Prog(stmts=Statement.Assign(rhs, lhs) :: rest, expr=expr)) => {
+      case (Control.Search, Kont.Prog(stmts=Statement.Assign(rhs, lhs) :: rest, expr=expr)) => {
         new CSKMachine(
           control = Control.Value(lhs),
           store = state.store,
@@ -68,9 +50,9 @@ class CSKMachine( var control : Control, var store : Map[String, Double], var ko
             new CSKMachine(
               control = Control.Search,
               store = state.store + (x -> n),
-              kont = Program.Prog(rest, expr)
+              kont = Kont.Prog(rest, expr)
             )
-          case Expression.Err(e) => _
+          case Expression.Err(e) => _construct_error_state(new RuntimeError.UnreachableState("Assignment to malformed variable, passed malformed program into CSK machine"))
         }
       }
       // expresssions
@@ -82,10 +64,65 @@ class CSKMachine( var control : Control, var store : Map[String, Double], var ko
             kont = state.kont
           )
         else
-          _construct_error_state(new VarNotFoundError("Variable " + x + " not found in store"))
+          _construct_error_state(new RuntimeError.VarNotFound("Variable " + x + " not found in store"))
       }
-      
-      case Program.Err(e) => _construct_error_state(new UnreachableStateError("Passed a malformed program to the CSK machine"))
+      case (Control.Value(Expression.Add(lhs, rhs)), _) => {
+        (lhs, rhs) match {
+          case (Expression.Var(x), Expression.Var(y)) => {
+            if state.store.contains(x) && state.store.contains(y) then
+              new CSKMachine(
+                control = Control.Value(Expression.Num(state.store(x) + state.store(y))),
+                store = state.store,
+                kont = state.kont
+              )
+            else
+              _construct_error_state(new RuntimeError.VarNotFound("Variable " + (if !state.store.contains(x) then x else y) + " not found in store"))
+          }
+          case (_, _) => {
+            _construct_error_state(new RuntimeError.UnreachableState("Add expression contains non-variable operands, passed malformed program into CSK machine"))
+          }
+        }
+      } 
+      case (Control.Value(Expression.Div(lhs, rhs)), _) => {
+        (lhs, rhs) match {
+          case (Expression.Var(x), Expression.Var(y)) => {
+            if state.store.contains(x) && state.store.contains(y) then
+              if state.store(y) != 0.0 then
+                new CSKMachine(
+                  control = Control.Value(Expression.Num(state.store(x) / state.store(y))),
+                  store = state.store,
+                  kont = state.kont
+                )
+              else
+                _construct_error_state(new RuntimeError.DivisionByZero("Division by zero error in expression: " + x + " / " + y))
+            else
+              _construct_error_state(new RuntimeError.VarNotFound("Variable " + (if !state.store.contains(x) then x else y) + " not found in store"))
+          }
+          case (_, _) => {
+            _construct_error_state(new RuntimeError.UnreachableState("Div expression contains non-variable operands, passed malformed program into CSK machine"))
+          }
+        }
+      }
+      case (Control.Value(Expression.Equals(lhs, rhs)), _) => {
+        (lhs, rhs) match {
+          case (Expression.Var(x), Expression.Var(y)) => {
+            if state.store.contains(x) && state.store.contains(y) then
+              new CSKMachine(
+                // intentionally using 0.0 for true and 1.0 for false to match if0 and while0 spec
+                control = Control.Value(Expression.Num(if state.store(x) == state.store(y) then 0.0 else 1.0)),
+                store = state.store,
+                kont = state.kont
+              )
+            else
+              _construct_error_state(new RuntimeError.VarNotFound("Variable " + (if !state.store.contains(x) then x else y) + " not found in store"))
+          }
+          case (_, _) => {
+            _construct_error_state(new RuntimeError.UnreachableState("Equals expression contains non-variable operands, passed malformed program into CSK machine"))
+          }
+        }
+      }
+
+      case Program.Err(e) => _construct_error_state(new RuntimeError.UnreachableState("Passed a malformed program to the CSK machine"))
     }
   }
 
