@@ -1,8 +1,8 @@
 package ast
 
-trait Error {}
+trait Error
 
-class ParserError extends Error {}
+class ParserError extends Error 
 
 enum ProgErr extends ParserError:
     case ProgNotList
