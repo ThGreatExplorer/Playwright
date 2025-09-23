@@ -13,6 +13,7 @@ HW 2:
 ```
 make build DIR=2 EXE=xparse TESTS=5
 ```
+- Can add `FEEDBACK=true` to run tests for backward compatibility with the Feedback for assignment 2
 
 For more information on the sbt-dotty plugin, see the
 [scala3-example-project](https://github.com/scala/scala3-example-project/blob/main/README.md).
