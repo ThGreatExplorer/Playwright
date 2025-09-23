@@ -9,7 +9,7 @@ enum Control {
 }
 
 enum Kont {
-  case Prog(stmts: List[Statement], blocks: List[Block], expr: Expression)
+  case Prog(stmts: List[Statement | Block], expr: Expression)
   case Empty
 }
 
