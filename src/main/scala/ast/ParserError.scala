@@ -1,7 +1,5 @@
 package ast
 
-trait Error
-
 class ParserError extends Error 
 
 enum ProgErr extends ParserError:

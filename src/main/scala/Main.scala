@@ -7,6 +7,8 @@ import java.io.StringReader
 import scala.io.StdIn.readLine
 import ExampleBB.Checker
 import ParserAST.Parser as ParserAST
+import csk.CSKMachine
+import csk.Control
 
 @main def main(): Unit =
   val inputString = MainFuncs.getMultilineInput()
@@ -18,8 +20,10 @@ import ParserAST.Parser as ParserAST
   if ParserAST.hasError(prog) then
     println("\"parser error\"")
   else
-    println("\"belongs\"")
-
+    // println("\"belongs\"")
+    CSKMachine.run(prog) match
+      case n: Number => println(n)
+      case e: Control.Err => println("\"runtime error\"")
 
 object MainFuncs {
 

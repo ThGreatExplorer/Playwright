@@ -11,7 +11,7 @@ enum Program:
 //                | (if0 Expression Block Block)
 //                | (while0 Expression Block)
 enum Statement:
-    case Assign(rhs: Expression.Var | Expression.Err, lhs: Expression)
+    case Assign(lhs: Expression.Var | Expression.Err, rhs: Expression)
     case Ifelse(guard: Expression, tbranch: Block, ebranch: Block)
     case While(guard: Expression, body: Block)
     case Err(e: StmtErr)
