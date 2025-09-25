@@ -1,6 +1,7 @@
 package ExampleBB
 
 import sexprs.SExprs._
+import scala.annotation.tailrec
 
 val bbKeywords: Set[String] = Set("=", "if0", "while0", "block", "/", "+", "==")
 
@@ -24,5 +25,12 @@ object Checker:
         if (!isGoodNum)
             throw new Exception("SExpr contains SDouble that is not an ExampleBB Number: " + n)
       }
-      case SList(elements) => elements.map(assertExampleBB)
+      case SList(elements) => {
+        @tailrec
+        def loop(remaining: List[SExpr]): Unit =
+          remaining match
+            case Nil => ()
+            case h :: t => assertExampleBB(h); loop(t)
+        loop(elements)
+      } 
       case _ => throw new Exception("SExpr not part of Example Structure: " + input)
