@@ -26,7 +26,7 @@ import ExampleBB.Checker as ExampleBBChecker
   val inputSexp = MainFuncs.readSexp(inputString)
   ExampleBBChecker.assertExampleBB(inputSexp)
 
-  val result = AssignmentRunner.startUp(inputSexp)
+  val result = AssignmentRunner.cskBareBones(inputSexp)
   println(result.outputString)
 
 object MainFuncs:

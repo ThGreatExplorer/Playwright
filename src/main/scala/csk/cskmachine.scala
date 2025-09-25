@@ -12,7 +12,7 @@ object CSKMachine:
   * @return the final number or an error
   * @throws UnreachableStateException if the program is malformed or an unexpected state is reached
   */
-  def run(prog: Program) : Number | Control.Err =
+  def run(prog: Program) : Number | RuntimeError =
     var state = CSKMachine.load(prog)
     while !state.isFinal() do
       state = CSKState.transition(state)
@@ -42,10 +42,10 @@ object CSKMachine:
     * @throws UnloadedNonFinalStateException if the state is not final
     * @return the final number or an error
     */ 
-  private def unload(state: CSKState) : Number | Control.Err =
+  private def unload(state: CSKState) : Number | RuntimeError =
     state.control match {
-      case Control.Value(Expression.Num(n)) => n
-      case Control.Value(_) => throw new UnloadedNonFinalStateException("Machine still evaluating expression")
-      case Control.Err(e) => Control.Err(e)
+      case Control.Value(n) => n
+      case Control.Err(e) => e
+      case Control.Expr(_) => throw new UnloadedNonFinalStateException("Machine still evaluating expression")
       case Control.Search => throw new UnloadedNonFinalStateException("Machine still searching")
     }

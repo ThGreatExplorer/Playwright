@@ -34,7 +34,7 @@ object AssignmentRunner:
     else
       CSKMachine.run(prog) match
         case n: Number => Result.Success(n)
-        case e: Control.Err => Result.RuntimeError
+        case _ => Result.RuntimeError
 
   /**
     * Result printer for Assignment 2 — Bare Bones: Parser

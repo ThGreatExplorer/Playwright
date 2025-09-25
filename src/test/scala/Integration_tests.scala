@@ -5,7 +5,6 @@ import main.MainFuncs
 import ParserAST.Parser
 import ast._
 import csk.CSKMachine
-import csk.Control
 import csk.RuntimeError
 
 class IntegrationTests extends FunSuite {
@@ -58,9 +57,8 @@ class IntegrationTests extends FunSuite {
       else
         CSKMachine.run(prog) match
           case n: Number => assertEquals(n.toString, expectedOutput)
-          case Control.Err(e) => e match
-            case RuntimeError.DivisionByZero(msg) => assertEquals(RuntimeError.DivisionByZero(msg), expectedOutput)
-            case RuntimeError.VarNotFound(msg) => assertEquals(RuntimeError.VarNotFound(msg), expectedOutput)
+          case RuntimeError.DivisionByZero(msg) => assertEquals(RuntimeError.DivisionByZero(msg), expectedOutput)
+          case RuntimeError.VarNotFound(msg) => assertEquals(RuntimeError.VarNotFound(msg), expectedOutput)
     }
   }
 }
