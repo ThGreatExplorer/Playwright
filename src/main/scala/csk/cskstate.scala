@@ -127,56 +127,60 @@ object CSKState:
           store = state.store,
           kont = state.kont
         )
-      case (Control.Expr(Expression.Var(x)), _) =>
-        if state.store.contains(x) then
-          CSKState(
-            control = Control.Value(state.store(x)),
-            store = state.store,
-            kont = state.kont
-          )
-        else
-          constructErrorState(
-            RuntimeError.VarNotFound("Variable " + x + " not found in store")
-          )
-      case (Control.Expr(Expression.Add(Expression.Var(x), Expression.Var(y))), _) => 
-        if state.store.contains(x) && state.store.contains(y) then
-          CSKState(
-            control = Control.Value(state.store(x) + state.store(y)),
-            store = state.store,
-            kont = state.kont
-          )
-        else
-          constructErrorState(
-            RuntimeError.VarNotFound("Variable " + (if !state.store.contains(x) then x else y) + " not found in store")
-          )
-      case (Control.Expr(Expression.Div(Expression.Var(x), Expression.Var(y))), _) =>
-        if state.store.contains(x) && state.store.contains(y) then
-          if state.store(y) != 0.0 then
+      case (Control.Expr(Expression.Var(x)), _) => 
+        state.store.get(x) match
+          case Some(n) => 
             CSKState(
-              control = Control.Value(state.store(x) / state.store(y)),
+              control = Control.Value(n),
               store = state.store,
               kont = state.kont
             )
-          else
+          case None =>
             constructErrorState(
-              RuntimeError.DivisionByZero("Division by zero error in expression: " + x + " / " + y)
+              RuntimeError.VarNotFound("Variable " + x + " not found in store")
             )
-        else
-          constructErrorState(
-            RuntimeError.VarNotFound("Variable " + (if !state.store.contains(x) then x else y) + " not found in store")
-          )
+      case (Control.Expr(Expression.Add(Expression.Var(x), Expression.Var(y))), _) => 
+        (state.store.get(x), state.store.get(y)) match
+          case (Some(xNum), Some(yNum)) => 
+            CSKState(
+              control = Control.Value(xNum + yNum),
+              store = state.store,
+              kont = state.kont
+            )
+          case _ => 
+            constructErrorState(
+              RuntimeError.VarNotFound("Variable " + (if !state.store.contains(x) then x else y) + " not found in store")
+            )
+      case (Control.Expr(Expression.Div(Expression.Var(x), Expression.Var(y))), _) =>
+        (state.store.get(x), state.store.get(y)) match
+          case (Some(xNum), Some(yNum)) => 
+            if yNum != 0.0 then
+              CSKState(
+                control = Control.Value(xNum / yNum),
+                store = state.store,
+                kont = state.kont
+              )
+            else
+              constructErrorState(
+                RuntimeError.DivisionByZero("Division by zero error in expression: " + x + " / " + y)
+              )
+          case _ =>
+            constructErrorState(
+              RuntimeError.VarNotFound("Variable " + (if !state.store.contains(x) then x else y) + " not found in store")
+            )
       case (Control.Expr(Expression.Equals(Expression.Var(x), Expression.Var(y))), _) =>
-        if state.store.contains(x) && state.store.contains(y) then
-          CSKState(
-            // intentionally using 0.0 for true and 1.0 for false to match if0 and while0 spec
-            control = Control.Value(if state.store(x) == state.store(y) then 0.0 else 1.0),
-            store = state.store,
-            kont = state.kont
-          )
-        else
-          constructErrorState(
-            RuntimeError.VarNotFound("Variable " + (if !state.store.contains(x) then x else y) + " not found in store")
-          )
+        (state.store.get(x), state.store.get(y)) match
+          case (Some(xNum), Some(yNum)) => 
+            CSKState(
+              // intentionally using 0.0 for true and 1.0 for false to match if0 and while0 spec
+              control = Control.Value(if state.store(x) == state.store(y) then 0.0 else 1.0),
+              store = state.store,
+              kont = state.kont
+            )
+          case _ =>
+            constructErrorState(
+              RuntimeError.VarNotFound("Variable " + (if !state.store.contains(x) then x else y) + " not found in store")
+            )
 
       case _ =>
         throw new UnreachableStateException(
