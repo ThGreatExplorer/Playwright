@@ -1,5 +1,7 @@
 package ParserAST
 
+import annotation.tailrec
+
 import ast._
 import sexprs.SExprs._
 import ExampleBB.bbKeywords
@@ -25,11 +27,11 @@ object Parser:
                     )
                 }
                 case _ => Program.Err(ProgErr.ProgNotList)
-                
+
         // use tail-recursion for parsing lists of statements to avoid stack overflow
         // map uses recursion for Lists under the hood
         def parseStmtsTail(stmts: List[SExpr]): List[Statement] =
-            @annotation.tailrec
+            @tailrec
             def loop(remaining: List[SExpr], acc: List[Statement]): List[Statement] =
                 remaining match
                     case Nil => acc.reverse
