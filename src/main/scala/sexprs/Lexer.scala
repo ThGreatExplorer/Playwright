@@ -144,13 +144,14 @@ class Lexer(reader: java.io.Reader) {
           IntLit(sign * intPart)
         else {
           nextChar
-          val fracChar = nextChar
-          if (fracChar.isDigit && !peek.toChar.isDigit) {
-            val fracPart: Double = fracChar.asDigit
-            val base = 10
-            DoubleLit(sign * (intPart.toDouble + fracPart / base))
-          } else
-            throw new UnexpectedCharException(fracChar, Position(_currentLine, _currentCol), "Numbers must have exactly one digit to the right of decimal point")
+          var fracPart: Double = 0
+          var base             = 10
+          while (peek.toChar.isDigit) {
+            fracPart += nextChar.asDigit
+            fracPart *= 10
+            base *= 10
+          }
+          DoubleLit(sign * (intPart.toDouble + fracPart / base))
         }
       }
       case s if isSymbolChar(s) || s == '|' => {
