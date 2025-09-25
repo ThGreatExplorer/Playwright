@@ -1,5 +1,6 @@
 package ExampleBB
 
+import error.InputNotExampleException
 import sexprs.SExprs._
 import scala.annotation.tailrec
 
@@ -18,12 +19,12 @@ object Checker:
         val isSimpleName = (x.length() <= 20 && x.forall(_.isLetter))
         val isBBName = isSimpleName || bbKeywords.contains(x)
         if (!isBBName)
-          throw new Exception("SExpr contains SSymbol that is not an ExampleBB Name: " + x)
+          throw new InputNotExampleException("SExpr contains SSymbol that is not an ExampleBB Name: " + x)
       }        
       case SDouble(n) => {
         val isGoodNum = (n >= -1000.0) && (n <= 1000.0)
         if (!isGoodNum)
-            throw new Exception("SExpr contains SDouble that is not an ExampleBB Number: " + n)
+          throw new InputNotExampleException("SExpr contains SDouble that is not an ExampleBB Number: " + n)
       }
       case SList(elements) => {
         @tailrec
@@ -31,6 +32,8 @@ object Checker:
           remaining match
             case Nil => ()
             case h :: t => assertExampleBB(h); loop(t)
+
         loop(elements)
       } 
-      case _ => throw new Exception("SExpr not part of Example Structure: " + input)
+      case _ => 
+        throw new InputNotExampleException("SExpr not part of Example Structure: " + input)

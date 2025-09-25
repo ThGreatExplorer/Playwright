@@ -1,9 +1,11 @@
 package csk
 
+import scala.collection.mutable.Map
+
 import ast._
 import error.UnloadedNonFinalStateException
-import error.Unreachable
-import scala.collection.mutable.Map
+import error.InputNotExampleException
+import error.RuntimeError
 
 object CSKMachine:
 
@@ -35,8 +37,8 @@ object CSKMachine:
           store = Map(),
           kont = Kont.Prog(stmts, expr)
         )
-      case Program.Err(e) => 
-        throw new Unreachable("Passed a malformed program to the CSK machine")
+      case _ => 
+        throw new InputNotExampleException("Passed a malformed program to the CSK machine")
   
   /**
     * Unloads the final result of a computation from a final CSKState.

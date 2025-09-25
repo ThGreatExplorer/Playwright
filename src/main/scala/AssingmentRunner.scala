@@ -4,7 +4,7 @@ import sexprs.SExprs._
 import csk.CSKMachine
 import csk.Control
 
-import ParserAST.Parser as ParserAST
+import parser.Parser as ParserAST
 
 enum Result:
   case Count(n : Int)

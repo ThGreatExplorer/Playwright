@@ -1,4 +1,4 @@
-package ParserAST
+package parser
 
 import annotation.tailrec
 

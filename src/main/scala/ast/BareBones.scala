@@ -1,6 +1,6 @@
 package ast
 
-import Error._
+import error._
 
 // Program    ::= (Statement^* Expression)
 enum Program:

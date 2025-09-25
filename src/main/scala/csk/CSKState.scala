@@ -3,6 +3,7 @@ package csk
 import scala.collection.mutable.Map
 import error.UnreachableStateException
 import ast._
+import error.RuntimeError
 
 enum Control:
   case Expr(s : Expression)

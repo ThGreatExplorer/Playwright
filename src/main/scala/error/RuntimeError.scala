@@ -1,6 +1,4 @@
-package csk
-
-import error.Error
+package error
 
 enum RuntimeError extends Error:
   case VarNotFound(msg: String)

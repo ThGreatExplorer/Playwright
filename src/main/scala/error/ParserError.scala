@@ -1,4 +1,4 @@
-package ast
+package error
 
 class ParserError extends Error 
 
