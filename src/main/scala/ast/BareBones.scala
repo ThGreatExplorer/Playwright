@@ -1,6 +1,6 @@
 package ast
 
-import Error._
+import error.{ProgErr, StmtErr, BlockErr, ExprErr}
 
 // Program    ::= (Statement^* Expression)
 enum Program:

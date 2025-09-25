@@ -1,3 +1,4 @@
 package error
 
 trait Error
+
