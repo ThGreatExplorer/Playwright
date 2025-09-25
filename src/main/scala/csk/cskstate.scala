@@ -3,7 +3,35 @@ package csk
 import scala.collection.mutable.Map
 import ast._
 
-class CSKState(var control : Control, var store : Map[String, Double], var kont: Kont):
+enum Control:
+  case Value(n : Expression)
+  case Err(e : RuntimeError)
+  case Search
+
+enum Kont:
+  case Prog(stmts: List[Statement | Block], expr: Expression)
+  case Empty
+
+case class CSKState(
+  control : Control, 
+  store : Map[String, Double], 
+  kont: Kont
+):
+  /**
+  * Returns true if the given state is a final state where the final state is either an Error state or 
+  * a state with a final number and a continuation with only expression left.
+  *
+  * @param state the current state of the CSK machine
+  * @return true if the state is final, false otherwise
+  */
+  def isFinal() : Boolean =
+    (control, kont) match { 
+      case (Control.Err(_), Kont.Empty) => true
+      case (Control.Value(Expression.Num(_)), Kont.Prog(Nil, expr)) => true
+      case _ => false
+    }
+
+object CSKState:
 
   /**
     * Performs a single transition of the CSK machine based on the current state (control, store, kont).
