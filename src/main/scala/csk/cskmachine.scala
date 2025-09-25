@@ -1,6 +1,8 @@
 package csk
 
 import ast._
+import error.UnloadedNonFinalStateException
+import error.Unreachable
 import scala.collection.mutable.Map
 
 object CSKMachine:
@@ -27,13 +29,14 @@ object CSKMachine:
     */
   private def load(prog: Program) : CSKState = 
     prog match
-      case Program.Err(e) => throw new UnreachableStateException("Passed a malformed program to the CSK machine")
       case Program.Prog(stmts, expr) =>
-        new CSKState(
+        CSKState(
           control = Control.Search,
           store = Map(),
           kont = Kont.Prog(stmts, expr)
         )
+      case Program.Err(e) => 
+        throw new Unreachable("Passed a malformed program to the CSK machine")
   
   /**
     * Unloads the final result of a computation from a final CSKState.
@@ -46,6 +49,8 @@ object CSKMachine:
     state.control match {
       case Control.Value(n) => n
       case Control.Err(e) => e
-      case Control.Expr(_) => throw new UnloadedNonFinalStateException("Machine still evaluating expression")
-      case Control.Search => throw new UnloadedNonFinalStateException("Machine still searching")
+      case Control.Expr(_) => 
+        throw new UnloadedNonFinalStateException("Machine still evaluating expression")
+      case Control.Search => 
+        throw new UnloadedNonFinalStateException("Machine still searching")
     }

@@ -1,6 +1,7 @@
 package csk
 
 import scala.collection.mutable.Map
+import error.UnreachableStateException
 import ast._
 
 enum Control:
@@ -147,9 +148,13 @@ object CSKState:
               store = state.store,
               kont = state.kont
             )
+          case (Some(xNum), None) => 
+            constructErrorState(
+              RuntimeError.VarNotFound("Variable " + y + " not found in store")
+            )
           case _ => 
             constructErrorState(
-              RuntimeError.VarNotFound("Variable " + (if !state.store.contains(x) then x else y) + " not found in store")
+              RuntimeError.VarNotFound("Variable " + x + " not found in store")
             )
       case (Control.Expr(Expression.Div(Expression.Var(x), Expression.Var(y))), _) =>
         (state.store.get(x), state.store.get(y)) match
@@ -164,29 +169,37 @@ object CSKState:
               constructErrorState(
                 RuntimeError.DivisionByZero("Division by zero error in expression: " + x + " / " + y)
               )
-          case _ =>
+          case (Some(xNum), None) => 
             constructErrorState(
-              RuntimeError.VarNotFound("Variable " + (if !state.store.contains(x) then x else y) + " not found in store")
+              RuntimeError.VarNotFound("Variable " + y + " not found in store")
+            )
+          case _ => 
+            constructErrorState(
+              RuntimeError.VarNotFound("Variable " + x + " not found in store")
             )
       case (Control.Expr(Expression.Equals(Expression.Var(x), Expression.Var(y))), _) =>
         (state.store.get(x), state.store.get(y)) match
           case (Some(xNum), Some(yNum)) => 
             CSKState(
               // intentionally using 0.0 for true and 1.0 for false to match if0 and while0 spec
-              control = Control.Value(if state.store(x) == state.store(y) then 0.0 else 1.0),
+              control = Control.Value(if xNum == yNum then 0.0 else 1.0),
               store = state.store,
               kont = state.kont
             )
-          case _ =>
+          case (Some(xNum), None) => 
             constructErrorState(
-              RuntimeError.VarNotFound("Variable " + (if !state.store.contains(x) then x else y) + " not found in store")
+              RuntimeError.VarNotFound("Variable " + y + " not found in store")
+            )
+          case _ => 
+            constructErrorState(
+              RuntimeError.VarNotFound("Variable " + x + " not found in store")
             )
 
       case _ =>
         throw new UnreachableStateException(
           "Unknown state reached in CSK machine transition function:" 
           + "\nControl: " + state.control.toString() 
-          + "\nStore: " + state.store.toString()+ "\nStore: " + state.store.toString()
+          + "\nStore: " + state.store.toString()
           + "\nKont: " + state.kont.toString() 
         )
 

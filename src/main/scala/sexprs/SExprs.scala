@@ -34,11 +34,12 @@ object SExprs {
   def counter(input: SExpr): Int =
     @tailrec
     def loop(stack: List[SExpr], acc: Int): Int = 
-    stack match
+      stack match
         case Nil => acc
         case SSymbol(_) :: rest => loop(rest, acc + 1)
         case SDouble(_) :: rest => loop(rest, acc)
         case SList(elements) :: rest => loop(elements ++ rest, acc)
         case head :: _ => throw new Exception("SExpr not part of Example Structure: " + head)
+    
     loop(List(input), 0)
 }
