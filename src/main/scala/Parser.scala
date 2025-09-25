@@ -17,7 +17,7 @@ object Parser:
             sexpr match
                 case SList(Nil) => Program.Err(ProgErr.ProgEmptyList)
                 case SList(elems) => {
-                    val stmts = elems.dropRight(1)
+                    val stmts = elems.init
                     val expr = elems.last
                     Program.Prog(
                         parseStmtsTail(stmts),
@@ -25,6 +25,7 @@ object Parser:
                     )
                 }
                 case _ => Program.Err(ProgErr.ProgNotList)
+                
         // use tail-recursion for parsing lists of statements to avoid stack overflow
         // map uses recursion for Lists under the hood
         def parseStmtsTail(stmts: List[SExpr]): List[Statement] =

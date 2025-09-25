@@ -6,7 +6,7 @@ object SExprs {
 
   case class SList(sexprs: List[SExpr]) extends SExpr
   object SList {
-    def apply(sexprs: SExpr*): SList = SList(List(sexprs: _*))
+    def apply(sexprs: SExpr*): SList = SList(List(sexprs*))
   }
 
   case class SInt(n: BigInt)                                  extends SExpr

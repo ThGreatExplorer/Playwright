@@ -77,7 +77,7 @@ class Parser(lexer: Lexer) {
             case "false" => SBoolean(false)
             case s       => SSymbol(s)
           }
-        case QualifiedSymbol(o, s) => SQualifiedSymbol(o.map(SSymbol), SSymbol(s))
+        case QualifiedSymbol(o, s) => SQualifiedSymbol(o.map(SSymbol.apply), SSymbol(s))
         case DoubleLit(d)          => SDouble(d)
         case CParen()              => throw new UnexpectedTokenException(CParen(), tok.getPos)
       }
