@@ -2,10 +2,10 @@ package sexprs
 
 import munit.FunSuite
 import main.MainFuncs
-import ParserAST.Parser
+import parser.Parser
 import ast._
 import csk.CSKMachine
-import csk.RuntimeError
+import error.RuntimeError
 
 class IntegrationTests extends FunSuite {
   val cases = Seq(

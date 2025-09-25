@@ -5,6 +5,7 @@ import annotation.tailrec
 import ast._
 import sexprs.SExprs._
 import ExampleBB.bbKeywords
+import error.{ProgErr, StmtErr, BlockErr, ExprErr}
 
 object Parser:
 
