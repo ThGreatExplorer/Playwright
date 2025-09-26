@@ -15,7 +15,7 @@ enum Kont:
   case Prog(stmts: List[Statement | Block], expr: Expression)
   case Empty
 
-case class CSKState(
+final case class CSKState(
   control : Control, 
   store : Map[String, Double], 
   kont: Kont
