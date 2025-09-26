@@ -1,15 +1,16 @@
-((n = 5.0)
- (one = 1.0)
- (negOne = -1.0)
- (result = 1.0)
- (while0 (n == one)
-   (block
-     (temp = 0.0)
-     (i = 1.0)
-     (while0 (i == n)
-       (block
-         (temp = (temp + result))
-         (i = (i + one))))
-     (result = temp)
-     (n = (n + negOne))))
- result)
+(
+  (if0 0.0 
+    (block
+      (x = -1000.0)
+      (y = 1000.0)
+      (if0 (x == y)
+        (block
+          (z = 0.0)
+          (w = -20.0))
+        (block
+          (x = (x + y))
+          (if0 (y / x)
+            (x = (x + y))
+            (y = (x / y))))))           
+    (x = 2.0))
+ (x + y))
