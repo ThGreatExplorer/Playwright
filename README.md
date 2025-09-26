@@ -4,6 +4,9 @@ This is a repository for CS4400 Programming Languages class project. The chosen 
 
 Developed by Anfisa Bogdanenko and Daniel Yu.
 
+### Assignment 3 - Challenge Question
+The answer to the challenge question is given in a comment on top of the `3/xcsk` script and `src/main/scala/Main.scala`.
+
 ### Build system
 
 This is a normal `sbt` project compiled with Scala 3. You can compile code with `sbt compile`, run it with `sbt run`, and `sbt console` will start a Scala 3 REPL.
