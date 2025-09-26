@@ -1,0 +1,15 @@
+((n = 5.0)
+ (one = 1.0)
+ (negOne = -1.0)
+ (result = 1.0)
+ (while0 (n == one)
+   (block
+     (temp = 0.0)
+     (i = 1.0)
+     (while0 (i == n)
+       (block
+         (temp = (temp + result))
+         (i = (i + one))))
+     (result = temp)
+     (n = (n + negOne))))
+ result)
