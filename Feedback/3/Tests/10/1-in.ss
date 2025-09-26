@@ -1,0 +1,1 @@
+((u = 3.0) (v = 3.0) (comp = (u == v)) (impossible = (u / comp)) impossible)

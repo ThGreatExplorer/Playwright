@@ -1,0 +1,6 @@
+((w = 3.0) (x = 8.0) (y = 1.0) (z = -1.0) 
+    (if0 (y + z) 
+        (block (a = 0.0) 
+        (while0 a (block (final = (w / x)) (a = 1.0))))
+    (z = 0.0))
+    (final + final))

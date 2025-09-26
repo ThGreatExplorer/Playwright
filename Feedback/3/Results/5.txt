@@ -1,0 +1,109 @@
+(testing /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./3/xcsk)
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/0-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/0-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((x = y) 4.0))
+(*** expected)
+'("run-time error")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/1-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/1-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((x = 0.0) (y = (x / x)) y))
+(*** expected)
+'("run-time error")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/2-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/2-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((x = (x + x)) x))
+(*** expected)
+'("run-time error")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/3-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/3-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((x = 1000.0) (y = (x + x)) (z = 2.0) (w = (y / z)) w))
+(*** expected)
+'(1000.0)
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/4-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/4-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((x = 1.0) (y = 1.0) (y == x)))
+(*** expected)
+'(0.0)
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/5-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/5-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((x = 0.1) (y = 2.0) (x / y)))
+(*** expected)
+'(0.05)
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/7-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/7-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((x = 0.0)
+   (if0 x (block (x = 1.0) (x = (x + x))) (block (x = 2.0) (x = (x / x))))
+   x))
+(*** expected)
+'(2.0)
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/8-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/8-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((a = 1000.0) (a + a)))
+(*** expected)
+'(2000.0)
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/0-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/1-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/2-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/3-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/4-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/5-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/7-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/8-in.ss fail)
+()
+((passed 0) (total 8) (partial-score 0))

@@ -1,0 +1,1 @@
+((negativefour = -4.0) (x = (negativefour + negativefour)) x)

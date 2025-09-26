@@ -1,0 +1,6 @@
+Total Score: 65 / 125
+-5 "xcsk executed unsuccessfully"
+-50 "instructor tests failed to pass student executable"
+-15 "integration tests failed to pass oracle"
++15 "bonus points for bugs found in other students' xcsk programs (Max 15)"
+-5 "no challenge answer (GRADE PENDING)"

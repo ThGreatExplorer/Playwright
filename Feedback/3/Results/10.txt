@@ -1,0 +1,29 @@
+(testing /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./3/xcsk)
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/1-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/1-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((u = 3.0) (v = 3.0) (comp = (u == v)) (impossible = (u / comp)) impossible))
+(*** expected)
+'("run-time error")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/2-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/2-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((while0 n (block (x = 1.0) (n = 2.0))) x))
+(*** expected)
+'("run-time error")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/1-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/2-in.ss fail)
+()
+((passed 0) (total 2) (partial-score 0))

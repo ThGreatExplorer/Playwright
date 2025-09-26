@@ -1,0 +1,9 @@
+((x = 0.)
+ (y = 10.)
+ (one = 1.)
+ (while0 isTen
+         (block (x = (x + one))
+                (if0 (x == y)
+                (isTen = 1.)
+                (isTen = 0.))))
+x)

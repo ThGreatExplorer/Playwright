@@ -1,0 +1,6 @@
+((x = 42.0)
+ (sum = 0.0)
+ (y = 0.0)
+ (z = -1.0)
+ (while0 y (if0 (x == y) (block = y) (block (sum = (x + sum)) (x = (x + z)))))
+ sum)

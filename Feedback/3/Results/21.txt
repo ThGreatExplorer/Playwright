@@ -1,0 +1,140 @@
+(testing /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./3/xcsk)
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/0-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/0-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'((719.0))
+(*** expected)
+'(719.0)
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/1-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/1-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((Alice = 420.0) Alice))
+(*** expected)
+'(420.0)
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/3-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/3-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((Alice = 420.0) (Bob = 28.0) (Alice / Bob)))
+(*** expected)
+'(15.0)
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/4-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/4-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((Kasey = 719.0) (Chris = 719.0) (Kasey == Chris)))
+(*** expected)
+'(0.0)
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/5-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/5-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((a = 0.0)
+   (b = 1.0)
+   (c = 2.0)
+   (result = 0.0)
+   (ten = 10.0)
+   (twenty = 20.0)
+   (thirty = 30.0)
+   (forty = 40.0)
+   (if0
+    a
+    (if0 b (result = ten) (result = twenty))
+    (if0 (b == c) (result = thirty) (result = forty)))
+   result))
+(*** expected)
+'(20.0)
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/6-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/6-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((alice = 20.0) (alice = (alice + chris)) alice))
+(*** expected)
+'("run-time error")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/7-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/7-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'((Alice = Bob + Chris))
+(*** expected)
+'("parser error")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/8-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/8-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((Alice = 0.0)
+   (Bob = 420.0)
+   (while0 Alice (block (Bob = 719.0) (Alice = 1.0)))
+   Bob))
+(*** expected)
+'(719.0)
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/9-in.ss /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/9-out.ss)
+exec failed (Exec format error; errno=8)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((Alice = 719.0)
+   (Bob = 420.0)
+   (Chris = (Alice + Bob))
+   (Kasey = 28.0)
+   (if0 (Alice == Bob) (Kasey = 1.0) (Kasey = 0.0))
+   (Alice / Kasey)))
+(*** expected)
+'("run-time error")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/0-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/1-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/3-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/4-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/5-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/6-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/7-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/8-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/3/???/Tests/9-in.ss fail)
+()
+((passed 0) (total 9) (partial-score 0))
