@@ -25,13 +25,13 @@ test:
 		done
 
 feedback:
-		cd Feedback/$(DIR)/Tests && \
-		for d in $$(find . -type d -mindepth 1 -maxdepth 1); do \
+		cd $(DIR) && \
+		for d in $$(find ../Feedback/$(DIR)/Tests -type d -mindepth 1 -maxdepth 1); do \
 				echo "Running tests in $$d..."; \
 				for t in $$(seq 0 $$(($(TESTS)-1))); do \
 						if [ -e $$d/$$t-in.ss ]; then \
 							echo "  Running test $$t..."; \
-							../../../$(DIR)/$(EXE) < $$d/$$t-in.ss | diff --ignore-trailing-space --ignore-blank-lines - $$d/$$t-out.ss; \
+							./$(EXE) < $$d/$$t-in.ss | diff --ignore-trailing-space --ignore-blank-lines - $$d/$$t-out.ss; \
 						else \
 							echo "    Test $$t does not exist, skipping..."; \
 							continue; \
