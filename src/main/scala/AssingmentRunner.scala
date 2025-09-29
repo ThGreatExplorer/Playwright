@@ -18,7 +18,7 @@ enum Result:
     case ParseError => "\"parser error\""
     case ParseBelongs => "\"belongs\""
     case Success(n) => s"$n"
-    case RuntimeError => "\"runtime error\""
+    case RuntimeError => "\"run-time error\""
 
 object AssignmentRunner:
   /**
