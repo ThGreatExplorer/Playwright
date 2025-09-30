@@ -4,8 +4,7 @@ import annotation.tailrec
 
 import ast._
 import sexprs.SExprs._
-import ExampleBB.bbKeywords
-import error.{ProgErr, StmtErr, BlockErr, ExprErr}
+import util.ccKeywords
 
 object Parser:
 
@@ -115,7 +114,7 @@ object Parser:
             ssymbol match
                 // Var: the set of Variables consists of all symboSls, minus keywords
                 case SSymbol(s) => 
-                    if !bbKeywords.contains(s) then
+                    if !ccKeywords.contains(s) then
                         Expression.Var(s) 
                     else 
                         Expression.Err(ExprErr.ExprVarIsKeyword)

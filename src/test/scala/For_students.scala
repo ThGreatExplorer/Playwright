@@ -4,9 +4,7 @@ import munit.FunSuite
 import main.MainFuncs
 import parser.Parser
 import ast._
-import csk.CSKMachine
-import csk.Control
-import error.RuntimeError
+import csk.{CSKMachine, Control, RuntimeError}
 
 class ForStudents extends FunSuite {
   val cases = Seq(

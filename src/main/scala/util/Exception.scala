@@ -1,4 +1,4 @@
-package error
+package util
 
 /**
   * These Execeptions are used to signal that something went horribly wrong.

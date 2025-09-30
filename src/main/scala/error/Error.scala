@@ -1,4 +1,0 @@
-package error
-
-trait Error
-

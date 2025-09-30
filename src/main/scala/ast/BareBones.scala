@@ -1,7 +1,5 @@
 package ast
 
-import error.{ProgErr, StmtErr, BlockErr, ExprErr}
-
 // Program    ::= (Statement^* Expression)
 enum Program:
     case Prog(stmts: List[Statement], expr: Expression)

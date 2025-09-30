@@ -1,23 +1,22 @@
-package ExampleBB
+package util
 
-import error.InputNotExampleException
 import sexprs.SExprs._
 import scala.annotation.tailrec
 
-val bbKeywords: Set[String] = Set("=", "if0", "while0", "block", "/", "+", "==")
+val ccKeywords: Set[String] = Set("def", "=", "if0", "while0", "block", "/", "+", "==")
 
-object Checker:
+object ExampleChecker:
   
-  /** Internal utility method to assert that a given SExpr is an ExampleBB
+  /** Internal utility method to assert that a given SExpr is an ExampleCC
    *  Useful to ensring the unit tests we write respect the spec
    * 
    * @param input SExpr read from stdio
   */
-  def assertExampleBB(input :SExpr): Unit = 
+  def assertExampleCC(input :SExpr): Unit = 
     input match 
       case SSymbol(x) => {
         val isSimpleName = (x.length() <= 20 && x.forall(_.isLetter))
-        val isBBName = isSimpleName || bbKeywords.contains(x)
+        val isBBName = isSimpleName || ccKeywords.contains(x)
         if (!isBBName)
           throw new InputNotExampleException("SExpr contains SSymbol that is not an ExampleBB Name: " + x)
       }        
@@ -31,7 +30,7 @@ object Checker:
         def loop(remaining: List[SExpr]): Unit =
           remaining match
             case Nil => ()
-            case h :: t => assertExampleBB(h); loop(t)
+            case h :: t => assertExampleCC(h); loop(t)
 
         loop(elements)
       } 

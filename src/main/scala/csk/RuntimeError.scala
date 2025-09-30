@@ -1,5 +1,5 @@
-package error
+package csk
 
-enum RuntimeError extends Error:
+enum RuntimeError:
   case VarNotFound(msg: String)
   case DivisionByZero(msg: String)

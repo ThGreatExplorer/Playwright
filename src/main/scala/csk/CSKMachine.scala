@@ -3,9 +3,7 @@ package csk
 import scala.collection.mutable.Map
 
 import ast._
-import error.UnloadedNonFinalStateException
-import error.InputNotExampleException
-import error.RuntimeError
+import util.{UnloadedNonFinalStateException, InputNotExampleException}
 
 object CSKMachine:
 

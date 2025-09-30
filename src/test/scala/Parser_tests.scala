@@ -4,7 +4,6 @@ import munit.FunSuite
 import main.MainFuncs
 import parser.Parser
 import ast._
-import error.{ProgErr, StmtErr, BlockErr, ExprErr}
 
 class ParserTests extends FunSuite {
   test("Test Invalid Example Parser + hasError") {

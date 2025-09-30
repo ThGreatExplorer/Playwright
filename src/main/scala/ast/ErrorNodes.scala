@@ -1,12 +1,10 @@
-package error
+package ast
 
-class ParserError extends Error 
-
-enum ProgErr extends ParserError:
+enum ProgErr:
     case ProgNotList
     case ProgEmptyList
 
-enum StmtErr extends ParserError:
+enum StmtErr:
     case StmtAssignBadLHS
     case StmtAssignBadRHS
     case StmtIfelseNoGuard
@@ -16,11 +14,13 @@ enum StmtErr extends ParserError:
     case StmtWhileNoBody
     case StmtMalformed
 
-enum BlockErr extends ParserError:
+enum BlockErr:
     case BlockManyNoStmts
 
-enum ExprErr extends ParserError:
+enum ExprErr:
     case ExprVarIsKeyword
     case ExprBadVar
     case ExprBadOperand
     case ExprMalformed
+    // The only error node added for Validity checking
+    case ExprVarNotDeclared

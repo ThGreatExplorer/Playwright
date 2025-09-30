@@ -1,9 +1,8 @@
 package csk
 
 import scala.collection.mutable.Map
-import error.UnreachableStateException
 import ast._
-import error.RuntimeError
+import util.UnreachableStateException
 
 enum Control:
   case Expr(s : Expression)
