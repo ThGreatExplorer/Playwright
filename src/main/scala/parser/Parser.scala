@@ -6,6 +6,7 @@ import ast._
 import sexprs.SExprs._
 import util.ExampleKeyword as Keyword
 import util.ExampleKeyword.isKeyword
+import ast.Declaration.DeclarationError
 
 object Parser:
     /** Parses the given sexpr into a BareBones program to the best of its ability.
@@ -15,17 +16,51 @@ object Parser:
       * @return BareBones AST with possible error nodes if grammar rules are violated
       */
     def parseProg(sexpr: SExpr): Program = sexpr match
-        case SList(Nil) => Program.Err(ProgErr.EmptyList)
-        case SList(elems) => {
-            val stmts = elems.init
-            val expr = elems.last
+        case SList(Nil) => Program.Err(ProgErr.EmptyList)    
+        case SList(SList(decls) :: SList(stmts) :: expr :: Nil) =>
             Program.Prog(
+                parseDeclsTail(decls),
                 parseStmtsTail(stmts),
                 parseExpr(expr)
             )
-        }
+        // TODO how to handle the case where not sure whether list of declarations
+        // or statements? It's ambiguous and can be either
+        case SList(SList(declsorstmts) :: expr :: Nil) =>
+            // for now let's try both and take program valid > decl > stmts
+            val progdecl = Program.Prog(
+                parseDeclsTail(declsorstmts),
+                Nil,
+                parseExpr(expr)
+            )
+            val progstmts = Program.Prog(
+                Nil,
+                parseStmtsTail(declsorstmts),
+                parseExpr(expr)
+            )
+            if ASTInspector.progHasError(progdecl) && ASTInspector.progHasError(progstmts) then
+                progdecl
+            else if ASTInspector.progHasError(progdecl) then
+                progstmts
+            else
+                progdecl
         case _ => Program.Err(ProgErr.NotAList)
 
+    
+    def parseDeclsTail(decls: List[SExpr]): List[Declaration] =
+        @tailrec
+        def loop(remaining: List[SExpr], acc: List[Declaration]): List[Declaration] =
+            remaining match
+                case Nil => acc.reverse
+                case h :: t => loop(t, parseDecl(h) :: acc)
+        def parseDecl(sexp: SExpr): Declaration = sexp match
+            case SList(SSymbol(Keyword.Def) :: lhs :: rhs :: Nil) =>
+                Declaration.Declare(
+                    parseVar(lhs),
+                    parseExpr(rhs)
+                )
+            case _ => DeclarationError(DeclareError.Malformed)
+        loop(decls, Nil)
+            
     // Use tail-recursion for parsing lists of statements to avoid stack overflow
     // map() uses recursion for Lists under the hood
     def parseStmtsTail(stmts: List[SExpr]): List[Statement] =
@@ -71,8 +106,10 @@ object Parser:
         // Many: (block Statement^+)
         case SList(SSymbol(Keyword.Block) :: Nil) => 
             Block.Err(BlockErr.ManyNoStmts)
-        case SList(SSymbol(Keyword.Block) :: xs) =>
-            Block.Many(parseStmtsTail(xs))
+        case SList(SSymbol(Keyword.Block) :: SList(decls) :: SList(stmts) :: Nil) =>
+            Block.Many(parseDeclsTail(decls), parseStmtsTail(stmts))
+        case SList(SSymbol(Keyword.Block) :: SList(stmts) :: Nil) =>
+            Block.Many(Nil, parseStmtsTail(stmts))
         // One: Statement
         case _ => 
             Block.One(parseStmt(sexpr))

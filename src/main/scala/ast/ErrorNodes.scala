@@ -10,6 +10,9 @@ enum StmtErr:
     case WhileMalformed
     case Malformed
 
+enum DeclareError:
+    case Malformed
+
 enum BlockErr:
     case ManyNoStmts
 

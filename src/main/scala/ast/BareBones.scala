@@ -1,9 +1,14 @@
 package ast
 
-// Program    ::= (Statement^* Expression)
+// Program    ::= (Declaration^* Statement^* Expression)
 enum Program:
-    case Prog(stmts: List[Statement], expr: Expression)
+    case Prog(decls: List[Declaration], stmts: List[Statement], expr: Expression)
     case Err(e: ProgErr)
+
+// Declaration ::= (def Variable Expression)
+enum Declaration:
+    case Declare(lhs: Expression.Var | Expression.Err, rhs: Expression)
+    case DeclarationError(e: DeclareError)
 
 //   Statement  ::= (Variable = Expression)
 //                | (if0 Expression Block Block)
@@ -15,10 +20,10 @@ enum Statement:
     case Err(e: StmtErr)
 
 //   Block      ::= Statement
-//                | (block Statement^+)
+//                | (block Declaration^* Statement^+)
 enum Block:
     case One(stmt: Statement)
-    case Many(stmts: List[Statement])
+    case Many(decls: List[Declaration], stmts: List[Statement])
     case Err(e: BlockErr)
 
 //   Expression ::= GoodNumber

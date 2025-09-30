@@ -1,5 +1,7 @@
 package ast
 
+import scala.compiletime.ops.boolean
+
 object ASTInspector:
     /** Walks the AST and determines if any of the nodes contain an error. 
       * Short-circuits.
@@ -10,9 +12,13 @@ object ASTInspector:
     def progHasError(p: Program): Boolean = p match
         // Using an iterative approach to avoid stack overflow as exists() is 
         // recursively implemented on Lists
-        case Program.Prog(stmts, expr) => 
-            stmts.iterator.exists(hasError) || hasError(expr)
+        case Program.Prog(decls, stmts, expr) => 
+            decls.iterator.exists(hasError) || stmts.iterator.exists(hasError) || hasError(expr)
         case Program.Err(_) => true
+
+    def hasError(d: Declaration): Boolean = d match
+        case Declaration.Declare(lhs, rhs) => hasError(lhs) || hasError(rhs)
+        case Declaration.DeclarationError(_) => true
 
     def hasError(s: Statement): Boolean = s match
         case Statement.Assign(lhs, rhs) => hasError(lhs) || hasError(rhs)
@@ -24,7 +30,7 @@ object ASTInspector:
     def hasError(b: Block): Boolean = b match
         case Block.One(stmt) => hasError(stmt)
         // Similarly, using iterator
-        case Block.Many(stmts) => stmts.iterator.exists(hasError)
+        case Block.Many(decls, stmts) => decls.iterator.exists(hasError) || stmts.iterator.exists(hasError)
         case Block.Err(_) => true
     
     def hasError(e: Expression): Boolean = e match
