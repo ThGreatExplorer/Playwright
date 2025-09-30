@@ -4,7 +4,8 @@ import sexprs.SExprs._
 import csk.CSKMachine
 import csk.Control
 
-import parser.Parser as ParserAST
+import ast.ASTInspector.progHasError
+import parser.Parser as Parser
 
 enum Result:
   case Count(n : Int)
@@ -27,9 +28,9 @@ object AssignmentRunner:
     * @param input SExpr read from stdin
     */
   def cskBareBones(input: SExpr): Result = 
-    val prog = ParserAST.parse(input)
+    val prog = Parser.parse(input)
 
-    if ParserAST.hasError(prog) then
+    if progHasError(prog) then
       Result.ParseError
     else
       CSKMachine.run(prog) match
@@ -42,9 +43,9 @@ object AssignmentRunner:
     * @param input SExpr read from stdin
     */
   def parserBareBones(input: SExpr): Result = 
-    val prog = ParserAST.parse(input)
+    val prog = Parser.parse(input)
 
-    if ParserAST.hasError(prog) then
+    if progHasError(prog) then
       Result.ParseError
     else
       Result.ParseBelongs

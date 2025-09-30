@@ -17,7 +17,7 @@ object Parser:
     def parse(sexpr: SExpr): Program =
         def parseProg(sexpr: SExpr): Program =
             sexpr match
-                case SList(Nil) => Program.Err(ProgErr.ProgEmptyList)
+                case SList(Nil) => Program.Err(ProgErr.EmptyList)
                 case SList(elems) => {
                     val stmts = elems.init
                     val expr = elems.last
@@ -26,10 +26,10 @@ object Parser:
                         parseExpr(expr)
                     )
                 }
-                case _ => Program.Err(ProgErr.ProgNotList)
+                case _ => Program.Err(ProgErr.NotAList)
 
-        // use tail-recursion for parsing lists of statements to avoid stack overflow
-        // map uses recursion for Lists under the hood
+        // Use tail-recursion for parsing lists of statements to avoid stack overflow
+        // map() uses recursion for Lists under the hood
         def parseStmtsTail(stmts: List[SExpr]): List[Statement] =
             @tailrec
             def loop(remaining: List[SExpr], acc: List[Statement]): List[Statement] =
@@ -46,10 +46,8 @@ object Parser:
                         parseVar(name), 
                         parseExpr(expr)
                     )
-                case SList(SSymbol("=") :: _) =>
-                    Statement.Err(StmtErr.StmtAssignBadLHS)
                 case SList(name :: SSymbol("=") :: _) =>
-                    Statement.Err(StmtErr.StmtAssignBadRHS)
+                    Statement.Err(StmtErr.AssignRhsMalformed)
                 
                 // IfElse: (if0 Expression Block Block)
                 case SList(SSymbol("if0") :: grd :: thn :: els :: Nil) =>
@@ -58,12 +56,8 @@ object Parser:
                         parseBlock(thn),
                         parseBlock(els)
                     )
-                case SList(SSymbol("if0") :: grd :: thn :: Nil) =>
-                    Statement.Err(StmtErr.StmtIfelseNoEBranch)
-                case SList(SSymbol("if0") :: grd :: Nil) =>
-                    Statement.Err(StmtErr.StmtIfelseNoTBranch)
-                case SList(SSymbol("if0") :: Nil) =>
-                    Statement.Err(StmtErr.StmtIfelseNoGuard)
+                case SList(SSymbol("if0") :: _) =>
+                    Statement.Err(StmtErr.IfelseMalformed)
 
                 // While: (while0 Expression Block)
                 case SList(SSymbol("while0") :: grd :: body :: Nil) =>
@@ -71,17 +65,15 @@ object Parser:
                         parseExpr(grd),
                         parseBlock(body)
                     )
-                case SList(SSymbol("while0") :: grd :: Nil) => 
-                    Statement.Err(StmtErr.StmtWhileNoBody)
-                case SList(SSymbol("while0") :: Nil) =>
-                    Statement.Err(StmtErr.StmtWhileNoGuard)
+                case SList(SSymbol("while0") :: _) =>
+                    Statement.Err(StmtErr.WhileMalformed)
 
-                case _ => Statement.Err(StmtErr.StmtMalformed)
+                case _ => Statement.Err(StmtErr.Malformed)
         def parseBlock(sexpr: SExpr): Block = 
             sexpr match
                 // Many: (block Statement^+)
                 case SList(SSymbol("block") :: Nil) => 
-                    Block.Err(BlockErr.BlockManyNoStmts)
+                    Block.Err(BlockErr.ManyNoStmts)
                 case SList(SSymbol("block") :: xs) =>
                     Block.Many(parseStmtsTail(xs))
                 // One: Statement
@@ -106,10 +98,10 @@ object Parser:
                         case "+" =>  Expression.Add(v1, v2)
                         case "/" =>  Expression.Div(v1, v2)
                         case "==" => Expression.Equals(v1, v2)
-                        case _ =>    Expression.Err(ExprErr.ExprBadOperand)
+                        case _ =>    Expression.Err(ExprErr.BadOperand)
                 }
                 case _ => 
-                    Expression.Err(ExprErr.ExprMalformed)
+                    Expression.Err(ExprErr.Malformed)
         def parseVar(ssymbol: SExpr): Expression.Var | Expression.Err = 
             ssymbol match
                 // Var: the set of Variables consists of all symboSls, minus keywords
@@ -117,45 +109,8 @@ object Parser:
                     if !ccKeywords.contains(s) then
                         Expression.Var(s) 
                     else 
-                        Expression.Err(ExprErr.ExprVarIsKeyword)
-                case _ => Expression.Err(ExprErr.ExprBadVar)
+                        Expression.Err(ExprErr.VarIsKeyword)
+                case _ => Expression.Err(ExprErr.VarNotAName)
         parseProg(sexpr)
         
-
-    /** Walks the AST and determines if any of the nodes contain an error. 
-      * Short-circuits.
-      * 
-      * @param p BareBones AST
-      * @return true if the AST contains error nodes
-      */
-    def hasError(p: Program): Boolean = 
-        def stmtHasError(s: Statement): Boolean =
-            s match
-                case Statement.Err(_) => true
-                case Statement.Assign(lhs, rhs) => exprHasError(lhs) || exprHasError(rhs)
-                case Statement.Ifelse(guard, tbranch, ebranch) =>
-                    exprHasError(guard) || blockHasError(tbranch) || blockHasError(ebranch)
-                case Statement.While(guard, body) =>
-                    exprHasError(guard) || blockHasError(body)
-        def blockHasError(b: Block): Boolean =
-            b match
-                case Block.Err(_) => true
-                case Block.One(stmt) => stmtHasError(stmt)
-                // use an iterative approach to avoid stack overflow as exists is 
-                // recursively implemented on Lists
-                case Block.Many(stmts) => stmts.iterator.exists(s => stmtHasError(s))
-        def exprHasError(e: Expression): Boolean = 
-            e match
-                case Expression.Err(_) => true
-                case Expression.Add(lhs, rhs) => exprHasError(lhs) || exprHasError(rhs)
-                case Expression.Div(lhs, rhs) => exprHasError(lhs) || exprHasError(rhs)
-                case Expression.Equals(lhs, rhs) => exprHasError(lhs) || exprHasError(rhs)
-                case _ => false
-        p match
-            case Program.Err(_) => true
-            case Program.Prog(stmts, expr) =>
-                stmts.iterator.exists {s => stmtHasError(s)} || exprHasError(expr)
-
-
-
 

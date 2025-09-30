@@ -1,26 +1,22 @@
 package ast
 
 enum ProgErr:
-    case ProgNotList
-    case ProgEmptyList
+    case NotAList
+    case EmptyList
 
 enum StmtErr:
-    case StmtAssignBadLHS
-    case StmtAssignBadRHS
-    case StmtIfelseNoGuard
-    case StmtIfelseNoTBranch
-    case StmtIfelseNoEBranch
-    case StmtWhileNoGuard
-    case StmtWhileNoBody
-    case StmtMalformed
+    case AssignRhsMalformed
+    case IfelseMalformed
+    case WhileMalformed
+    case Malformed
 
 enum BlockErr:
-    case BlockManyNoStmts
+    case ManyNoStmts
 
 enum ExprErr:
-    case ExprVarIsKeyword
-    case ExprBadVar
-    case ExprBadOperand
-    case ExprMalformed
+    case VarIsKeyword
+    case VarNotAName
+    case BadOperand
+    case Malformed
     // The only error node added for Validity checking
     case ExprVarNotDeclared
