@@ -1,16 +1,3 @@
-/** Challenge Assignment *********************************************************************
- * Q: How would the problem that is mentioned in the dialog between Eli Barzilay and the AI 
- * affect the students in this course? 
- * A: We will inevitably have to deal with floating point numbers in our software development
- * careers, but few people actually know how inexact numbers are handled by our machines.
- * The problem highlighted by Eli Barzilay is insidious because the surface syntax by itself 
- * does not indicate that either expression is better than other, but there is a tangible
- * difference.
- *
- * Q: How does the design of Bare Bones avoid the problem?
- * A: BareBones does not define a multiplication expression, so floating point rounding errors 
- * introduced by division cannot be amplified. 
- */
 package main
 
 import java.io.StringReader

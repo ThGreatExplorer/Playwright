@@ -4,8 +4,8 @@ This is a repository for CS4400 Programming Languages class project. The chosen 
 
 Developed by Anfisa Bogdanenko and Daniel Yu.
 
-### Assignment 3 - Challenge Question
-The answer to the challenge question is given in a comment on top of the `3/xcsk` script and `src/main/scala/Main.scala`.
+### Challenge Questions
+The answers to extra-credit challenge questions are recorded in `CHALLENGE.md`. The answer for any specific homework assignment is also provided at the top of  `src/main/scala/Main.scala` for the submission commit. 
 
 ### Build system
 
