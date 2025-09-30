@@ -7,8 +7,8 @@ enum Program:
 
 // Declaration ::= (def Variable Expression)
 enum Declaration:
-    case Declare(lhs: Expression.Var | Expression.Err, rhs: Expression)
-    case DeclarationError(e: DeclareError)
+    case Def(lhs: Expression.Var | Expression.Err, rhs: Expression)
+    case Err(e: DeclErr)
 
 //   Statement  ::= (Variable = Expression)
 //                | (if0 Expression Block Block)

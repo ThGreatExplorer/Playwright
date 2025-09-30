@@ -17,8 +17,8 @@ object ASTInspector:
         case Program.Err(_) => true
 
     def hasError(d: Declaration): Boolean = d match
-        case Declaration.Declare(lhs, rhs) => hasError(lhs) || hasError(rhs)
-        case Declaration.DeclarationError(_) => true
+        case Declaration.Def(lhs, rhs) => hasError(lhs) || hasError(rhs)
+        case Declaration.Err(_) => true
 
     def hasError(s: Statement): Boolean = s match
         case Statement.Assign(lhs, rhs) => hasError(lhs) || hasError(rhs)

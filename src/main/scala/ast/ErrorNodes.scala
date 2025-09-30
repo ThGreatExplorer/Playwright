@@ -9,8 +9,9 @@ enum StmtErr:
     case IfelseMalformed
     case WhileMalformed
     case Malformed
+    case DeclAtStmtPosition
 
-enum DeclareError:
+enum DeclErr:
     case Malformed
 
 enum BlockErr:
