@@ -21,7 +21,7 @@ test:
 		cd $(DIR) && \
 		for t in $$(seq 0 $$(($(TESTS)-1))); do \
 				echo "Running test $$t..."; \
-				./$(EXE) < Tests/$$t-in.ss | diff - Tests/$$t-out.ss; \
+				exec ./$(EXE) < Tests/$$t-in.ss | diff - Tests/$$t-out.ss; \
 		done
 
 feedback:
@@ -31,7 +31,7 @@ feedback:
 				for t in $$(seq 0 $$(($(TESTS)-1))); do \
 						if [ -e $$d/$$t-in.ss ]; then \
 							echo "  Running test $$t..."; \
-							./$(EXE) < $$d/$$t-in.ss | diff --ignore-trailing-space --ignore-blank-lines - $$d/$$t-out.ss; \
+							exec ./$(EXE) < $$d/$$t-in.ss | diff --ignore-trailing-space --ignore-blank-lines - $$d/$$t-out.ss; \
 						else \
 							echo "    Test $$t does not exist, skipping..."; \
 							continue; \
