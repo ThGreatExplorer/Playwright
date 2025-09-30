@@ -4,6 +4,7 @@ import munit.FunSuite
 import main.MainFuncs
 import parser.Parser
 import ast._
+import ast.ASTInspector.progHasError
 
 class ParserTests extends FunSuite {
   test("Test Invalid Example Parser + hasError") {
@@ -16,40 +17,40 @@ class ParserTests extends FunSuite {
         () () ()
     )"""
     val inputSexp = MainFuncs.readSexp(test_str1)
-    val prog      = Parser.parse(inputSexp)
-    val has_error = Parser.hasError(prog)
+    val prog      = Parser.parseProg(inputSexp)
+    val hasError = progHasError(prog)
     assertEquals(
       prog,
       Program.Prog(
         stmts = List(
           Statement.Err(
-            e = StmtErr.StmtMalformed
+            e = StmtErr.Malformed
           ),
           Statement.Err(
-            e = StmtErr.StmtMalformed
+            e = StmtErr.Malformed
           ),
           Statement.Err(
-            e = StmtErr.StmtMalformed
+            e = StmtErr.Malformed
           ),
           Statement.Err(
-            e = StmtErr.StmtMalformed
+            e = StmtErr.Malformed
           ),
           Statement.Err(
-            e = StmtErr.StmtMalformed
+            e = StmtErr.Malformed
           ),
           Statement.Err(
-            e = StmtErr.StmtMalformed
+            e = StmtErr.Malformed
           ),
           Statement.Err(
-            e = StmtErr.StmtMalformed
+            e = StmtErr.Malformed
           )
         ),
         expr = Expression.Err(
-          e = ExprErr.ExprMalformed
+          e = ExprErr.Malformed
         )
       )
     )
-    assertEquals(has_error, true)
+    assertEquals(hasError, true)
   }
 
   val cases = Seq(
@@ -154,8 +155,8 @@ class ParserTests extends FunSuite {
   cases.foreach { (input, expected, expectedError) =>
     test(s"Valid Parser Prog + hasError test for input: $input") {
       val inputSexp = MainFuncs.readSexp(input)
-      val prog      = Parser.parse(inputSexp)
-      val has_error = Parser.hasError(prog)
+      val prog      = Parser.parseProg(inputSexp)
+      val has_error = progHasError(prog)
       assertEquals(prog, expected)
       assertEquals(has_error, expectedError)
     }

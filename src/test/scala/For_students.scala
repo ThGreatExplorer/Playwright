@@ -5,6 +5,7 @@ import main.MainFuncs
 import parser.Parser
 import ast._
 import csk.{CSKMachine, Control, RuntimeError}
+import ast.ASTInspector.progHasError
 
 class ForStudents extends FunSuite {
   val cases = Seq(
@@ -25,9 +26,9 @@ class ForStudents extends FunSuite {
   cases.foreach { case (inputStr, expectedOutput) =>
     test(s"For Students 3 Test: $inputStr") {
       val inputSexp = MainFuncs.readSexp(inputStr)
-      val prog      = Parser.parse(inputSexp)
+      val prog      = Parser.parseProg(inputSexp)
 
-      if Parser.hasError(prog) then
+      if progHasError(prog) then
         assertEquals("parser error", expectedOutput)
       else
         CSKMachine.run(prog) match

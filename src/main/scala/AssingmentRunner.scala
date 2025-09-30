@@ -28,7 +28,7 @@ object AssignmentRunner:
     * @param input SExpr read from stdin
     */
   def cskBareBones(input: SExpr): Result = 
-    val prog = Parser.parse(input)
+    val prog = Parser.parseProg(input)
 
     if progHasError(prog) then
       Result.ParseError
@@ -43,7 +43,7 @@ object AssignmentRunner:
     * @param input SExpr read from stdin
     */
   def parserBareBones(input: SExpr): Result = 
-    val prog = Parser.parse(input)
+    val prog = Parser.parseProg(input)
 
     if progHasError(prog) then
       Result.ParseError

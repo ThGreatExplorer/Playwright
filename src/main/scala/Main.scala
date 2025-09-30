@@ -6,12 +6,12 @@ import scala.io.StdIn.readLine
 import sexprs.Lexer
 import sexprs.Parser
 import sexprs.SExprs.SExpr
-import util.ExampleChecker.assertExampleCC
+import util.ExampleChecker.assertExample
 
 @main def main(): Unit =
   val inputString = MainFuncs.getMultilineInput()
   val inputSexp = MainFuncs.readSexp(inputString)
-  assertExampleCC(inputSexp)
+  assertExample(inputSexp)
 
   val result = AssignmentRunner.cskBareBones(inputSexp)
   println(result.outputString)
