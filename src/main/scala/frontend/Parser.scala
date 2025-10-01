@@ -15,19 +15,19 @@ object Parser:
       * @param sexpr SExpr read in from input
       * @return BareBones AST with possible error nodes if grammar rules are violated
       */
-    def parseProg(sexpr: SExpr): Program = sexpr match
+    def parseProg(sexpr: SExpr): ProgramWE = sexpr match
         // Program: (Declaration^* Statement^* Expression)  
-        case SList(Nil) => Program.Err(ProgErr.EmptyList) 
+        case SList(Nil) => ProgramWE.Err(ProgErr.EmptyList) 
         case SList(elems) => {
             val (decls, stmts) = splitDeclsAndStmts(elems.dropRight(1))
             val expr = elems.last
-            Program.Prog(
+            ProgramWE.Prog(
                 decls.map(parseDecl),
                 stmts.map(parseStmt),
                 parseExpr(expr)
             )
         }
-        case _ => Program.Err(ProgErr.NotAList)
+        case _ => ProgramWE.Err(ProgErr.NotAList)
 
     def splitDeclsAndStmts(elems: List[SExpr]) : (List[SExpr], List[SExpr]) = 
         def loopDecl(remaining: List[SExpr], accDecls: List[SExpr]) : (List[SExpr], List[SExpr]) =
@@ -38,59 +38,59 @@ object Parser:
                 case _ => (accDecls.reverse, remaining)
         loopDecl(elems, Nil)
 
-    def parseDecl(sexp: SExpr): Declaration = sexp match
+    def parseDecl(sexp: SExpr): DeclWE = sexp match
         // Declaration: (def Variable Expression)
         case SList(SSymbol(Keyword.Def) :: lhs :: rhs :: Nil) =>
-            Declaration.Def(
+            DeclWE.Def(
                 parseVar(lhs),
                 parseExpr(rhs)
             )
-        case _ => Declaration.Err(DeclErr.Malformed)
+        case _ => DeclWE.Err(DeclErr.Malformed)
 
-    def parseStmt(sexpr: SExpr): Statement = sexpr match
+    def parseStmt(sexpr: SExpr): StmtWE = sexpr match
         case SList(SSymbol(Keyword.Def) :: _) =>
-            Statement.Err(StmtErr.DeclAtStmtPosition)
+            StmtWE.Err(StmtErr.DeclAtStmtPosition)
 
         // Assignment: (Variable = Expression)
         case SList(name :: SSymbol(Keyword.Assign) :: expr :: Nil) =>
-            Statement.Assign(
+            StmtWE.Assign(
                 parseVar(name), 
                 parseExpr(expr)
             )
         case SList(name :: SSymbol(Keyword.Assign) :: _) =>
-            Statement.Err(StmtErr.AssignRhsMalformed)
+            StmtWE.Err(StmtErr.AssignRhsMalformed)
         
         // IfElse: (if0 Expression Block Block)
         case SList(SSymbol(Keyword.If) :: grd :: thn :: els :: Nil) =>
-            Statement.Ifelse(
+            StmtWE.Ifelse(
                 parseExpr(grd),
                 parseBlock(thn),
                 parseBlock(els)
             )
         case SList(SSymbol(Keyword.If) :: _) =>
-            Statement.Err(StmtErr.IfelseMalformed)
+            StmtWE.Err(StmtErr.IfelseMalformed)
 
         // While: (while0 Expression Block)
         case SList(SSymbol(Keyword.While) :: grd :: body :: Nil) =>
-            Statement.While(
+            StmtWE.While(
                 parseExpr(grd),
                 parseBlock(body)
             )
         case SList(SSymbol(Keyword.While) :: _) =>
-            Statement.Err(StmtErr.WhileMalformed)
+            StmtWE.Err(StmtErr.WhileMalformed)
 
-        case _ => Statement.Err(StmtErr.Malformed)
+        case _ => StmtWE.Err(StmtErr.Malformed)
 
-    def parseBlock(sexpr: SExpr): Block = sexpr match
+    def parseBlock(sexpr: SExpr): BlockWE = sexpr match
         // Many: (block Declaration^* Statement^+)
         case SList(SSymbol(Keyword.Block) :: Nil) => 
-            Block.Err(BlockErr.ManyNoStmts)
+            BlockWE.Err(BlockErr.ManyNoStmts)
         case SList(SSymbol(Keyword.Block) :: elems) => {
             splitDeclsAndStmts(elems) match
                 case (decls, Nil) => 
-                    Block.Err(BlockErr.ManyNoStmts)
+                    BlockWE.Err(BlockErr.ManyNoStmts)
                 case (decls, stmts) => 
-                    Block.Many(
+                    BlockWE.Many(
                         decls.map(parseDecl),
                         stmts.map(parseStmt)
                     )
@@ -98,13 +98,13 @@ object Parser:
             
         // One: Statement
         case _ => 
-            Block.One(parseStmt(sexpr))
+            BlockWE.One(parseStmt(sexpr))
 
-    def parseExpr(sexpr: SExpr): Expression = sexpr match
+    def parseExpr(sexpr: SExpr): ExprWE = sexpr match
         // Num: the set of GoodNumbers comprises all inexact numbers
         //      (doubles) between -1000.0 and +1000.0, inclusive.
         case SDouble(n) => 
-            Expression.Num(n)
+            ExprWE.Num(n)
         // Var: the set of Variables consists of all symboSls, minus keywords
         case SSymbol(s) => 
             parseVar(sexpr)
@@ -115,21 +115,21 @@ object Parser:
         case SList(sexp1 :: SSymbol(op) :: sexp2 :: Nil) => {
             val (v1, v2) = (parseVar(sexp1), parseVar(sexp2))
             op match
-                case Keyword.Plus =>  Expression.BinOpExpr(v1, BinOp.Add, v2)
-                case Keyword.Div  =>  Expression.BinOpExpr(v1, BinOp.Div, v2)
-                case Keyword.Eq   =>  Expression.BinOpExpr(v1, BinOp.Equals, v2)
-                case _            =>  Expression.Err(ExprErr.BadOperand)
+                case Keyword.Plus =>  ExprWE.BinOpExpr(v1, BinOp.Add, v2)
+                case Keyword.Div  =>  ExprWE.BinOpExpr(v1, BinOp.Div, v2)
+                case Keyword.Eq   =>  ExprWE.BinOpExpr(v1, BinOp.Equals, v2)
+                case _            =>  ExprWE.Err(ExprErr.BadOperand)
         }
         case _ => 
-            Expression.Err(ExprErr.Malformed)
+            ExprWE.Err(ExprErr.Malformed)
 
-    def parseVar(ssymbol: SExpr): Expression.Var | Expression.Err = ssymbol match
+    def parseVar(ssymbol: SExpr): VarWE = ssymbol match
         // Var: the set of Variables consists of all symboSls, minus keywords
         case SSymbol(s) => 
             if !isKeyword(s) then
-                Expression.Var(s) 
+                ExprWE.Var(s) 
             else 
-                Expression.Err(ExprErr.VarIsKeyword)
-        case _ => Expression.Err(ExprErr.VarNotAName)
+                ExprWE.VarErrNode(VarErr.IsKeyword)
+        case _ => ExprWE.VarErrNode(VarErr.NotAName)
         
 

@@ -5,82 +5,71 @@ import util.InputNotExampleException
 import util.UnreachablePatternMatch
 
 object ValidityChecker:
-    def closedProg(p: Program): Program = p match
-        case Program.Prog(decls, stmts, expr) => {
+    def closedProg(p: CleanProgram): ProgramWE = p match
+        case CleanProgram(decls, stmts, expr) => 
             val (validatedDecls, declared) = closedDecls(decls, List(), Set())
-            Program.Prog(
+            ProgramWE.Prog(
                 validatedDecls,
                 stmts.map(closedStmt(_, declared)),
                 closedExpr(expr, declared)
             )
-        }            
-        case Program.Err(_) => 
-            throw new UnreachablePatternMatch("Program Err node at Scope Validation")
+                    
 
-    def closedDecls(declsRem: List[Declaration], declsSoFar: List[Declaration], dvars: Set[Expression.Var]) 
-        : (List[Declaration], Set[Expression.Var]) =  
+    def closedDecls(declsRem: List[CleanDecl], declsSoFar: List[DeclWE], dvars: Set[String]) 
+        : (List[DeclWE], Set[String]) =  
             declsRem match
                 case Nil => (declsSoFar.reverse, dvars)
-                case Declaration.Def(id @ Expression.Var(_), rhs) :: tail => 
+                case CleanDecl(CleanExpr.Var(x), rhs) :: tail => 
                     val processedDecl = 
-                        Declaration.Def(
-                            id,
+                        DeclWE.Def(
+                            ExprWE.Var(x),
                             closedExpr(rhs, dvars)
                         )
-                    closedDecls(tail, processedDecl :: declsSoFar, dvars.incl(id))
-                case Declaration.Err(_) => 
-                    throw new UnreachablePatternMatch("Declaration Err node at Scope Validation")
+                    closedDecls(tail, processedDecl :: declsSoFar, dvars.incl(x))
 
-    def closedStmt(stmt: Statement, dvars: Set[Expression.Var]): Statement = stmt match
-        case Statement.Assign(id @ Expression.Var(_), rhs) => 
-            Statement.Assign(
+    def closedStmt(stmt: CleanStmt, dvars: Set[String]): StmtWE = stmt match
+        case CleanStmt.Assign(id @ CleanExpr.Var(_), rhs) => 
+            StmtWE.Assign(
                 closedVariable(id, dvars), 
                 closedExpr(rhs, dvars)
             )
-        case Statement.Ifelse(guard, tbranch, ebranch) =>
-            Statement.Ifelse(
+        case CleanStmt.Ifelse(guard, tbranch, ebranch) =>
+            StmtWE.Ifelse(
                 closedExpr(guard, dvars), 
                 closedBlock(tbranch, dvars), 
                 closedBlock(ebranch, dvars) 
             )
-        case Statement.While(guard, body) =>
-            Statement.While(
+        case CleanStmt.While(guard, body) =>
+            StmtWE.While(
                 closedExpr(guard, dvars),
                 closedBlock(body, dvars)
             )
-        case Statement.Err(_) => 
-            throw new UnreachablePatternMatch("Statement Err node at Scope Validation")
         
-    def closedBlock(block: Block, dvars: Set[Expression.Var]): Block = block match
-        case Block.One(stmt) => 
-            Block.One(closedStmt(stmt, dvars))
-        case Block.Many(decls, stmts) => 
+    def closedBlock(block: CleanBlock, dvars: Set[String]): BlockWE = block match
+        case CleanBlock.One(stmt) => 
+            BlockWE.One(closedStmt(stmt, dvars))
+        case CleanBlock.Many(decls, stmts) => 
             val (processedDecls, declared) = closedDecls(decls, List(), dvars)
-            Block.Many(
+            BlockWE.Many(
                 processedDecls, 
                 stmts.map(closedStmt(_, declared))
             )
-        case Block.Err(_) => 
-            throw new UnreachablePatternMatch("Block Err node at Scope Validation")
             
-    def closedExpr(e: Expression, dvars: Set[Expression.Var]): Expression = e match
-        case varExpr @ Expression.Var(b) => 
+    def closedExpr(e: CleanExpr, dvars: Set[String]): ExprWE = e match
+        case varExpr @ CleanExpr.Var(b) => 
             closedVariable(varExpr, dvars)
 
-        case Expression.BinOpExpr(lhs @ Expression.Var(_), op, rhs @ Expression.Var(_)) => 
-            Expression.BinOpExpr(
+        case CleanExpr.BinOpExpr(lhs @ CleanExpr.Var(_), op, rhs @ CleanExpr.Var(_)) => 
+            ExprWE.BinOpExpr(
                 closedVariable(lhs, dvars), 
                 op,
                 closedVariable(rhs, dvars)
             )
 
-        case n @ Expression.Num(_) => n
+        case CleanExpr.Num(n) => ExprWE.Num(n)
 
-        case Expression.Err(_) => 
-            throw new UnreachablePatternMatch("Expression Err node at Scope Validation")
-
-    def closedVariable(varExpr: Expression.Var, dvars: Set[Expression.Var]): Expression.Var | Expression.Err = 
-        if dvars.contains(varExpr) then 
-            varExpr
-        else 
-            Expression.Err(ExprErr.ExprVarNotDeclared) 
+    def closedVariable(v: CleanExpr.Var, dvars: Set[String]): VarWE = v match
+        case CleanExpr.Var(x) if dvars.contains(x) =>
+            ExprWE.Var(x)
+        case _ =>
+            ExprWE.VarErrNode(VarErr.NotDeclared) 

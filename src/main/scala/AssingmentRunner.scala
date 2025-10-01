@@ -1,10 +1,8 @@
 package main
 
 import sexprs.SExprs._
-// import csk.CSKMachine
-// import csk.Control
 import frontend.ValidityChecker
-import ast.ASTInspector.progHasError
+import ast.ConverterToClean.progToClean
 import frontend.Parser as Parser
 
 enum Result:
@@ -33,16 +31,16 @@ object AssignmentRunner:
     * @param input SExpr read from stdin
     */
   def coreValidityChecker(input: SExpr): Result =
-    val prog = Parser.parseProg(input)
-    if progHasError(prog) then
-      Result.ParseError
-    else
-      val validprog = ValidityChecker.closedProg(prog)
-      if progHasError(validprog) then
-        Result.UndefinedVarError
-      else
-        Result.ValidityBelongs
+    val parsedProg = Parser.parseProg(input)
 
+    progToClean(parsedProg) match
+      case None => Result.ParseError
+      case Some(cleanProg) => 
+        val validatedProg = ValidityChecker.closedProg(cleanProg)
+
+        progToClean(parsedProg) match 
+          case None    => Result.UndefinedVarError
+          case Some(_) => Result.ValidityBelongs
 
   // /**
   //   * Result printer for Assignment 3 — Bare Bones: CSK
@@ -65,12 +63,14 @@ object AssignmentRunner:
     * @param input SExpr read from stdin
     */
   def parserBareBones(input: SExpr): Result = 
-    val prog = Parser.parseProg(input)
+    val parsedProg = Parser.parseProg(input)
 
-    if progHasError(prog) then
-      Result.ParseError
-    else
-      Result.ParseBelongs
+    progToClean(parsedProg) match
+      case None => 
+        Result.ParseError
+      case Some(_) => 
+        Result.ParseBelongs
+      
 
   /**
     * Result printer for Assignment 1 — Start Me Up
