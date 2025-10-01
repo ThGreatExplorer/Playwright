@@ -1,4 +1,4 @@
-package parser
+package frontend
 
 import annotation.tailrec
 
@@ -109,7 +109,10 @@ object Parser:
                 case (decls, Nil) => 
                     Block.Err(BlockErr.ManyNoStmts)
                 case (decls, stmts) => 
-                    Block.Many(parseDeclsTail(decls), parseStmtsTail(stmts))
+                    Block.Many(
+                        parseDeclsTail(decls),
+                        parseStmtsTail(stmts)
+                    )
         }
             
         // One: Statement
