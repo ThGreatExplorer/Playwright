@@ -36,27 +36,36 @@ object ValidityChecker:
                 case _ =>
                     dvars.add(Expression.Var(lhs))
                     (d, dvars)
-    
 
-    def hasError(s: Statement): Boolean = s match
-        case Statement.Assign(lhs, rhs) => hasError(lhs) || hasError(rhs)
+    def closedStmt(stmt: Statement, dvars: Set[Expression.Var]) : Statement = stmt match
+        case Statement.Assign(lhs, rhs) =>
+            closed
         case Statement.Ifelse(guard, tbranch, ebranch) => 
             hasError(guard) || hasError(tbranch) || hasError(ebranch)
         case Statement.While(guard, body) => hasError(guard) || hasError(body)
         case Statement.Err(_) => true
 
-    def hasError(b: Block): Boolean = b match
-        case Block.One(stmt) => hasError(stmt)
-        // Similarly, using iterator
-        case Block.Many(decls, stmts) => decls.iterator.exists(hasError) || stmts.iterator.exists(hasError)
-        case Block.Err(_) => true
+    // def hasError(b: Block): Boolean = b match
+    //     case Block.One(stmt) => hasError(stmt)
+    //     // Similarly, using iterator
+    //     case Block.Many(decls, stmts) => decls.iterator.exists(hasError) || stmts.iterator.exists(hasError)
+    //     case Block.Err(_) => true
     
     def closedExpr(e: Expression, dvars: Set[Expression.Var]): Expression = e match
-        case Expression.Num(a) => Expression.Num(a)
-        case Expression.Var(b) => if dvars.contains(Expression.Var(b)) then Expression.Var(b) else Expression.Err(ExprErr.ExprVarNotDeclared) 
+        case varExpr @ Expression.Var(b) => 
+            closedVariable(varExpr, dvars)
 
-        case Expression.BinOp(Expression.Var(lhs), Expression.Var(rhs), op) => 
-            (dvars.contains(Expression.Var(lhs)), dvars.contains(Expression.Var(rhs))) match
-                case (true, true) => Expression.BinOp(Expression.Var(lhs), Expression.Var(rhs), op)
-                case (_, _) => Expression.Err(ExprErr.ExprVarNotDeclared) 
-        case Expression.Err(e) => Expression.Err(e)
+        case Expression.BinOpExpr(lhs @ Expression.Var(_), op, rhs @ Expression.Var(_)) => 
+            Expression.BinOpExpr(
+                closedVariable(lhs, dvars), 
+                op,
+                closedVariable(rhs, dvars)
+            )
+        
+        case e => e
+
+    def closedVariable(varExpr: Expression.Var, dvars: Set[Expression.Var]): Expression.Var | Expression.Err = 
+        if dvars.contains(varExpr) then 
+            varExpr
+        else 
+            Expression.Err(ExprErr.ExprVarNotDeclared) 

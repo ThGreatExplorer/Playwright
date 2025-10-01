@@ -115,9 +115,9 @@ object Parser:
         case SList(sexp1 :: SSymbol(op) :: sexp2 :: Nil) => {
             val (v1, v2) = (parseVar(sexp1), parseVar(sexp2))
             op match
-                case Keyword.Plus =>  Expression.BinOp(v1, v2, BinOps.Add)
-                case Keyword.Div  =>  Expression.BinOp(v1, v2, BinOps.Div)
-                case Keyword.Eq   =>  Expression.BinOp(v1, v2, BinOps.Equals)
+                case Keyword.Plus =>  Expression.BinOpExpr(v1, BinOp.Add, v2)
+                case Keyword.Div  =>  Expression.BinOpExpr(v1, BinOp.Div, v2)
+                case Keyword.Eq   =>  Expression.BinOpExpr(v1, BinOp.Equals, v2)
                 case _            =>  Expression.Err(ExprErr.BadOperand)
         }
         case _ => 
