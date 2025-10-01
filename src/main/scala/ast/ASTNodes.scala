@@ -34,7 +34,12 @@ enum Block:
 enum Expression:
     case Num(n: Double)
     case Var(x: String)
-    case Add(lhs: Var | Err, rhs: Var | Err)
-    case Div(lhs: Var | Err, rhs: Var | Err)
-    case Equals(lhs: Var | Err, rhs: Var | Err)
+    case BinOp(lhs: Var | Err, rhs: Var | Err, op: BinOps)
     case Err(e: ExprErr)
+
+
+enum BinOps {
+  case Div
+  case Add
+  case Equals
+}

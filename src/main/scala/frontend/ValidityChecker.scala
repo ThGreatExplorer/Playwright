@@ -1,6 +1,7 @@
 import ast._
 import util.InputNotExampleException
 import util.UnreachablePatternMatch
+import scala.collection.mutable.Set
 
 package main.validity
 
@@ -8,7 +9,7 @@ object ValidityChecker:
 
     def closedProg(p: Program): Program = p match
         case Program.Prog(decls, stmts, expr) => {
-            val (validatedDecls, declared) = closedDecls(decls)
+            val (validatedDecls, declared) = closedDecls(decls, Set())
             Program.Prog(
                 validatedDecls,
                 stmts.map(closedStmt(_, declared)),
@@ -18,12 +19,24 @@ object ValidityChecker:
         case Program.Err(_) => 
             throw new UnreachablePatternMatch("Program Err node at Scope Validation")
 
-    // def closedDecls(decls: List[Declaration]) : (List[Declaration], Set[Expression.Var]) =
+    def closedDecls(decls: List[Declaration], dvars: Set[Expression.Var]) : (List[Declaration], Set[Expression.Var]) = decls match
+        case Nil => (decls, dvars)
+        case h :: t => 
+            val (validatedHead, processedVars) = closedDecl(h, dvars)
+            val (validatedTail, declaredVars) = closedDecls(t, processedVars)
+            (validatedHead :: validatedTail, declaredVars)
+    
 
-
-    def closedDecl(d: Declaration): Boolean = d match
-        case Declaration.Def(lhs, rhs) => hasError(lhs) || hasError(rhs)
-        case Declaration.Err(_) => true
+    def closedDecl(d: Declaration, dvars: Set[Expression.Var]): (Declaration, Set[Expression.Var]) = d match
+        case Declaration.Def(Expression.Var(lhs), rhs) => 
+            val processedRhs = closedExpr(rhs, dvars)
+            processedRhs match
+                case Expression.Err(e) => 
+                    (Declaration.Def(Expression.Var(lhs),processedRhs), dvars)
+                case _ =>
+                    dvars.add(Expression.Var(lhs))
+                    (d, dvars)
+    
 
     def hasError(s: Statement): Boolean = s match
         case Statement.Assign(lhs, rhs) => hasError(lhs) || hasError(rhs)
@@ -38,9 +51,12 @@ object ValidityChecker:
         case Block.Many(decls, stmts) => decls.iterator.exists(hasError) || stmts.iterator.exists(hasError)
         case Block.Err(_) => true
     
-    def hasError(e: Expression): Boolean = e match
-        case Expression.Num(_) | Expression.Var(_) => false
-        case Expression.Add(lhs, rhs) => hasError(lhs) || hasError(rhs)
-        case Expression.Div(lhs, rhs) => hasError(lhs) || hasError(rhs)
-        case Expression.Equals(lhs, rhs) => hasError(lhs) || hasError(rhs)
-        case Expression.Err(_) => true
+    def closedExpr(e: Expression, dvars: Set[Expression.Var]): Expression = e match
+        case Expression.Num(a) => Expression.Num(a)
+        case Expression.Var(b) => if dvars.contains(Expression.Var(b)) then Expression.Var(b) else Expression.Err(ExprErr.ExprVarNotDeclared) 
+
+        case Expression.BinOp(Expression.Var(lhs), Expression.Var(rhs), op) => 
+            (dvars.contains(Expression.Var(lhs)), dvars.contains(Expression.Var(rhs))) match
+                case (true, true) => Expression.BinOp(Expression.Var(lhs), Expression.Var(rhs), op)
+                case (_, _) => Expression.Err(ExprErr.ExprVarNotDeclared) 
+        case Expression.Err(e) => Expression.Err(e)

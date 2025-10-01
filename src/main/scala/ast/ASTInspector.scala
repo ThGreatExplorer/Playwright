@@ -35,7 +35,5 @@ object ASTInspector:
     
     def hasError(e: Expression): Boolean = e match
         case Expression.Num(_) | Expression.Var(_) => false
-        case Expression.Add(lhs, rhs) => hasError(lhs) || hasError(rhs)
-        case Expression.Div(lhs, rhs) => hasError(lhs) || hasError(rhs)
-        case Expression.Equals(lhs, rhs) => hasError(lhs) || hasError(rhs)
+        case Expression.BinOp(lhs, rhs, _) => hasError(lhs) || hasError(rhs)
         case Expression.Err(_) => true
