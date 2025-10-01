@@ -12,7 +12,7 @@ object ValidityChecker:
             val (validatedDecls, declared) = closedDecls(decls, Set())
             Program.Prog(
                 validatedDecls,
-                stmts.map(closedStmt(_, declared)),
+                stmts.map(closedStmts(stmts, declared)),
                 closedExpr(expr, declared)
             )
         }            
@@ -38,19 +38,33 @@ object ValidityChecker:
                     (d, dvars)
         case _ => (d, dvars)
 
-    def hasError(s: Statement): Boolean = s match
-        case Statement.Assign(lhs, rhs) => hasError(lhs) || hasError(rhs)
-        case Statement.Ifelse(guard, tbranch, ebranch) => 
-            hasError(guard) || hasError(tbranch) || hasError(ebranch)
-        case Statement.While(guard, body) => hasError(guard) || hasError(body)
-        case Statement.Err(_) => true
+    def closedStmts(stmts: List[Statement], dvars: Set[Expression.Var]): List[Statement] = stmts match
+        case Nil => stmts
+        case h :: t =>
+            (closedStmt(h, dvars) :: closedStmts(t, dvars))
 
-    def hasError(b: Block): Boolean = b match
-        case Block.One(stmt) => hasError(stmt)
-        // Similarly, using iterator
-        case Block.Many(decls, stmts) => decls.iterator.exists(hasError) || stmts.iterator.exists(hasError)
-        case Block.Err(_) => true
-    
+    def closedStmt(stmt: Statement, dvars: Set[Expression.Var]): Statement =
+        stmt match
+            case Statement.Assign(Expression.Var(lhs), rhs) => 
+                val processedLhs: Expression.Err | Expression.Var = if dvars.contains(Expression.Var(lhs)) then Expression.Var(lhs) else Expression.Err(ExprErr.ExprVarNotDeclared)
+                Statement.Assign(processedLhs, closedExpr(rhs, dvars))
+            case Statement.Ifelse(guard, tbranch, ebranch) =>
+                val (processedTBranch, _) = closedBlock(tbranch, dvars)
+                val (processedEBranch, _) = closedBlock(ebranch, dvars)     
+                Statement.Ifelse(closedExpr(guard, dvars), processedTBranch, processedEBranch)
+            case Statement.While(guard, body) =>
+                val (processedBody, _) = closedBlock(body, dvars)
+                Statement.While(closedExpr(guard, dvars), processedBody)
+            case Statement.Err(e) => Statement.Err(e)
+        
+    def closedBlock(block: Block, dvars: Set[Expression.Var]): (Block, Set[Expression.Var]) = 
+        block match
+            case Block.One(stmt) => (Block.One(closedStmt(stmt, dvars)), dvars)
+            case Block.Many(decls, stmts) => 
+                val (validatedDecls, declared) = closedDecls(decls, dvars)
+                (Block.Many(validatedDecls, closedStmts(stmts, declared)), declared)
+            case Block.Err(e) => (Block.Err(e), dvars)
+
     def closedExpr(e: Expression, dvars: Set[Expression.Var]): Expression = e match
         case Expression.Num(a) => Expression.Num(a)
         case Expression.Var(b) => if dvars.contains(Expression.Var(b)) then Expression.Var(b) else Expression.Err(ExprErr.ExprVarNotDeclared) 
