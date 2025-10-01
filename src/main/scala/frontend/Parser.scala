@@ -19,7 +19,7 @@ object Parser:
         // Program: (Declaration^* Statement^* Expression)  
         case SList(Nil) => Program.Err(ProgErr.EmptyList) 
         case SList(elems) => {
-            val (decls, stmts) = splitDeclsAndStmts(elems.init)
+            val (decls, stmts) = splitDeclsAndStmts(elems.dropRight(1))
             val expr = elems.last
             Program.Prog(
                 decls.map(parseDecl),
