@@ -8,7 +8,7 @@ object ValidityChecker:
 
     def closedProg(p: Program): Program = p match
         case Program.Prog(decls, stmts, expr) => {
-            val (processedDecls, declared) = closedDecls(decls, Set())
+            val (processedDecls, declared) = closedDecls(decls)
             Program.Prog(
                 processedDecls,
                 stmts.map(closedStmt(_, declared)),
@@ -18,7 +18,9 @@ object ValidityChecker:
         case Program.Err(_) => 
             throw new UnreachablePatternMatch("Program Err node at Scope Validation")
 
-    def closedDecls(declsRem: List[Declaration], declsSoFar: List[Declaration], dvars: Set[Expression.Var]) : (List[Declaration], Set[Expression.Var]) = 
+    def closedDecls(declsRem: List[Declaration]) : (List[Declaration], Set[Expression.Var]) = 
+    
+        def closedDeclsHelp(declsRem: List[Declaration], declsSoFar: List[Declaration], dvars: Set[Expression.Var]) : (List[Declaration], Set[Expression.Var]) = 
         declsRem match
             case Nil => (declsSoFar.reverse, dvars)
             case Declaration.Def(id @ Expression.Var(_), rhs) :: tail => 
@@ -27,7 +29,9 @@ object ValidityChecker:
                         id,
                         closedExpr(rhs, dvars)
                     )
-                closedDecls(tail, processedDecl :: declsSoFar, dvars.incl(id))
+                closedDeclsHelp(tail, processedDecl :: declsSoFar, dvars.incl(id))
+
+        closedDeclsHelp(declsRem, List(), Set())
  
             
     def closedExpr(e: Expression, dvars: Set[Expression.Var]): Expression = e match
