@@ -22,15 +22,14 @@ object Parser:
             val (decls, stmts) = splitDeclsAndStmts(elems.init)
             val expr = elems.last
             Program.Prog(
-                parseDeclsTail(decls),
-                parseStmtsTail(stmts),
+                decls.map(parseDecl),
+                stmts.map(parseStmt),
                 parseExpr(expr)
             )
         }
         case _ => Program.Err(ProgErr.NotAList)
 
     def splitDeclsAndStmts(elems: List[SExpr]) : (List[SExpr], List[SExpr]) = 
-        @tailrec
         def loopDecl(remaining: List[SExpr], accDecls: List[SExpr]) : (List[SExpr], List[SExpr]) =
             remaining match
                 case Nil => (accDecls.reverse, Nil)
@@ -38,14 +37,6 @@ object Parser:
                     loopDecl(rest, head :: accDecls)
                 case _ => (accDecls.reverse, remaining)
         loopDecl(elems, Nil)
-
-    def parseDeclsTail(decls: List[SExpr]): List[Declaration] =
-        @tailrec
-        def loop(remaining: List[SExpr], acc: List[Declaration]): List[Declaration] =
-            remaining match
-                case Nil => acc.reverse
-                case h :: t => loop(t, parseDecl(h) :: acc)
-        loop(decls, Nil)
 
     def parseDecl(sexp: SExpr): Declaration = sexp match
         // Declaration: (def Variable Expression)
@@ -55,16 +46,6 @@ object Parser:
                 parseExpr(rhs)
             )
         case _ => Declaration.Err(DeclErr.Malformed)
-            
-    // Use tail-recursion for parsing lists of statements to avoid stack overflow
-    // map() uses recursion for Lists under the hood
-    def parseStmtsTail(stmts: List[SExpr]): List[Statement] =
-        @tailrec
-        def loop(remaining: List[SExpr], acc: List[Statement]): List[Statement] =
-            remaining match
-                case Nil => acc.reverse
-                case h :: t => loop(t, parseStmt(h) :: acc)
-        loop(stmts, Nil)
 
     def parseStmt(sexpr: SExpr): Statement = sexpr match
         case SList(SSymbol(Keyword.Def) :: _) =>
@@ -110,8 +91,8 @@ object Parser:
                     Block.Err(BlockErr.ManyNoStmts)
                 case (decls, stmts) => 
                     Block.Many(
-                        parseDeclsTail(decls),
-                        parseStmtsTail(stmts)
+                        decls.map(parseDecl),
+                        stmts.map(parseStmt)
                     )
         }
             
