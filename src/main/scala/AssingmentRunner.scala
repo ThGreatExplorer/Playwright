@@ -1,11 +1,11 @@
 package main
 
 import sexprs.SExprs._
-import csk.CSKMachine
-import csk.Control
+// import csk.CSKMachine
+// import csk.Control
 
 import ast.ASTInspector.progHasError
-import parser.Parser as Parser
+import frontend.Parser as Parser
 
 enum Result:
   case Count(n : Int)
@@ -22,20 +22,20 @@ enum Result:
     case RuntimeError => "\"run-time error\""
 
 object AssignmentRunner:
-  /**
-    * Result printer for Assignment 3 — Bare Bones: CSK
-    *
-    * @param input SExpr read from stdin
-    */
-  def cskBareBones(input: SExpr): Result = 
-    val prog = Parser.parseProg(input)
+  // /**
+  //   * Result printer for Assignment 3 — Bare Bones: CSK
+  //   *
+  //   * @param input SExpr read from stdin
+  //   */
+  // def cskBareBones(input: SExpr): Result = 
+  //   val prog = Parser.parseProg(input)
 
-    if progHasError(prog) then
-      Result.ParseError
-    else
-      CSKMachine.run(prog) match
-        case n: Number => Result.Success(n)
-        case _ => Result.RuntimeError
+  //   if progHasError(prog) then
+  //     Result.ParseError
+  //   else
+  //     CSKMachine.run(prog) match
+  //       case n: Number => Result.Success(n)
+  //       case _ => Result.RuntimeError
 
   /**
     * Result printer for Assignment 2 — Bare Bones: Parser

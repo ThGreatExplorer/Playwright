@@ -38,14 +38,6 @@ object ExampleChecker:
         if (!isGoodNum)
           throw new InputNotExampleException("SExpr contains SDouble that is not an ExampleBB Number: " + n)
       }
-      case SList(elements) => {
-        @tailrec
-        def loop(remaining: List[SExpr]): Unit =
-          remaining match
-            case Nil => ()
-            case h :: t => assertExample(h); loop(t)
-
-        loop(elements)
-      } 
+      case SList(elements) => elements.map(assertExample)
       case _ => 
         throw new InputNotExampleException("SExpr not part of Example Structure: " + input)
