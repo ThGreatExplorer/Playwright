@@ -133,6 +133,24 @@ class Lexer(reader: java.io.Reader) {
         }
         IntLit(readInt(nextChar, base))
       }
+      case d if d == '.' || (d == '-' && peek.toChar == '.') => {
+        val (sign, intPart) = 
+          if (d == '.') 
+            (1, 0)
+          else {
+            nextChar
+            (-1, 0)
+          }
+
+        var fracPart: Double = 0
+        var base             = 10
+        while (peek.toChar.isDigit) {
+          fracPart += nextChar.asDigit
+          fracPart *= 10
+          base *= 10
+        }
+        DoubleLit(sign * (intPart.toDouble + fracPart / base))
+      }
       case d if d.isDigit || (d == '-' && peek.toChar.isDigit) => { // TODO: a symbol can start with a digit !
         val (sign, intPart) = 
           if (d == '-')
