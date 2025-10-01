@@ -3,7 +3,7 @@ package main
 import sexprs.SExprs._
 // import csk.CSKMachine
 // import csk.Control
-import validity.ValidityChecker
+import frontend.ValidityChecker
 import ast.ASTInspector.progHasError
 import frontend.Parser as Parser
 
@@ -24,7 +24,7 @@ enum Result:
     case ValidityBelongs => "\"belongs\""
     case Success(n) => s"$n"
     case RuntimeError => "\"run-time error\""
-    
+
 object AssignmentRunner:
 
   /**
