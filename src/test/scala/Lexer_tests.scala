@@ -26,6 +26,18 @@ class MySuite extends FunSuite {
     assertEquals(lexer.nextToken, null)
   }
 
+  test("Lexer should tokenize double without whole part") {
+    val lexer = new Lexer(new java.io.StringReader(".4"))
+    assertEquals(lexer.nextToken, DoubleLit(0.4))
+    assertEquals(lexer.nextToken, null)
+  }
+
+  test("Lexer should tokenize negative double without whole part") {
+    val lexer = new Lexer(new java.io.StringReader("-.4"))
+    assertEquals(lexer.nextToken, DoubleLit(-0.4))
+    assertEquals(lexer.nextToken, null)
+  }
+
   test("Lexer should tokenize double") {
     val lexer = new Lexer(new java.io.StringReader("3.4"))
     assertEquals(lexer.nextToken, DoubleLit(3.4))

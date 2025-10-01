@@ -2,9 +2,9 @@ package sexprs
 
 import munit.FunSuite
 import main.MainFuncs
-import parser.Parser
+import frontend.Parser
 import ast._
-import ast.ASTInspector.progHasError
+import ast.ConverterToClean.progToClean
 
 class ParserTests extends FunSuite {
   test("Test Invalid Example Parser + hasError") {
@@ -18,34 +18,35 @@ class ParserTests extends FunSuite {
     )"""
     val inputSexp = MainFuncs.readSexp(test_str1)
     val prog      = Parser.parseProg(inputSexp)
-    val hasError = progHasError(prog)
+    val hasError = progToClean(prog).isEmpty
     assertEquals(
       prog,
-      Program.Prog(
+      ProgramWE.Prog(
+        decls = List(),
         stmts = List(
-          Statement.Err(
+          StmtWE.Err(
             e = StmtErr.Malformed
           ),
-          Statement.Err(
+          StmtWE.Err(
             e = StmtErr.Malformed
           ),
-          Statement.Err(
+          StmtWE.Err(
             e = StmtErr.Malformed
           ),
-          Statement.Err(
+          StmtWE.Err(
             e = StmtErr.Malformed
           ),
-          Statement.Err(
+          StmtWE.Err(
             e = StmtErr.Malformed
           ),
-          Statement.Err(
+          StmtWE.Err(
             e = StmtErr.Malformed
           ),
-          Statement.Err(
+          StmtWE.Err(
             e = StmtErr.Malformed
           )
         ),
-        expr = Expression.Err(
+        expr = ExprWE.Err(
           e = ExprErr.Malformed
         )
       )
@@ -56,96 +57,106 @@ class ParserTests extends FunSuite {
   val cases = Seq(
     (
       "((foo = 123.4) bar)",
-      Program.Prog(
-        stmts = List(Statement.Assign(lhs = Expression.Var("foo"), rhs = Expression.Num(123.4))),
-        expr = Expression.Var("bar")
+      ProgramWE.Prog(
+        decls = List(),
+        stmts = List(StmtWE.Assign(lhs = ExprWE.Var("foo"), rhs = ExprWE.Num(123.4))),
+        expr = ExprWE.Var("bar")
       ),
       false
     ),
     (
       """((if0 bar (block (baz = 1.0)) (block (qux = -2.3))) foo)""",
-      Program.Prog(
+      ProgramWE.Prog(
+        decls = List(),
         stmts = List(
-          Statement.Ifelse(
-            Expression.Var("bar"),
-            Block.Many(
+          StmtWE.Ifelse(
+            ExprWE.Var("bar"),
+            BlockWE.Many(
+              List(),
               List(
-                Statement.Assign(
-                  lhs = Expression.Var("baz"),
-                  rhs = Expression.Num(1.0)
+                StmtWE.Assign(
+                  lhs = ExprWE.Var("baz"),
+                  rhs = ExprWE.Num(1.0)
                 )
               )
             ),
-            Block.Many(
+            BlockWE.Many(
+              List(),
               List(
-                Statement.Assign(
-                  Expression.Var("qux"),
-                  Expression.Num(-2.3)
+                StmtWE.Assign(
+                  ExprWE.Var("qux"),
+                  ExprWE.Num(-2.3)
                 )
               )
             )
           )
         ),
-        expr = Expression.Var("foo")
+        expr = ExprWE.Var("foo")
       ),
       false
     ),
     (
       """((while0 10.0 (block (foo = 10.0) (bar = -5.5))) (foo == bar))""",
-      Program.Prog(
+      ProgramWE.Prog(
+        decls = List(),
         stmts = List(
-          Statement.While(
-            guard = Expression.Num(10.0),
-            body = Block.Many(
+          StmtWE.While(
+            guard = ExprWE.Num(10.0),
+            body = BlockWE.Many(
+                List(),
               stmts = List(
-                Statement.Assign(
-                  Expression.Var("foo"),
-                  Expression.Num(10.0)
+                StmtWE.Assign(
+                  ExprWE.Var("foo"),
+                  ExprWE.Num(10.0)
                 ),
-                Statement.Assign(
-                  Expression.Var("bar"),
-                  Expression.Num(-5.5)
+                StmtWE.Assign(
+                  ExprWE.Var("bar"),
+                  ExprWE.Num(-5.5)
                 )
               )
             )
           )
         ),
-        expr = Expression.Equals(Expression.Var("foo"), Expression.Var("bar"))
+        expr = ExprWE.BinOpExpr(ExprWE.Var("foo"), BinOp.Equals, ExprWE.Var("bar"))
       ),
       false
     ),
     (
       """((foo = (bar + baz)) (if0 qux (block (baz = 1.0)) (block (foo = -0.5))) bar)""",
-      Program.Prog(
+      ProgramWE.Prog(
+        decls = List(),
         stmts = List(
-          Statement.Assign(
-            lhs = Expression.Var("foo"),
-            rhs = Expression.Add(
-              lhs = Expression.Var("bar"),
-              rhs = Expression.Var("baz")
+          StmtWE.Assign(
+            lhs = ExprWE.Var("foo"),
+            rhs = ExprWE.BinOpExpr(
+              lhs = ExprWE.Var("bar"),
+              BinOp.Add,
+              rhs = ExprWE.Var("baz")
             )
           ),
-          Statement.Ifelse(
-            guard = Expression.Var("qux"),
-            tbranch = Block.Many(
+          StmtWE.Ifelse(
+            guard = ExprWE.Var("qux"),
+            tbranch = BlockWE.Many(
+                List(),
               List(
-                Statement.Assign(
-                  lhs = Expression.Var("baz"),
-                  rhs = Expression.Num(1.0)
+                StmtWE.Assign(
+                  lhs = ExprWE.Var("baz"),
+                  rhs = ExprWE.Num(1.0)
                 )
               )
             ),
-            ebranch = Block.Many(
+            ebranch = BlockWE.Many(
+                List(),
               List(
-                Statement.Assign(
-                  lhs = Expression.Var("foo"),
-                  rhs = Expression.Num(-0.5)
+                StmtWE.Assign(
+                  lhs = ExprWE.Var("foo"),
+                  rhs = ExprWE.Num(-0.5)
                 )
               )
             )
           )
         ),
-        expr = Expression.Var("bar")
+        expr = ExprWE.Var("bar")
       ),
       false
     )
@@ -156,7 +167,7 @@ class ParserTests extends FunSuite {
     test(s"Valid Parser Prog + hasError test for input: $input") {
       val inputSexp = MainFuncs.readSexp(input)
       val prog      = Parser.parseProg(inputSexp)
-      val has_error = progHasError(prog)
+      val has_error = progToClean(prog).isEmpty
       assertEquals(prog, expected)
       assertEquals(has_error, expectedError)
     }
