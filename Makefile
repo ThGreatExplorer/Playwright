@@ -6,7 +6,7 @@
 build:
 		mkdir -p $(DIR) $(DIR)/Other $(DIR)/Tests
 		printf "#!/bin/bash\njava -jar ./Other/$(EXE).jar\n" > $(DIR)/$(EXE) && chmod +x $(DIR)/$(EXE)
-		sbt test
+		make coverage
 		sbt -DEXECUTABLE=$(EXE).jar -DHW="hw$(DIR)" assembly
 		cp target/scala-3.7.2/$(EXE).jar $(DIR)/Other/$(EXE).jar
 		make test
@@ -38,3 +38,8 @@ feedback:
 						fi; \
 				done \
 		done
+
+coverage:
+	sbt compile coverage test
+	sbt coverageAggregate
+	firefox target/scala-3.7.2/scoverage-report/index.html
