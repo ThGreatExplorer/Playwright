@@ -10,7 +10,11 @@ lazy val root = project
     version                    := "0.1.0-SNAPSHOT",
     scalaVersion               := scala3Version,
     assembly / assemblyJarName := executable,
+
+    // sbt-coverage
+    coverageEnabled := true,
     
+    // wartremover
     // wartremoverWarnings ++= Warts.allBut(Wart.Throw),
     Compile / compile / wartremoverWarnings ++= Warts.allBut(Wart.Throw),
     wartremoverExcluded += baseDirectory.value / "src" / "main" / "scala" / "sexprs",
