@@ -30,13 +30,13 @@ object ValidityChecker:
     def closedDecl(d: Declaration, dvars: Set[Expression.Var]): (Declaration, Set[Expression.Var]) = d match
         case Declaration.Def(Expression.Var(lhs), rhs) => 
             val processedRhs = closedExpr(rhs, dvars)
+            dvars.add(Expression.Var(lhs))
             processedRhs match
                 case Expression.Err(e) => 
                     (Declaration.Def(Expression.Var(lhs),processedRhs), dvars)
                 case _ =>
-                    dvars.add(Expression.Var(lhs))
                     (d, dvars)
-    
+        case _ => (d, dvars)
 
     def hasError(s: Statement): Boolean = s match
         case Statement.Assign(lhs, rhs) => hasError(lhs) || hasError(rhs)
