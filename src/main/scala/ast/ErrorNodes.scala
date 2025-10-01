@@ -18,9 +18,11 @@ enum BlockErr:
     case ManyNoStmts
 
 enum ExprErr:
-    case VarIsKeyword
-    case VarNotAName
     case BadOperand
     case Malformed
+    
+enum VarErr:
+    case IsKeyword
+    case NotAName
     // The only error node added for Validity checking
-    case ExprVarNotDeclared
+    case NotDeclared
