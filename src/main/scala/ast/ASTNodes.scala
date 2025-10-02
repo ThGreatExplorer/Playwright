@@ -70,7 +70,7 @@ enum CleanBlock:
 enum ExprWE:
     case Num(n: Double)
     case Var(x: String)
-    case BinOpExpr(lhs: Var | VarErrNode, op: BinOp, rhs: Var | VarErrNode)
+    case BinOpExpr(lhs: VarWE, op: BinOp, rhs: VarWE)
     case Err(e: ExprErr)
     case VarErrNode(e : VarErr)
 

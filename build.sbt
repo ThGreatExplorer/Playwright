@@ -14,6 +14,9 @@ lazy val root = project
     // sbt-coverage
     coverageEnabled := true,
     coverageExcludedPackages := "sexprs;main.MainFuncs.*",
+    coverageFailOnMinimum := true,
+    coverageMinimumStmtTotal := 90,
+    coverageMinimumBranchTotal := 90,
     
     // wartremover
     // wartremoverWarnings ++= Warts.allBut(Wart.Throw),
