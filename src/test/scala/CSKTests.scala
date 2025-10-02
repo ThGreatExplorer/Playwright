@@ -1,4 +1,4 @@
-// package sexprs
+// package test
 
 // import munit.FunSuite
 // import main.MainFuncs
@@ -7,7 +7,7 @@
 // import csk.{CSKMachine, RuntimeError}
 // import ast.ASTInspector.progHasError
 
-// class IntegrationTests extends FunSuite {
+// class CSKTests extends FunSuite {
 //   val cases = Seq(
 //     (
 //       "((foo = 123.4) bar)",

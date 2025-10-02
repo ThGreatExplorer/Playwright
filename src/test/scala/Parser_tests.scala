@@ -1,4 +1,4 @@
-package sexprs
+package test
 
 import munit.FunSuite
 import main.MainFuncs

@@ -1,10 +1,11 @@
 // For more information on writing tests, see
 // https://scalameta.org/munit/docs/getting-started.html
 
-package sexprs
+package test
 
 import munit.FunSuite
-import Tokens._
+import sexprs.Tokens._
+import sexprs.Lexer
 
 class MySuite extends FunSuite {
   test("Lexer should tokenize parentheses") {

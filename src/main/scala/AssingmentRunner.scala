@@ -11,8 +11,8 @@ enum Result:
   case ParseBelongs
   case UndefinedVarError
   case ValidityBelongs
-  case Success(n : Number)
-  case RuntimeError
+  // case Success(n : Number)
+  // case RuntimeError
 
   def outputString: String = this match
     case Count(n) => s"\"$n\""
@@ -20,8 +20,8 @@ enum Result:
     case ParseBelongs => "\"belongs\""
     case UndefinedVarError => "\"undeclared variable error\""
     case ValidityBelongs => "\"belongs\""
-    case Success(n) => s"$n"
-    case RuntimeError => "\"run-time error\""
+    // case Success(n) => s"$n"
+    // case RuntimeError => "\"run-time error\""
 
 object AssignmentRunner:
 
