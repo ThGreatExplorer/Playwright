@@ -1,5 +1,7 @@
 package frontend
 
+import annotation.tailrec
+
 import ast._
 import util.InputNotExampleException
 import util.UnreachablePatternMatch
@@ -7,25 +9,24 @@ import util.UnreachablePatternMatch
 object ValidityChecker:
     def closedProg(p: CleanProgram): ProgramWE = p match
         case CleanProgram(decls, stmts, expr) => 
-            val (validatedDecls, declared) = closedDecls(decls, List(), Set())
+            val (validatedDecls, declared) = closedDecls(decls, Nil, Set())
             ProgramWE.Prog(
                 validatedDecls,
                 stmts.map(closedStmt(_, declared)),
                 closedExpr(expr, declared)
             )
                     
-
+    @tailrec
     def closedDecls(declsRem: List[CleanDecl], declsSoFar: List[DeclWE], dvars: Set[String]) 
-        : (List[DeclWE], Set[String]) =  
-            declsRem match
-                case Nil => (declsSoFar.reverse, dvars)
-                case CleanDecl(CleanExpr.Var(x), rhs) :: tail => 
-                    val processedDecl = 
-                        DeclWE.Def(
-                            ExprWE.Var(x),
-                            closedExpr(rhs, dvars)
-                        )
-                    closedDecls(tail, processedDecl :: declsSoFar, dvars.incl(x))
+        : (List[DeclWE], Set[String]) = declsRem match
+            case Nil => (declsSoFar.reverse, dvars)
+            case CleanDecl(CleanExpr.Var(x), rhs) :: tail => 
+                val processedDecl = 
+                    DeclWE.Def(
+                        ExprWE.Var(x),
+                        closedExpr(rhs, dvars)
+                    )
+                closedDecls(tail, processedDecl :: declsSoFar, dvars.incl(x))
 
     def closedStmt(stmt: CleanStmt, dvars: Set[String]): StmtWE = stmt match
         case CleanStmt.Assign(id @ CleanExpr.Var(_), rhs) => 
@@ -49,7 +50,7 @@ object ValidityChecker:
         case CleanBlock.One(stmt) => 
             BlockWE.One(closedStmt(stmt, dvars))
         case CleanBlock.Many(decls, stmts) => 
-            val (processedDecls, declared) = closedDecls(decls, List(), dvars)
+            val (processedDecls, declared) = closedDecls(decls, Nil, dvars)
             BlockWE.Many(
                 processedDecls, 
                 stmts.map(closedStmt(_, declared))

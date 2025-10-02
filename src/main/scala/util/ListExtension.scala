@@ -22,8 +22,9 @@ extension [A](list: List[A])
      */
     def traverse[B](f: A => Option[B]): Option[List[B]] =
         list.foldRight(Some(Nil): Option[List[B]]) { (a, acc) =>
-            for {
-                b <- f(a)
+            for
                 bs <- acc
-            } yield b :: bs
+                b <- f(a)
+            yield 
+                b :: bs
         }

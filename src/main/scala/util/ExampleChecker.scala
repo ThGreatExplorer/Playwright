@@ -38,6 +38,6 @@ object ExampleChecker:
         if (!isGoodNum)
           throw new InputNotExampleException("SExpr contains SDouble that is not an ExampleBB Number: " + n)
       }
-      case SList(elements) => elements.map(assertExample)
+      case SList(elements) => elements.foreach(assertExample)
       case _ => 
         throw new InputNotExampleException("SExpr not part of Example Structure: " + input)

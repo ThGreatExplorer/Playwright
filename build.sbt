@@ -13,6 +13,7 @@ lazy val root = project
 
     // sbt-coverage
     coverageEnabled := true,
+    coverageExcludedPackages := "sexprs",
     
     // wartremover
     // wartremoverWarnings ++= Warts.allBut(Wart.Throw),
