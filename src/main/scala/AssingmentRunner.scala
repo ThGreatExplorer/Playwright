@@ -37,8 +37,8 @@ object AssignmentRunner:
       case None => Result.ParseError
       case Some(cleanProg) => 
         val validatedProg = ValidityChecker.closedProg(cleanProg)
-
-        progToClean(parsedProg) match 
+        
+        progToClean(validatedProg) match 
           case None    => Result.UndefinedVarError
           case Some(_) => Result.ValidityBelongs
 
