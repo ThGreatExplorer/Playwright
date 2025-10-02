@@ -41,6 +41,7 @@ object AssignmentRunner:
         progToClean(validatedProg) match 
           case None    => Result.UndefinedVarError
           case Some(_) => Result.ValidityBelongs
+  // TODO: Look into using Either[Result, CleanProgram]
 
   // /**
   //   * Result printer for Assignment 3 — Bare Bones: CSK

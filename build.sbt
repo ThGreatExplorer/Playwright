@@ -14,10 +14,12 @@ lazy val root = project
     // sbt-coverage
     coverageEnabled := true,
     coverageExcludedPackages := "sexprs",
+    coverageExcludedFiles := "Main*",
     
     // wartremover
     // wartremoverWarnings ++= Warts.allBut(Wart.Throw),
-    Compile / compile / wartremoverWarnings ++= Warts.allBut(Wart.Throw),
+    Compile / compile / wartremoverWarnings ++= Warts.allBut(Wart.Throw, Wart.Recursion, 
+    Wart.StringPlusAny, Wart.Any, Wart.Equals, Wart.IterableOps),
     wartremoverExcluded += baseDirectory.value / "src" / "main" / "scala" / "sexprs",
     libraryDependencies += "org.scalameta" %% "munit" % "1.0.0" % Test
   )

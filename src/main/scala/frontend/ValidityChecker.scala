@@ -1,7 +1,5 @@
 package frontend
 
-import annotation.tailrec
-
 import ast._
 import util.InputNotExampleException
 import util.UnreachablePatternMatch
@@ -16,7 +14,6 @@ object ValidityChecker:
                 closedExpr(expr, declared)
             )
                     
-    @tailrec
     def closedDecls(declsRem: List[CleanDecl], declsSoFar: List[DeclWE], dvars: Set[String]) 
         : (List[DeclWE], Set[String]) = declsRem match
             case Nil => (declsSoFar.reverse, dvars)

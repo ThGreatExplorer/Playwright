@@ -17,7 +17,7 @@ enum ProgramWE:
     case Prog(decls: List[DeclWE], stmts: List[StmtWE], expr: ExprWE)
     case Err(e: ProgErr)
 
-case class CleanProgram(
+final case class CleanProgram(
     decls: List[CleanDecl], 
     stmts: List[CleanStmt], 
     expr: CleanExpr
@@ -29,7 +29,7 @@ enum DeclWE:
     case Def(lhs: VarWE, rhs: ExprWE)
     case Err(e: DeclErr)
 
-case class CleanDecl(
+final case class CleanDecl(
     lhs: CleanVar,
     rhs: CleanExpr
 )
@@ -70,7 +70,7 @@ enum CleanBlock:
 enum ExprWE:
     case Num(n: Double)
     case Var(x: String)
-    case BinOpExpr(lhs: VarWE, op: BinOp, rhs: VarWE)
+    case BinOpExpr(lhs: Var | VarErrNode, op: BinOp, rhs: Var | VarErrNode)
     case Err(e: ExprErr)
     case VarErrNode(e : VarErr)
 
