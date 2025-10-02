@@ -7,20 +7,16 @@ import ast._
 import ast.ConverterToClean.progToClean
 
 class ParserTests extends FunSuite {
-  test("Test Invalid Example Parser + hasError") {
-    // Every single statement and expression is invalid
-    val test_str1 = """((Someone has created files that contain information of this shape)
+
+  val invalidCases = Seq(
+    (
+       """((Someone has created files that contain information of this shape)
         (An Example is one of)
             (a Name like this)
             (a Number like this 22.5 or this -14.3 or this -999.9 or this 999.9)
             (a sequence of space separated Examples wrapped in ( and ))
         () () ()
-    )"""
-    val inputSexp = MainFuncs.readSexp(test_str1)
-    val prog      = Parser.parseProg(inputSexp)
-    val hasError = progToClean(prog).isEmpty
-    assertEquals(
-      prog,
+    )""",
       ProgramWE.Prog(
         decls = List(),
         stmts = List(
@@ -49,12 +45,160 @@ class ParserTests extends FunSuite {
         expr = ExprWE.Err(
           e = ExprErr.Malformed
         )
-      )
-    )
-    assertEquals(hasError, true)
+      ),
+      true
+    ),
+    (
+      """
+      ((foo = ) =)
+      """,
+      ProgramWE.Prog(
+        decls = List(),
+        stmts = List(
+          StmtWE.Err(StmtErr.AssignRhsMalformed)
+        ),
+        expr = 
+          ExprWE.VarErrNode(
+            e = VarErr.IsKeyword
+          )
+      ),
+      true
+    ),
+    (
+      "()",
+      ProgramWE.Err(ProgErr.EmptyList),
+      true
+    ),
+    (
+      "((def x 1.0) (def y 2.0) (def x) (x + y))",
+      ProgramWE.Prog(
+        decls = List(
+          DeclWE.Def(
+            ExprWE.Var("x"),
+            ExprWE.Num(1.0),
+          ),
+          DeclWE.Def(
+            ExprWE.Var("y"),
+            ExprWE.Num(2.0)
+          ),
+          DeclWE.Err(DeclErr.Malformed),
+        ),
+        stmts = List(),
+        ExprWE.BinOpExpr(ExprWE.Var("x"),BinOp.Add,ExprWE.Var("y"))
+      ),
+      true
+    ),
+    (
+      """((while0 10.0 (block )) (foo == bar))""",
+      ProgramWE.Prog(
+        decls = List(),
+        stmts = List(
+          StmtWE.While(
+            guard = ExprWE.Num(10.0),
+            body = BlockWE.Err(BlockErr.ManyNoStmts)
+          )
+        ),
+        expr = ExprWE.BinOpExpr(ExprWE.Var("foo"), BinOp.Equals, ExprWE.Var("bar"))
+      ),
+      true
+    ),
+    (
+      "a",
+      ProgramWE.Err(ProgErr.NotAList),
+      true
+    ),
+    (
+      "((1.0 = 1.0))",
+      ProgramWE.Prog(
+        decls = List(),
+        stmts = List(),
+        expr = ExprWE.Err(ExprErr.BadOperand)
+      ),
+      true
+    ),
+    (
+      "((1.0 == 1.0))",
+      ProgramWE.Prog(
+        decls = List(),
+        stmts = List(),
+        expr = ExprWE.BinOpExpr(
+          ExprWE.VarErrNode(VarErr.NotAName),
+          BinOp.Equals,
+          ExprWE.VarErrNode(VarErr.NotAName)
+        )
+      ),
+      true
+    ),
+    (
+      "((def x 1.0) (x = 0.0) (def y x) y)",
+       ProgramWE.Prog(
+        decls = List(
+          DeclWE.Def(
+            ExprWE.Var("x"),
+            ExprWE.Num(1.0)
+          )
+        ),
+        stmts = List(
+          StmtWE.Assign(
+            ExprWE.Var("x"),
+            ExprWE.Num(0.0)
+          ),
+          StmtWE.Err(
+            StmtErr.DeclAtStmtPosition
+          )
+        ),
+        expr = ExprWE.Var("y")
+      ),
+      true
+    ),
+    (
+      """((def x 0.0) (while0 x (x + 1.0)) (foo == bar))""",
+      ProgramWE.Prog(
+        decls = List(
+          DeclWE.Def(
+            ExprWE.Var("x"),
+            ExprWE.Num(0.0)
+          )
+        ),
+        stmts = List(
+          StmtWE.While(
+            guard = ExprWE.Var("x"),
+            body = BlockWE.One(
+              StmtWE.Err(
+                StmtErr.Malformed
+              )
+            )
+          )
+        ),
+        expr = ExprWE.BinOpExpr(ExprWE.Var("foo"), BinOp.Equals, ExprWE.Var("bar"))
+      ),
+      true
+    ),
+    (
+      "((while0 ) 1.0)",
+      ProgramWE.Prog(
+        decls = List(),
+        stmts = List(
+          StmtWE.Err(StmtErr.WhileMalformed)
+        ),
+        expr = ExprWE.Num(1.0)
+      ),
+      true
+    ),
+    
+  )
+  
+  invalidCases.foreach { (input, expected, expectedError) =>
+    test(s"Invalid Parser Prog + hasError test for input: $input") {
+      val inputSexp = MainFuncs.readSexp(input)
+      val prog      = Parser.parseProg(inputSexp)
+      val has_error = progToClean(prog).isEmpty
+      assertEquals(prog, expected)
+      assertEquals(has_error, expectedError)
+    }
   }
 
-  val cases = Seq(
+  val validCases = Seq(
     (
       "((foo = 123.4) bar)",
       ProgramWE.Prog(
@@ -163,7 +307,7 @@ class ParserTests extends FunSuite {
     // Add more cases as needed
   )
 
-  cases.foreach { (input, expected, expectedError) =>
+  validCases.foreach { (input, expected, expectedError) =>
     test(s"Valid Parser Prog + hasError test for input: $input") {
       val inputSexp = MainFuncs.readSexp(input)
       val prog      = Parser.parseProg(inputSexp)

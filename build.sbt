@@ -15,6 +15,9 @@ lazy val root = project
     coverageEnabled := true,
     coverageExcludedPackages := "sexprs",
     coverageExcludedFiles := "Main*",
+    coverageFailOnMinimum := true,
+    coverageMinimumStmtTotal := 90,
+    coverageMinimumBranchTotal := 90,
     
     // wartremover
     // wartremoverWarnings ++= Warts.allBut(Wart.Throw),
