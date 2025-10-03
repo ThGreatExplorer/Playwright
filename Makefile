@@ -6,13 +6,13 @@
 build:
 		mkdir -p $(DIR) $(DIR)/Other $(DIR)/Tests
 		printf "#!/bin/bash\njava -jar ./Other/$(EXE).jar\n" > $(DIR)/$(EXE) && chmod +x $(DIR)/$(EXE)
-		sbt -DEXECUTABLE=$(EXE).jar -DHW="hw$(DIR)" assembly
+		sbt coverageOff -DEXECUTABLE=$(EXE).jar -DHW="hw$(DIR)" assembly
 		cp target/scala-3.7.2/$(EXE).jar $(DIR)/Other/$(EXE).jar
 		make test
 		if [ "$(FEEDBACK)" = "true" ] ; then make feedback ; fi
 
 rebuild:
-		sbt -DEXECUTABLE=$(EXE).jar -DHW="hw$(DIR)" assembly
+		sbt coverageOff -DEXECUTABLE=$(EXE).jar -DHW="hw$(DIR)" assembly
 		cp target/scala-3.7.2/$(EXE).jar $(DIR)/Other/$(EXE).jar
 		make test
 
