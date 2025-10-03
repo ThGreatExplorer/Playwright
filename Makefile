@@ -3,25 +3,28 @@
 # TESTS -> number of tests, using format n-in.ss and n-out.ss for 0 to n exclusive
 # FEEDBACK -> bool to indicate if feedback tests should be run
 
-build:
-		mkdir -p $(DIR) $(DIR)/Other $(DIR)/Tests
-		printf "#!/bin/bash\njava -jar ./Other/$(EXE).jar\n" > $(DIR)/$(EXE) && chmod +x $(DIR)/$(EXE)
-		sbt coverageOff -DEXECUTABLE=$(EXE).jar -DHW="hw$(DIR)" assembly
-		cp target/scala-3.7.2/$(EXE).jar $(DIR)/Other/$(EXE).jar
-		make test
-		if [ "$(FEEDBACK)" = "true" ] ; then make feedback ; fi
+init:
+	mkdir -p $(DIR) $(DIR)/Other $(DIR)/Tests
+	printf "#!/bin/bash\njava -jar ./Other/$(EXE).jar\n" > $(DIR)/$(EXE) && chmod +x $(DIR)/$(EXE)
+	for t in $$(seq 0 $$(($(TESTS)-1))); do \
+		touch $(DIR)/Tests/$$t-in.ss $(DIR)/Tests/$$t-out.ss; \
+	done
 
-rebuild:
-		sbt coverageOff -DEXECUTABLE=$(EXE).jar -DHW="hw$(DIR)" assembly
-		cp target/scala-3.7.2/$(EXE).jar $(DIR)/Other/$(EXE).jar
-		make test
+jar: 
+	sbt -DEXECUTABLE=$(EXE).jar -DHW="hw$(DIR)" assembly
+	cp target/scala-3.7.2/$(EXE).jar $(DIR)/Other/$(EXE).jar
 
-test:
-		cd $(DIR) && \
-		for t in $$(seq 0 $$(($(TESTS)-1))); do \
-				echo "Running test $$t..."; \
-				exec ./$(EXE) < Tests/$$t-in.ss | diff --ignore-trailing-space --ignore-blank-lines - Tests/$$t-out.ss; \
-		done
+test: jar
+	make coverage
+	make itest
+
+itest:
+	cd $(DIR) && \
+	for t in $$(seq 0 $$(($(TESTS)-1))); do \
+			echo "Running test $$t..."; \
+			exec ./$(EXE) < Tests/$$t-in.ss | diff --ignore-trailing-space --ignore-blank-lines - Tests/$$t-out.ss; \
+	done
+	if [ "$(FEEDBACK)" = "true" ] ; then make feedback ; fi
 
 feedback:
 		cd $(DIR) && \

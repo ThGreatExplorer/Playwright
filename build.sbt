@@ -12,7 +12,6 @@ lazy val root = project
     assembly / assemblyJarName := executable,
 
     // sbt-coverage
-    coverageEnabled := true,
     coverageExcludedPackages := "sexprs",
     coverageFailOnMinimum := true,
     coverageMinimumStmtTotal := 90,
