@@ -1,0 +1,1 @@
+((def x 1.0) (def y (x + x)) (if0 x (x = (x + y)) (def z (x + x))) (z = x) (y + x))

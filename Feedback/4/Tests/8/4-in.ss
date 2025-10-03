@@ -1,0 +1,1 @@
+((def zz 2.2) (if0 zz (block (def yy 1.1) (yy = zz)) (while0 0.0 (block (def x 3.0) (while0 x (block (def y zz) (y = x)))))) zz)

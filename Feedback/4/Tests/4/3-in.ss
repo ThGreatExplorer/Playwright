@@ -1,0 +1,1 @@
+((def x 1.0) (def y 2.0) (def z (x + y)) (def w 3.0) (z == w))
