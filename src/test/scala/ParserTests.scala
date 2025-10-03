@@ -12,9 +12,9 @@ class ParserTests extends FunSuite {
     test(s"Ill-formed Parser Prog + hasError test for input: $input") {
       val inputSexp = MainFuncs.readSexp(input)
       val prog      = Parser.parseProg(inputSexp)
-      val has_error = progToClean(prog).isEmpty
+      val hasError = progToClean(prog).isEmpty
       assertEquals(prog, expected)
-      assertEquals(has_error, expectedError)
+      assertEquals(hasError, expectedError)
     }
   }
 
@@ -22,9 +22,9 @@ class ParserTests extends FunSuite {
     test(s"Well-formed Parser Prog + hasError test for input: $input") {
       val inputSexp = MainFuncs.readSexp(input)
       val prog      = Parser.parseProg(inputSexp)
-      val has_error = progToClean(prog).isEmpty
+      val hasError = progToClean(prog).isEmpty
       assertEquals(prog, expected)
-      assertEquals(has_error, expectedError)
+      assertEquals(hasError, expectedError)
     }
   }
 
