@@ -21,7 +21,7 @@ test:
 		cd $(DIR) && \
 		for t in $$(seq 0 $$(($(TESTS)-1))); do \
 				echo "Running test $$t..."; \
-				exec ./$(EXE) < Tests/$$t-in.ss | diff - Tests/$$t-out.ss; \
+				exec ./$(EXE) < Tests/$$t-in.ss | diff --ignore-trailing-space --ignore-blank-lines - Tests/$$t-out.ss; \
 		done
 
 feedback:

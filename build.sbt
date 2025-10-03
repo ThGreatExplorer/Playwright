@@ -13,7 +13,7 @@ lazy val root = project
 
     // sbt-coverage
     coverageEnabled := true,
-    coverageExcludedPackages := "sexprs;main.MainFuncs.*",
+    coverageExcludedPackages := "sexprs",
     coverageFailOnMinimum := true,
     coverageMinimumStmtTotal := 90,
     coverageMinimumBranchTotal := 90,
