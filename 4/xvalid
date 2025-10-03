@@ -1,5 +1,2 @@
-#SOMTHEING
-# ELSE
-
 #!/bin/bash
 java -jar ./Other/xvalid.jar
