@@ -1,4 +1,4 @@
-package frontend
+package static
 
 import annotation.tailrec
 

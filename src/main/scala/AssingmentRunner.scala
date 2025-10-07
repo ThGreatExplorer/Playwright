@@ -1,9 +1,9 @@
 package main
 
 import sexprs.SExprs._
-import frontend.ValidityChecker
+import static.ValidityChecker
 import ast.ConverterToClean.progToClean
-import frontend.Parser as Parser
+import static.Parser
 
 enum Result:
   case Count(n : Int)

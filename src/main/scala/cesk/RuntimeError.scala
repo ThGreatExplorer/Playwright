@@ -1,4 +1,4 @@
-package csk
+package cesk
 
 enum RuntimeError:
   case VarNotFound(msg: String)
