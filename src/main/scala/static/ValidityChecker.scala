@@ -1,4 +1,4 @@
-package frontend
+package static
 
 import ast._
 import util.InputNotExampleException

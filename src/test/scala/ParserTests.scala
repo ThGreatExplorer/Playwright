@@ -2,7 +2,7 @@ package test
 
 import munit.FunSuite
 import main.MainFuncs
-import frontend.Parser
+import static.Parser
 import ast._
 import ast.ConverterToClean.progToClean
 
