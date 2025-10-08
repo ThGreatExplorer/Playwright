@@ -1,8 +1,11 @@
 package cesk
 
-import scala.collection.mutable.{Map, Stack}
+import scala.collection.mutable.{Stack}
+import scala.collection.immutable.Map
 import ast._
 import util.UnreachableStateException
+import util.EPSILON
+import scala.compiletime.ops.double
 
 enum Control:
   case Expr(e : CleanExpr)
@@ -12,9 +15,32 @@ enum Control:
 
 type Loc = Integer
 
-type Env = Map[String, Loc]
+class Env(val env : Map[String, Loc]) {}
 
-type Store = Map[Loc, Double]
+object Env {
+
+  def updateEnv(env : Env, x : String, loc : Loc): Env = 
+    val map = env.env.updated(x, loc)
+    Env(map)
+
+  def getEnvVal(env : Env, x : String): Option[Loc] = 
+    env.env.get(x)
+}
+
+class Store(val store: Map[Loc, Double]) {}
+
+object Store {
+  val locactionGenerator = Iterator.from(0)
+  def freshLoc() : Loc = locactionGenerator.next()
+
+  def updateStore(store : Store, num : Double): (Loc, Store) =
+    val loc = freshLoc();
+    (loc, Store(store.store.updated(loc, num)))
+
+  def getValFromStore(store : Store, loc: Loc): Option[Double] = 
+    store.store.get(loc)
+}
+
 
 // A closure combines a program AST with an environment. The AST 
 // represents the remaining instructions of either the top-most program 
@@ -29,9 +55,6 @@ enum ProgFrame:
   case Block(decls: List[CleanDecl], stmts: List[CleanStmt])
 
 type Kont = Stack[Closure]
-
-val locactionGenerator = Iterator.from(0)
-def freshLoc() : Loc = locactionGenerator.next()
 
 final case class CESKState(
   control : Control, 
