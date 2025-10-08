@@ -25,8 +25,8 @@ object Env {
     env.env = env.env.updated(x, loc)
     env
 
-  def getEnvVal(env : Env, x : String): Option[Loc] = 
-    env.env.get(x)
+  def getEnvVal(env : Env, x : String): Loc = 
+    env.env.get(x).get
 }
 
 class Store() {
@@ -42,8 +42,8 @@ object Store {
     store.store = store.store.updated(loc, num)
     (loc, store)
 
-  def getValFromStore(store : Store, loc: Loc): Option[Double] = 
-    store.store.get(loc)
+  def getValFromStore(store : Store, loc: Loc): Double = 
+    store.store.get(loc).get
 }
 
 // A closure combines a program AST with an environment. The AST 
@@ -103,6 +103,68 @@ object CESKState:
   def transition(state :CESKState) : CESKState =
     val (topFrame, _) = Kont.top(state.kont)
     (state.control, topFrame) match 
+
+
+      // Expressions ---
+      case (Control.Expr(CleanExpr.Var(x)), _) =>
+        val loc = Env.getEnvVal(state.env, x) 
+        val num = Store.getValFromStore(state.store, loc) 
+        CESKState(
+          Control.Value(num),
+          state.env,
+          state.store,
+          state.kont
+        )
+      
+      case (Control.Expr(CleanExpr.BinOpExpr(CleanExpr.Var(lhs), BinOp, CleanExpr.Var(rhs))), _) =>
+        val val1 = Store.getValFromStore(state.store, Env.getEnvVal(state.env, lhs));
+        val val2 = Store.getValFromStore(state.store, Env.getEnvVal(state.env, rhs));
+        BinOp match
+          case BinOp.Add =>
+            CESKState(
+              Control.Value(val1 + val2),
+              state.env,
+              state.store,
+              state.kont
+            )    
+          case BinOp.Div =>
+            if val2 != 0.0 then
+              CESKState(
+                Control.Value(val1 / val2),
+                state.env,
+                state.store,
+                state.kont
+              ) 
+            else
+              constructErrorState(RuntimeError.DivisionByZero(f"Dividing by Zero: $val1 / $val2"))
+          case BinOp.Equals =>
+            val diff = math.abs(val1 - val2);
+            // 1.0 is true, anything else is false
+            val result = if diff < EPSILON then 1.0 else 0.0;
+            CESKState(
+              Control.Value(result),
+              state.env,
+              state.store,
+              state.kont
+            )
+
+      // Assignment Statements
+      case (Control.Search, ProgFrame(Nil, CleanStmt.Assign(CleanExpr.Var(lhs), rhs) :: stmts, expr)) =>
+        CESKState(
+          Control.Expr(rhs),
+          state.env,
+          state.store,
+          state.kont
+        )
+      case (Control.Value(num), ProgFrame(Nil, CleanStmt.Assign(CleanExpr.Var(lhs), rhs) :: stmts, expr)) =>
+        val (_, newStore) = Store.updateStore(state.store, num)
+        CESKState(
+          Control.Search,
+          state.env,
+          newStore,
+          ProgFrame(Nil, stmts, expr)
+        )
+
 
       // // Assignment Statements
       // case (Control.Search, ProgFrame(Nil, expr)) => 
