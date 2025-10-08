@@ -25,8 +25,8 @@ object Env {
     env.env = env.env.updated(x, loc)
     env
 
-  def getEnvVal(env : Env, x : String): Option[Loc] = 
-    env.env.get(x)
+  def getEnvVal(env : Env, x : String): Loc = 
+    env.env.get(x).get
 }
 
 class Store() {
@@ -42,8 +42,9 @@ object Store {
     store.store = store.store.updated(loc, num)
     (loc, store)
 
-  def getValFromStore(store : Store, loc: Loc): Option[Double] = 
-    store.store.get(loc)
+  def getValFromStore(store : Store, loc: Loc): Double= 
+    store.store.get(loc).get
+
 }
 
 // A closure combines a program AST with an environment. The AST 
@@ -54,7 +55,7 @@ object Store {
 // surrounding context.
 type Closure = (ProgFrame, Env)
 
-case class ProgFrame(decls: List[CleanDecl], stmts: List[CleanStmt], expr: CleanExpr | Unit)
+case class ProgFrame(decls: List[CleanDecl], stmts: List[CleanStmt | CleanBlock], expr: CleanExpr | Unit)
 
 class Kont() {
   private var k : Stack[Closure] = Stack()
@@ -72,7 +73,7 @@ object Kont {
 
   def push(kont : Kont, clo : Closure) = {kont.k.push(clo); kont}
 
-  def pop(kont : Kont) = {kont.k.pop; kont}
+  def pop(kont : Kont) = {val closure = kont.k.pop; (closure, kont)}
 
   def isEmpty(kont : Kont) = kont.k.isEmpty
 
@@ -111,25 +112,64 @@ object CESKState:
     (state.control, topFrame) match 
 
       // Defintions
-      case (Control.Search, ProgFrame(CleanDecl(_, rhs) :: rest, _, _)) =>
+      case (Control.Search, ProgFrame(CleanDecl(id, rhs) :: rest, stmts, r)) =>
         CESKState(
           control = Control.Expr(rhs),
           env = state.env,
           store = state.store,
           kont = state.kont
         )
-      case (Control.Value(n), ProgFrame(CleanDecl(id, rhs) :: rest, stmts, expr)) =>
-        CESKState(
-          control = Control.Expr(rhs),
-          env = state.env,
-          store = state.store,
-          kont = state.kont
-        )
-      case (Control.Search, ProgFrame(Block.Many(stmts) :: rest, expr)) =>
+      case (Control.Value(n), ProgFrame(CleanDecl(CleanVar(id), rhs) :: rest, stmts, r)) =>
+        val (newLoc, newStore) = Store.updateStore(state.store, n)
+        val newEnv = Env.updateEnv(state.env, id, newLoc)
         CESKState(
           control = Control.Search,
+          env = newEnv,
+          store = newStore,
+          kont = Kont.updateTop(state.kont, ProgFrame(rest, stmts, r))
+        )
+
+      // Block Statements
+      case (Control.Search, ProgFrame(Nil, CleanBlock.One(stmt) :: rest, r)) =>
+        CESKState(
+          control = Control.Search,
+          env = state.env,
           store = state.store,
-          kont = ProgFrame(stmts ::: rest, expr)
+          kont = Kont.updateTop(state.kont, ProgFrame(Nil, stmt :: rest, r))
+        )
+      case (Control.Search, ProgFrame(Nil, CleanBlock.Many(decls, stmts) :: rest, r)) =>
+        val stashedStack = Kont.updateTop(state.kont, ProgFrame(Nil, rest, r))
+        val newClo = (ProgFrame(decls, stmts, ()), state.env)
+        CESKState(
+          control = Control.Search,
+          env = state.env,
+          store = state.store,
+          kont = Kont.push(stashedStack, newClo)
+        )
+      case (Control.Search, ProgFrame(Nil, Nil, ())) =>
+        val ((_, restoredEnv), restOfStack) = Kont.pop(state.kont)
+        CESKState(
+          control = Control.Search,
+          env = restoredEnv,
+          store = state.store,
+          kont = restOfStack
+        )
+
+      // End Of Program 
+      case (Control.Search, ProgFrame(Nil, Nil, expr : CleanExpr)) =>
+        CESKState(
+          control = Control.Expr(expr),
+          env = state.env,
+          store = state.store,
+          kont = state.kont
+        )
+      case (Control.Value(n), ProgFrame(Nil, Nil, expr : CleanExpr)) =>
+        val ((_, restoredEnv), restOfStack) = Kont.pop(state.kont)
+        CESKState(
+          control = Control.Value(n),
+          env = restoredEnv,
+          store = state.store,
+          kont = restOfStack
         )
 
       // // Assignment Statements
@@ -193,20 +233,6 @@ object CESKState:
       //     control = Control.Expr(tst),
       //     store = state.store,
       //     kont = state.kont
-      //   )
-
-      // // Block Statements
-      // case (Control.Search, ProgFrame(Block.One(stmt) :: rest, expr)) =>
-      //   CESKState(
-      //     control = Control.Search,
-      //     store = state.store,
-      //     kont = ProgFrame(stmt :: rest, expr)
-      //   )
-      // case (Control.Search, ProgFrame(Block.Many(stmts) :: rest, expr)) =>
-      //   CESKState(
-      //     control = Control.Search,
-      //     store = state.store,
-      //     kont = ProgFrame(stmts ::: rest, expr)
       //   )
 
       // // Expresssions
