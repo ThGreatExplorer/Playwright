@@ -17,7 +17,7 @@ object CESKMachine:
   def run(prog: CleanProgram) : Number | RuntimeError =
     var state = load(prog)
     while !state.isFinal() do
-      state = CSKState.transition(state)
+      state = CESKState.transition(state)
     unload(state)
 
   /**
@@ -28,23 +28,24 @@ object CESKMachine:
     * @param prog the programAST
     * @return the initial CSKState
     */
-  private def load(prog: CleanProgram) : CSKState = prog match
+  private def load(prog: CleanProgram) : CESKState = prog match
     case CleanProgram(decls, stmts, expr) =>
+      val progClosure = (ProgFrame(decls, stmts, expr), Env())
       CESKState(
         control = Control.Search,
-        env = Map(),
-        store = Map(),
-        kont = Kont.Prog(stmts, expr)
+        env = Env(),
+        store = Store(),
+        kont = Kont.push(Kont(), progClosure)
       )
 
   /**
-    * Unloads the final result of a computation from a final CSKState.
+    * Unloads the final result of a computation from a final CESKState.
     * 
     * @param state a final CESKState
     * @return the final number or an error
     * @throws UnloadedNonFinalStateException if the state is not final
     */ 
-  private def unload(state: CSKState) : Number | RuntimeError =
+  private def unload(state: CESKState) : Number | RuntimeError =
     state.control match {
       case Control.Value(n) => n
       case Control.Err(e) => e
