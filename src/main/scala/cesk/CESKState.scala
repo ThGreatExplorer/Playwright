@@ -62,6 +62,12 @@ class Kont() {
 
 object Kont {
 
+  def updateTop(kont : Kont, newProgFrame : ProgFrame) = 
+    val (_, oldEnv) = kont.k.top
+    kont.k.pop()
+    kont.k.push((newProgFrame, oldEnv))
+    kont
+
   def top(kont : Kont) = kont.k.top
 
   def push(kont : Kont, clo : Closure) = {kont.k.push(clo); kont}
@@ -103,6 +109,28 @@ object CESKState:
   def transition(state :CESKState) : CESKState =
     val (topFrame, _) = Kont.top(state.kont)
     (state.control, topFrame) match 
+
+      // Defintions
+      case (Control.Search, ProgFrame(CleanDecl(_, rhs) :: rest, _, _)) =>
+        CESKState(
+          control = Control.Expr(rhs),
+          env = state.env,
+          store = state.store,
+          kont = state.kont
+        )
+      case (Control.Value(n), ProgFrame(CleanDecl(id, rhs) :: rest, stmts, expr)) =>
+        CESKState(
+          control = Control.Expr(rhs),
+          env = state.env,
+          store = state.store,
+          kont = state.kont
+        )
+      case (Control.Search, ProgFrame(Block.Many(stmts) :: rest, expr)) =>
+        CESKState(
+          control = Control.Search,
+          store = state.store,
+          kont = ProgFrame(stmts ::: rest, expr)
+        )
 
       // // Assignment Statements
       // case (Control.Search, ProgFrame(Nil, expr)) => 
