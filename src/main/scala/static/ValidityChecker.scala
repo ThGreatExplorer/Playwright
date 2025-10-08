@@ -7,23 +7,29 @@ import util.UnreachablePatternMatch
 object ValidityChecker:
     def closedProg(p: CleanProgram): ProgramWE = p match
         case CleanProgram(decls, stmts, expr) => 
-            val (validatedDecls, declared) = closedDecls(decls, Nil, Set())
+            val (validatedDecls, declared) = closedDecls(decls, Set())
             ProgramWE.Prog(
                 validatedDecls,
                 stmts.map(closedStmt(_, declared)),
                 closedExpr(expr, declared)
             )
                     
-    def closedDecls(declsRem: List[CleanDecl], declsSoFar: List[DeclWE], dvars: Set[String]) 
-        : (List[DeclWE], Set[String]) = declsRem match
-            case Nil => (declsSoFar.reverse, dvars)
-            case CleanDecl(CleanExpr.Var(x), rhs) :: tail => 
-                val processedDecl = 
-                    DeclWE.Def(
-                        ExprWE.Var(x),
-                        closedExpr(rhs, dvars)
-                    )
-                closedDecls(tail, processedDecl :: declsSoFar, dvars.incl(x))
+    def closedDecls(decls: List[CleanDecl], dvars: Set[String]) : (List[DeclWE], Set[String]) = 
+        def closedDeclsHelp(declsRem: List[CleanDecl], declsSoFar: List[DeclWE], dvarsSoFar: Set[String]) 
+        : (List[DeclWE], Set[String]) = 
+            declsRem match
+                case Nil => 
+                    (declsSoFar.reverse, dvarsSoFar)
+                    
+                case CleanDecl(CleanExpr.Var(x), rhs) :: tail => {
+                    val processedDecl = 
+                        DeclWE.Def(
+                            ExprWE.Var(x),
+                            closedExpr(rhs, dvarsSoFar)
+                        )
+                    closedDeclsHelp(tail, processedDecl :: declsSoFar, dvarsSoFar.incl(x))
+                }
+        closedDeclsHelp(decls, Nil, dvars)
 
     def closedStmt(stmt: CleanStmt, dvars: Set[String]): StmtWE = stmt match
         case CleanStmt.Assign(id @ CleanExpr.Var(_), rhs) => 
@@ -47,7 +53,7 @@ object ValidityChecker:
         case CleanBlock.One(stmt) => 
             BlockWE.One(closedStmt(stmt, dvars))
         case CleanBlock.Many(decls, stmts) => 
-            val (processedDecls, declared) = closedDecls(decls, Nil, dvars)
+            val (processedDecls, declared) = closedDecls(decls, dvars)
             BlockWE.Many(
                 processedDecls, 
                 stmts.map(closedStmt(_, declared))

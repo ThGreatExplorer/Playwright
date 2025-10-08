@@ -29,6 +29,17 @@ object Parser:
         }
         case _ => ProgramWE.Err(ProgErr.NotAList)
 
+    /**
+      * Splits a list of SExprs into two lists of SExpr such that all elements of
+      * the first list are SLists with the first element of that list being the `def`
+      * keyword. 
+      * 
+      * This means that the second list might contain a `def`, but this will be caught
+      * by parseStmt() as a malformed statement.
+      *
+      * @param elems SExpr list
+      * @return Tuple of SExpr lists, where the first list contains declaration candidates
+      */
     def splitDeclsAndStmts(elems: List[SExpr]) : (List[SExpr], List[SExpr]) = 
         def loopDecl(remaining: List[SExpr], accDecls: List[SExpr]) : (List[SExpr], List[SExpr]) =
             remaining match
@@ -86,6 +97,7 @@ object Parser:
         case SList(SSymbol(Keyword.Block) :: Nil) => 
             BlockWE.Err(BlockErr.ManyNoStmts)
         case SList(SSymbol(Keyword.Block) :: elems) => {
+            // Ensures that we have at least one statement
             splitDeclsAndStmts(elems) match
                 case (decls, Nil) => 
                     BlockWE.Err(BlockErr.ManyNoStmts)
