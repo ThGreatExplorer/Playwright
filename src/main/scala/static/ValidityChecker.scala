@@ -13,7 +13,17 @@ object ValidityChecker:
                 stmts.map(closedStmt(_, declared)),
                 closedExpr(expr, declared)
             )
-                    
+
+    /**
+      * Accumulator that accumulates the Decls and Variables processed so far,
+      * evaluating the first declaration, updating the variables, and 
+      * appending the declarations processed before recursing.
+      *
+      * @param declsRem to be processed
+      * @param declsSoFar have been processed
+      * @param dvars variables so far
+      * @return List[DeclWE], Set[String]
+      */
     def closedDecls(declsRem: List[CleanDecl], declsSoFar: List[DeclWE], dvars: Set[String]) 
         : (List[DeclWE], Set[String]) = declsRem match
             case Nil => (declsSoFar.reverse, dvars)
