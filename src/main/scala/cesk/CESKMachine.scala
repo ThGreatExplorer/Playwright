@@ -3,7 +3,8 @@ package cesk
 import scala.collection.mutable.Map
 
 import ast._
-import util.{UnloadedNonFinalStateException, InputNotExampleException}
+import util.{UnloadedNonFinalStateException, UnreachableStateException}
+import util.EPSILON
 
 object CESKMachine:
 
@@ -17,7 +18,7 @@ object CESKMachine:
   def run(prog: CleanProgram) : Number | RuntimeError =
     var state = load(prog)
     while !state.isFinal() do
-      state = CESKState.transition(state)
+      state = transition(state)
     unload(state)
 
   /**
@@ -52,3 +53,278 @@ object CESKMachine:
       case Control.Search => 
         throw new UnloadedNonFinalStateException("Machine still searching")
     }
+
+  /**
+    * Performs a single transition of the CSK machine based on the current state (control, store, kont).
+    *
+    * @return the next state of the CSK machine
+    * @throws UnreachableStateException if the current state is malformed or an unexpected state is reached
+    */
+  private def transition(state :CESKState) : CESKState =
+    (state.control, state.kont.topProgFrame) match 
+
+
+      // Expressions ---
+      case (Control.Expr(CleanExpr.Var(x)), _) =>
+        val num = state.lookupVar(x)
+        CESKState(
+          Control.Value(num),
+          state.env,
+          state.store,
+          state.kont
+        )
+      
+      case (Control.Expr(CleanExpr.BinOpExpr(CleanExpr.Var(lhs), BinOp, CleanExpr.Var(rhs))), _) =>
+        val val1 = state.lookupVar(lhs)
+        val val2 = state.lookupVar(rhs)
+        BinOp match
+          case BinOp.Add =>
+            CESKState(
+              Control.Value(val1 + val2),
+              state.env,
+              state.store,
+              state.kont
+            )    
+          case BinOp.Div =>
+            if val2 != 0.0 then
+              CESKState(
+                Control.Value(val1 / val2),
+                state.env,
+                state.store,
+                state.kont
+              ) 
+            else
+              CESKState.constructErrorState(RuntimeError.DivisionByZero(f"Dividing by Zero: $val1 / $val2"))
+          case BinOp.Equals =>
+            val diff = math.abs(val1 - val2);
+            // 1.0 is true, anything else is false
+            val result = if diff < EPSILON then 1.0 else 0.0;
+            CESKState(
+              Control.Value(result),
+              state.env,
+              state.store,
+              state.kont
+            )
+
+      // Assignment Statements
+      case (Control.Search, ProgFrame(Nil, CleanStmt.Assign(CleanExpr.Var(lhs), rhs) :: stmts, expr)) =>
+        CESKState(
+          Control.Expr(rhs),
+          state.env,
+          state.store,
+          state.kont
+        )
+      case (Control.Value(num), ProgFrame(Nil, CleanStmt.Assign(CleanExpr.Var(lhs), rhs) :: stmts, expr)) =>
+        val loc = state.env.getLoc(lhs)
+        CESKState(
+          Control.Search,
+          state.env,
+          state.store.updatedStore(loc, num),
+          state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
+        )
+
+      // Defintions
+      case (Control.Search, ProgFrame(CleanDecl(id, rhs) :: rest, stmts, r)) =>
+        CESKState(
+          control = Control.Expr(rhs),
+          env = state.env,
+          store = state.store,
+          kont = state.kont
+        )
+      case (Control.Value(n), ProgFrame(CleanDecl(CleanVar(id), rhs) :: rest, stmts, r)) =>
+        val (newStore, newLoc) = state.store.insertValAtNewLoc(n)
+        CESKState(
+          Control.Search,
+          state.env.updatedEnv(id, newLoc),
+          newStore,
+          state.kont.updateTopProgFrame(ProgFrame(rest, stmts, r))
+        )
+
+      // Block Statements
+      case (Control.Search, ProgFrame(Nil, CleanBlock.One(stmt) :: rest, r)) =>
+        CESKState(
+          control = Control.Search,
+          env = state.env,
+          store = state.store,
+          kont = state.kont.updateTopProgFrame(ProgFrame(Nil, stmt :: rest, r)) 
+        )
+      case (Control.Search, ProgFrame(Nil, CleanBlock.Many(decls, stmts) :: rest, r)) =>
+        val newClosure = (ProgFrame(decls, stmts, ()), state.env)
+        CESKState(
+          control = Control.Search,
+          env = state.env,
+          store = state.store,
+          kont = state.kont.updateTopProgFrame(ProgFrame(Nil, rest, r))
+                           .push(newClosure)
+        )
+      case (Control.Search, ProgFrame(Nil, Nil, ())) =>
+        val restoredEnv = state.kont.topEnv
+        CESKState(
+          control = Control.Search,
+          env = restoredEnv,
+          store = state.store,
+          kont = state.kont.pop
+        )
+
+      // End Of Program 
+      case (Control.Search, ProgFrame(Nil, Nil, expr : CleanExpr)) =>
+        CESKState(
+          control = Control.Expr(expr),
+          env = state.env,
+          store = state.store,
+          kont = state.kont
+        )
+      case (Control.Value(n), ProgFrame(Nil, Nil, expr : CleanExpr)) =>
+        val restoredEnv = state.kont.topEnv
+        CESKState(
+          control = Control.Value(n),
+          env = restoredEnv,
+          store = state.store,
+          kont = state.kont.pop
+        )
+
+      // // Assignment Statements
+      // case (Control.Search, ProgFrame(Nil, expr)) => 
+      //   CESKState(
+      //     control = Control.Expr(expr),
+      //     store = state.store,
+      //     kont = state.kont
+      //   )
+      // case (Control.Search, ProgFrame(Statement.Assign(lhs, rhs) :: rest, expr)) =>
+      //   CESKState(
+      //     control = Control.Expr(rhs),
+      //     store = state.store,
+      //     kont = state.kont
+      //   )
+      // case (Control.Value(n), ProgFrame(Statement.Assign(Expression.Var(x), rhs) :: rest, expr)) => 
+      //   CESKState(
+      //     control = Control.Search,
+      //     store = state.store + (x -> n),
+      //     kont = ProgFrame(rest, expr)
+      //   )
+        
+
+      // // While Loops
+      // case (Control.Value(n), ProgFrame(Statement.While(tst, body) :: rest, expr)) =>
+      //   if (n == 0) 
+      //     CESKState(
+      //       control = Control.Search,
+      //       store = state.store,
+      //       kont = ProgFrame(body :: Statement.While(tst, body) :: rest, expr)
+      //     )
+      //   else 
+      //     CESKState(
+      //       control = Control.Search,
+      //       store = state.store,
+      //       kont = ProgFrame(rest, expr)
+      //     )
+      // case (Control.Search, ProgFrame(Statement.While(tst, body) :: rest, expr)) =>
+      //   CESKState(
+      //     control = Control.Expr(tst),
+      //     store = state.store,
+      //     kont = state.kont
+      //   )
+
+      // // Conditionals
+      // case (Control.Value(n), ProgFrame(Statement.Ifelse(tst, thn, els) :: rest, expr)) =>
+      //   if (n == 0) 
+      //     CESKState(
+      //       control = Control.Search,
+      //       store = state.store,
+      //       kont = ProgFrame(thn :: rest, expr)
+      //     )
+      //   else 
+      //     CESKState(
+      //       control = Control.Search,
+      //       store = state.store,
+      //       kont = ProgFrame(els :: rest, expr)
+      //     )
+      // case (Control.Search, ProgFrame(Statement.Ifelse(tst, thn, els) :: rest, expr)) =>
+      //   CESKState(
+      //     control = Control.Expr(tst),
+      //     store = state.store,
+      //     kont = state.kont
+      //   )
+
+      // // Expresssions
+      // case (Control.Expr(Expression.Num(n)), _) => 
+      //   CESKState(
+      //     control = Control.Value(n),
+      //     store = state.store,
+      //     kont = state.kont
+      //   )
+      // case (Control.Expr(Expression.Var(x)), _) => 
+      //   state.store.get(x) match
+      //     case Some(n) => 
+      //       CESKState(
+      //         control = Control.Value(n),
+      //         store = state.store,
+      //         kont = state.kont
+      //       )
+      //     case None =>
+      //       constructErrorState(
+      //         RuntimeError.VarNotFound("Variable " + x + " not found in store")
+      //       )
+      // case (Control.Expr(Expression.Add(Expression.Var(x), Expression.Var(y))), _) => 
+      //   (state.store.get(x), state.store.get(y)) match
+      //     case (Some(xNum), Some(yNum)) => 
+      //       CESKState(
+      //         control = Control.Value(xNum + yNum),
+      //         store = state.store,
+      //         kont = state.kont
+      //       )
+      //     case (Some(xNum), None) => 
+      //       constructErrorState(
+      //         RuntimeError.VarNotFound("Variable " + y + " not found in store")
+      //       )
+      //     case _ => 
+      //       constructErrorState(
+      //         RuntimeError.VarNotFound("Variable " + x + " not found in store")
+      //       )
+      // case (Control.Expr(Expression.Div(Expression.Var(x), Expression.Var(y))), _) =>
+      //   (state.store.get(x), state.store.get(y)) match
+      //     case (Some(xNum), Some(yNum)) => 
+      //       if yNum != 0.0 then
+      //         CESKState(
+      //           control = Control.Value(xNum / yNum),
+      //           store = state.store,
+      //           kont = state.kont
+      //         )
+      //       else
+      //         constructErrorState(
+      //           RuntimeError.DivisionByZero("Division by zero error in expression: " + x + " / " + y)
+      //         )
+      //     case (Some(xNum), None) => 
+      //       constructErrorState(
+      //         RuntimeError.VarNotFound("Variable " + y + " not found in store")
+      //       )
+      //     case _ => 
+      //       constructErrorState(
+      //         RuntimeError.VarNotFound("Variable " + x + " not found in store")
+      //       )
+      // case (Control.Expr(Expression.Equals(Expression.Var(x), Expression.Var(y))), _) =>
+      //   (state.store.get(x), state.store.get(y)) match
+      //     case (Some(xNum), Some(yNum)) => 
+      //       CESKState(
+      //         // intentionally using 0.0 for true and 1.0 for false to match if0 and while0 spec
+      //         control = Control.Value(if xNum == yNum then 0.0 else 1.0),
+      //         store = state.store,
+      //         kont = state.kont
+      //       )
+      //     case (Some(xNum), None) => 
+      //       constructErrorState(
+      //         RuntimeError.VarNotFound("Variable " + y + " not found in store")
+      //       )
+      //     case _ => 
+      //       constructErrorState(
+      //         RuntimeError.VarNotFound("Variable " + x + " not found in store")
+      //       )
+
+      case _ =>
+        throw new UnreachableStateException(
+          "Unknown state reached in CSK machine transition function:" 
+          + "\nControl: " + state.control.toString() 
+          + "\nEnvironment: " + state.env.toString() 
+          + "\nStore: " + state.store.toString()
+          + "\nKont: " + state.kont.toString() 
+        )

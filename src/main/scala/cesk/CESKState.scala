@@ -1,29 +1,81 @@
 package cesk
 
-import scala.collection.mutable.{Stack}
-import scala.collection.immutable.Map
 import ast._
-import util.{UnreachableStateException, UnreachablePatternMatch}
-import util.EPSILON
-import scala.compiletime.ops.double
+import scala.collection.immutable.Map
+import util.UnreachablePatternMatch
 
+final case class CESKState(
+  control : Control, 
+  env     : Env,
+  store   : Store, 
+  kont    : KontStack
+): 
+  /**
+  * Returns true if the given state is a final state. A final state is either an Error state or 
+  * a Success state with Value in Control and an empty KontStack stack.
+  *
+  * @param state the current state of the CESK machine
+  * @return true if the state is final, false otherwise
+  */
+  def isFinal() : Boolean =
+    control match { 
+      case Control.Err(_) => kont.isEmpty
+      case Control.Value(_) => kont.isEmpty
+      case _ => false
+    }
+
+  def lookupVar(x : String) : NumVal = 
+    val loc = env.getLoc(x) 
+    store.getVal(loc) 
+
+object CESKState:
+  /**
+    * Helper method to construct an error state
+    *
+    * @param e the RuntimeError
+    * @return a CESKState in the error state
+    */
+  def constructErrorState(e: RuntimeError) : CESKState =
+    CESKState(
+      control = Control.Err(e),
+      env = Env(),
+      store = Store(),
+      kont = KontStack()
+    )
+
+/******************************************************************************
+  Below we define interfaces and type aliases for CESK registers. 
+  
+  Most of these are thin wrappers around existing Scala data sctructures, but 
+  this implementation allows us to encapsulate our implementation details and 
+  swap out the underlying structure if desired.
+
+ *****************************************************************************/
+
+// Inexact numbers that are understood to be Values in our CESK machine.
+type NumVal = Double
+
+// Locations corresponding to Values in Store. We want to have a (practically)
+// infinite set of possible locations such that we can always produce a fresh
+// location. Iterator built on Integers fits our needs nicely. 
+type Loc = Integer
+
+// Control Register is an enum
 enum Control:
   case Expr(e : CleanExpr)
-  case Value(n : Double)
+  case Value(n : NumVal)
   case Err(e : RuntimeError)
   case Search
 
-type Loc = Integer
-
-// Think of trait as a type defintion
+// Env Register is a Map from Strings to Locations with the following interface
 trait Env:
   def updatedEnv(x : String, loc : Loc) : Env
   def getLoc(x : String) : Loc
 
-// Object is a factory that creates instances of something typed with Env
 object Env:
 
-  // Factory methods that return instances of the trait
+  // Constructor that returns instances with the Env trait without actually
+  // exposing internal imlementation of the underlying private class
   def apply(entries: (String, Loc)*): Env = 
     new MapEnv(Map(entries*))
 
@@ -37,54 +89,61 @@ object Env:
       underlying.get(x) match
         case Some(loc) => loc
         case None =>   
-          throw new UnreachablePatternMatch("Should never happen: variable " + x + " not found in environment")    
+          // Technically unnecessary throw but it will help us catch env errors early
+          throw new UnreachablePatternMatch(
+            "Should never happen: variable " + x + " not found in environment"
+          )    
   }
 
-
+// Store Register is a Map from Locations to NumVals with the following interface
 trait Store:
-  def insertValAtNewLoc(n: Double) : (Store, Loc)
-  def updatedStore(loc: Loc, n: Double) : Store
-  def getVal(loc : Loc) : Double
+  def insertValAtNewLoc(n: NumVal) : (Store, Loc)
+  def updatedStore(loc: Loc, n: NumVal) : Store
+  def getVal(loc : Loc) : NumVal
 
 object Store:
 
-  def apply(entries: (Loc, Double)*): Store = 
+  def apply(entries: (Loc, NumVal)*): Store = 
     new MapStore(Map(entries*))
 
+  // Private iterator that will produce fresh locations 
+  // Is only accessed from within the private MapStore class
   private val locactionGenerator = Iterator.from(0)
   private def freshLoc() : Loc = locactionGenerator.next()
 
-  private class MapStore(underlying : Map[Loc, Double]) extends Store {
+  private class MapStore(underlying : Map[Loc, NumVal]) extends Store {
 
-    def insertValAtNewLoc(n : Double) : (Store, Loc) =
+    def insertValAtNewLoc(n : NumVal) : (Store, Loc) =
       val loc = freshLoc();
       val newStore = new MapStore(underlying.updated(loc, n))
       (newStore, loc)
 
-    def updatedStore(loc : Loc, n : Double) : Store =
+    def updatedStore(loc : Loc, n : NumVal) : Store =
       new MapStore(underlying.updated(loc, n))
 
-    def getVal(loc : Loc) : Double =
+    def getVal(loc : Loc) : NumVal =
       underlying.get(loc) match
         case Some(n) => n
         case None =>   
-          throw new UnreachablePatternMatch("Should never happen: location " + loc + " not found in store")    
+          throw new UnreachablePatternMatch(
+            "Should never happen: location " + loc + " not found in store"
+          )    
   }
 
-// A closure combines a program AST with an environment. The AST 
-// represents the remaining instructions of either the top-most program 
-// (bottom-most stack frame) or a nested block (all others); if the AST 
-// represents a nested block, the expression field is filled with a dummy
-// value. The environment represents the meaning of variables in the 
-// surrounding context.
+// Clousre is a tuple of a ProgramFrame and an Env snapshot right before we 
+// began executing the current ProgramFrame (aka surrounding context)
 type Closure = (ProgFrame, Env)
 
+// ProgramFrame represents remaining instructions of either the TL program
+// or a nested block; if the frame corresponds to a Block, expr is initialized
+// with a Unit ()
 case class ProgFrame(
   decls: List[CleanDecl], 
   stmts: List[CleanStmt | CleanBlock], 
   expr: CleanExpr | Unit
 )
 
+// Kont Register is a Stack of Closures with the following interface
 trait KontStack:
   def push(clo : Closure) : KontStack
   def pop : KontStack
@@ -98,6 +157,7 @@ object KontStack:
 
   def apply(entries: Closure*) : KontStack = new StackifiedList(List(entries*))
 
+  // Special constructor called from load 
   def constructWithTL(initProg : CleanProgram): KontStack = initProg match
     case CleanProgram(decls, stmts, expr) =>
       val progClosure = (ProgFrame(decls, stmts, expr), Env())
@@ -117,319 +177,3 @@ object KontStack:
     def topProgFrame : ProgFrame = { val (pf, _) = underlying.head; pf }
     def topEnv : Env =  { val (_, env) = underlying.head; env }
   }
-
-
-final case class CESKState(
-  control : Control, 
-  env : Env,
-  store : Store, 
-  kont: KontStack
-):
-  /**
-  * Returns true if the given state is a final state. A final state is either an Error state or 
-  * a Success state with Value in Control and an empty KontStack stack.
-  *
-  * @param state the current state of the CESK machine
-  * @return true if the state is final, false otherwise
-  */
-  def isFinal() : Boolean =
-    control match { 
-      case Control.Err(_) => kont.isEmpty
-      case Control.Value(_) => kont.isEmpty
-      case _ => false
-    }
-
-  def lookupVar(x : String) : Double = 
-    val loc = env.getLoc(x) 
-    store.getVal(loc) 
-
-object CESKState:
-
-  /**
-    * Performs a single transition of the CSK machine based on the current state (control, store, kont).
-    *
-    * @return the next state of the CSK machine
-    * @throws UnreachableStateException if the current state is malformed or an unexpected state is reached
-    */
-  def transition(state :CESKState) : CESKState =
-    (state.control, state.kont.topProgFrame) match 
-
-
-      // Expressions ---
-      case (Control.Expr(CleanExpr.Var(x)), _) =>
-        val num = state.lookupVar(x)
-        CESKState(
-          Control.Value(num),
-          state.env,
-          state.store,
-          state.kont
-        )
-      
-      case (Control.Expr(CleanExpr.BinOpExpr(CleanExpr.Var(lhs), BinOp, CleanExpr.Var(rhs))), _) =>
-        val val1 = state.lookupVar(lhs)
-        val val2 = state.lookupVar(rhs)
-        BinOp match
-          case BinOp.Add =>
-            CESKState(
-              Control.Value(val1 + val2),
-              state.env,
-              state.store,
-              state.kont
-            )    
-          case BinOp.Div =>
-            if val2 != 0.0 then
-              CESKState(
-                Control.Value(val1 / val2),
-                state.env,
-                state.store,
-                state.kont
-              ) 
-            else
-              constructErrorState(RuntimeError.DivisionByZero(f"Dividing by Zero: $val1 / $val2"))
-          case BinOp.Equals =>
-            val diff = math.abs(val1 - val2);
-            // 1.0 is true, anything else is false
-            val result = if diff < EPSILON then 1.0 else 0.0;
-            CESKState(
-              Control.Value(result),
-              state.env,
-              state.store,
-              state.kont
-            )
-
-      // Assignment Statements
-      case (Control.Search, ProgFrame(Nil, CleanStmt.Assign(CleanExpr.Var(lhs), rhs) :: stmts, expr)) =>
-        CESKState(
-          Control.Expr(rhs),
-          state.env,
-          state.store,
-          state.kont
-        )
-      case (Control.Value(num), ProgFrame(Nil, CleanStmt.Assign(CleanExpr.Var(lhs), rhs) :: stmts, expr)) =>
-        val loc = state.env.getLoc(lhs)
-        CESKState(
-          Control.Search,
-          state.env,
-          state.store.updatedStore(loc, num),
-          state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
-        )
-
-      // Defintions
-      case (Control.Search, ProgFrame(CleanDecl(id, rhs) :: rest, stmts, r)) =>
-        CESKState(
-          control = Control.Expr(rhs),
-          env = state.env,
-          store = state.store,
-          kont = state.kont
-        )
-      case (Control.Value(n), ProgFrame(CleanDecl(CleanVar(id), rhs) :: rest, stmts, r)) =>
-        val (newStore, newLoc) = state.store.insertValAtNewLoc(n)
-        CESKState(
-          Control.Search,
-          state.env.updatedEnv(id, newLoc),
-          newStore,
-          state.kont.updateTopProgFrame(ProgFrame(rest, stmts, r))
-        )
-
-      // Block Statements
-      case (Control.Search, ProgFrame(Nil, CleanBlock.One(stmt) :: rest, r)) =>
-        CESKState(
-          control = Control.Search,
-          env = state.env,
-          store = state.store,
-          kont = state.kont.updateTopProgFrame(ProgFrame(Nil, stmt :: rest, r)) 
-        )
-      case (Control.Search, ProgFrame(Nil, CleanBlock.Many(decls, stmts) :: rest, r)) =>
-        val newClosure = (ProgFrame(decls, stmts, ()), state.env)
-        CESKState(
-          control = Control.Search,
-          env = state.env,
-          store = state.store,
-          kont = state.kont.updateTopProgFrame(ProgFrame(Nil, rest, r))
-                           .push(newClosure)
-        )
-      case (Control.Search, ProgFrame(Nil, Nil, ())) =>
-        val restoredEnv = state.kont.topEnv
-        CESKState(
-          control = Control.Search,
-          env = restoredEnv,
-          store = state.store,
-          kont = state.kont.pop
-        )
-
-      // End Of Program 
-      case (Control.Search, ProgFrame(Nil, Nil, expr : CleanExpr)) =>
-        CESKState(
-          control = Control.Expr(expr),
-          env = state.env,
-          store = state.store,
-          kont = state.kont
-        )
-      case (Control.Value(n), ProgFrame(Nil, Nil, expr : CleanExpr)) =>
-        val restoredEnv = state.kont.topEnv
-        CESKState(
-          control = Control.Value(n),
-          env = restoredEnv,
-          store = state.store,
-          kont = state.kont.pop
-        )
-
-      // // Assignment Statements
-      // case (Control.Search, ProgFrame(Nil, expr)) => 
-      //   CESKState(
-      //     control = Control.Expr(expr),
-      //     store = state.store,
-      //     kont = state.kont
-      //   )
-      // case (Control.Search, ProgFrame(Statement.Assign(lhs, rhs) :: rest, expr)) =>
-      //   CESKState(
-      //     control = Control.Expr(rhs),
-      //     store = state.store,
-      //     kont = state.kont
-      //   )
-      // case (Control.Value(n), ProgFrame(Statement.Assign(Expression.Var(x), rhs) :: rest, expr)) => 
-      //   CESKState(
-      //     control = Control.Search,
-      //     store = state.store + (x -> n),
-      //     kont = ProgFrame(rest, expr)
-      //   )
-        
-
-      // // While Loops
-      // case (Control.Value(n), ProgFrame(Statement.While(tst, body) :: rest, expr)) =>
-      //   if (n == 0) 
-      //     CESKState(
-      //       control = Control.Search,
-      //       store = state.store,
-      //       kont = ProgFrame(body :: Statement.While(tst, body) :: rest, expr)
-      //     )
-      //   else 
-      //     CESKState(
-      //       control = Control.Search,
-      //       store = state.store,
-      //       kont = ProgFrame(rest, expr)
-      //     )
-      // case (Control.Search, ProgFrame(Statement.While(tst, body) :: rest, expr)) =>
-      //   CESKState(
-      //     control = Control.Expr(tst),
-      //     store = state.store,
-      //     kont = state.kont
-      //   )
-
-      // // Conditionals
-      // case (Control.Value(n), ProgFrame(Statement.Ifelse(tst, thn, els) :: rest, expr)) =>
-      //   if (n == 0) 
-      //     CESKState(
-      //       control = Control.Search,
-      //       store = state.store,
-      //       kont = ProgFrame(thn :: rest, expr)
-      //     )
-      //   else 
-      //     CESKState(
-      //       control = Control.Search,
-      //       store = state.store,
-      //       kont = ProgFrame(els :: rest, expr)
-      //     )
-      // case (Control.Search, ProgFrame(Statement.Ifelse(tst, thn, els) :: rest, expr)) =>
-      //   CESKState(
-      //     control = Control.Expr(tst),
-      //     store = state.store,
-      //     kont = state.kont
-      //   )
-
-      // // Expresssions
-      // case (Control.Expr(Expression.Num(n)), _) => 
-      //   CESKState(
-      //     control = Control.Value(n),
-      //     store = state.store,
-      //     kont = state.kont
-      //   )
-      // case (Control.Expr(Expression.Var(x)), _) => 
-      //   state.store.get(x) match
-      //     case Some(n) => 
-      //       CESKState(
-      //         control = Control.Value(n),
-      //         store = state.store,
-      //         kont = state.kont
-      //       )
-      //     case None =>
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + x + " not found in store")
-      //       )
-      // case (Control.Expr(Expression.Add(Expression.Var(x), Expression.Var(y))), _) => 
-      //   (state.store.get(x), state.store.get(y)) match
-      //     case (Some(xNum), Some(yNum)) => 
-      //       CESKState(
-      //         control = Control.Value(xNum + yNum),
-      //         store = state.store,
-      //         kont = state.kont
-      //       )
-      //     case (Some(xNum), None) => 
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + y + " not found in store")
-      //       )
-      //     case _ => 
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + x + " not found in store")
-      //       )
-      // case (Control.Expr(Expression.Div(Expression.Var(x), Expression.Var(y))), _) =>
-      //   (state.store.get(x), state.store.get(y)) match
-      //     case (Some(xNum), Some(yNum)) => 
-      //       if yNum != 0.0 then
-      //         CESKState(
-      //           control = Control.Value(xNum / yNum),
-      //           store = state.store,
-      //           kont = state.kont
-      //         )
-      //       else
-      //         constructErrorState(
-      //           RuntimeError.DivisionByZero("Division by zero error in expression: " + x + " / " + y)
-      //         )
-      //     case (Some(xNum), None) => 
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + y + " not found in store")
-      //       )
-      //     case _ => 
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + x + " not found in store")
-      //       )
-      // case (Control.Expr(Expression.Equals(Expression.Var(x), Expression.Var(y))), _) =>
-      //   (state.store.get(x), state.store.get(y)) match
-      //     case (Some(xNum), Some(yNum)) => 
-      //       CESKState(
-      //         // intentionally using 0.0 for true and 1.0 for false to match if0 and while0 spec
-      //         control = Control.Value(if xNum == yNum then 0.0 else 1.0),
-      //         store = state.store,
-      //         kont = state.kont
-      //       )
-      //     case (Some(xNum), None) => 
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + y + " not found in store")
-      //       )
-      //     case _ => 
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + x + " not found in store")
-      //       )
-
-      case _ =>
-        throw new UnreachableStateException(
-          "Unknown state reached in CSK machine transition function:" 
-          + "\nControl: " + state.control.toString() 
-          + "\nEnvironment: " + state.env.toString() 
-          + "\nStore: " + state.store.toString()
-          + "\nKont: " + state.kont.toString() 
-        )
-
-  /**
-    * Helper method to construct an error state
-    *
-    * @param e the RuntimeError
-    * @return a CESKState in the error state
-    */
-  private def constructErrorState(e: RuntimeError) : CESKState =
-    CESKState(
-      control = Control.Err(e),
-      env = Env(),
-      store = Store(),
-      kont = KontStack()
-    )
