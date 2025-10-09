@@ -4,7 +4,9 @@ import munit.FunSuite
 import main.MainFuncs
 import static.Parser
 import ast._
-import cesk.{CESKMachine, RuntimeError}
+import util.{UnreachableStateException, UnreachablePatternMatch}
+import cesk.{CESKMachine, Store, Env, KontStack, RuntimeError}
+import cesk.ProgFrame
 
 class CESKTests extends FunSuite {
 
@@ -28,13 +30,48 @@ class CESKTests extends FunSuite {
 
   test("Test malformed input triggers exception") {
     val cleanProgram = CleanProgram(
-      
+        decls = List(),
+        stmts = List(),
+        expr = CleanExpr.BinOpExpr(CleanExpr.Var("foo"), BinOp.Div, CleanExpr.Var("foo"))
     )
+    interceptMessage[UnreachablePatternMatch]("Should never happen: variable foo not found in environment") {
+      CESKMachine.run(cleanProgram)
+    }
+  }
+
+  test("Test Store") {
+    val store = Store()
+    assertEquals(store.toString(), "Map()")
+    interceptMessage[UnreachablePatternMatch]("Should never happen: location 1 not found in store") {
+      store.getVal(1)
+    }
+    val (store2, loc) = store.insertValAtNewLoc(2.0)
+    assertEquals(store2.toString(), f"Map($loc -> 2.0)")
+    assertEquals(store2.getVal(loc), 2.0)
+  }
+  
+  test("Test Env"){
+    val env = Env()
+    interceptMessage[UnreachablePatternMatch]("Should never happen: variable x not found in environment") {
+      env.getLoc("x")
+    }
+    val env2 = env.updatedEnv("x", 1)
+    assertEquals(env2.toString(), "Map(x -> 1)")
+  }
+
+  test("Test KontStack"){
+    val kont = KontStack()
+    assertEquals(kont.toString(), "List()")
+    val kont2 = kont.push((ProgFrame(Nil, Nil, ()), Env()))
+    assertEquals(kont2.toString(), "List((ProgFrame(List(),List(),()),Map()))")
+    assertEquals(kont2.top.toString(), "(ProgFrame(List(),List(),()),Map())")
+    val kont3 = kont2.pop
+    assertEquals(kont3.toString(), "List()")
   }
 }
 
 object CESKTests {
-  val invalidCases = Seq(
+  val invalidCases = List(
     (
       "((def foo 123.4) (def foo 0.0) (foo / foo))",
       CleanProgram(
@@ -75,6 +112,27 @@ object CESKTests {
       ),
       RuntimeError.DivisionByZero(f"Dividing by Zero: 123.4 / 0.0")
     ),
-    
+    (
+      "((def foo 123.4) (def bar 0.0) (while0 bar (bar = foo / bar)) bar)",
+      CleanProgram(
+         decls = List(
+          CleanDecl(CleanExpr.Var("foo"), CleanExpr.Num(123.4)),
+          CleanDecl(CleanExpr.Var("bar"), CleanExpr.Num(0.0))
+        ),
+        stmts = List(
+          CleanStmt.While(
+            CleanExpr.Var("bar"),
+            CleanBlock.One(
+              CleanStmt.Assign(
+                CleanExpr.Var("bar"), 
+                CleanExpr.BinOpExpr(CleanExpr.Var("foo"), BinOp.Div, CleanExpr.Var("bar"))
+              )
+            ),
+          )
+        ),
+        expr = CleanExpr.Var("bar")
+      ),
+      RuntimeError.DivisionByZero(f"Dividing by Zero: 123.4 / 0.0")
+    ),
   )
 }
