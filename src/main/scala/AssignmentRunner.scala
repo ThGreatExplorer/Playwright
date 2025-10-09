@@ -6,6 +6,7 @@ import ast.ConverterToClean.progToClean
 import ast.NumVal
 import static.Parser
 import cesk.{CESKMachine, RuntimeError}
+import static.Parser
 
 enum Result:
   case Count(n : Int)
