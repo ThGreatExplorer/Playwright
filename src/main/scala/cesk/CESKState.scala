@@ -45,8 +45,8 @@ object CESKState:
     )
 
 object CESKConst:
-  val TRUTHY    : NumVal = 1.0
-  val FALSY     : NumVal = 0.0
+  val TRUTHY    : NumVal = 0.0
+  val FALSY     : NumVal = 1.0
   val BLOCKFLAG : Unit   = ()
 
 /******************************************************************************

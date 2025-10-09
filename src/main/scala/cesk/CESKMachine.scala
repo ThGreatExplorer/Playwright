@@ -123,6 +123,13 @@ object CESKMachine:
         )
 
       // Expressions 
+      case (Control.Expr(CleanExpr.Num(num)), _) =>
+        CESKState(
+          control = Control.Value(num),
+          env     = state.env,
+          store   = state.store,
+          kont    = state.kont
+        )
       case (Control.Expr(CleanExpr.Var(x)), _) =>
         val num = state.lookupVar(x)
         CESKState(
@@ -181,144 +188,30 @@ object CESKMachine:
           kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
         )
 
-      
-
-      // // Assignment Statements
-      // case (Control.Search, ProgFrame(Nil, expr)) => 
-      //   CESKState(
-      //     control = Control.Expr(expr),
-      //     store = state.store,
-      //     kont = state.kont
-      //   )
-      // case (Control.Search, ProgFrame(Statement.Assign(lhs, rhs) :: rest, expr)) =>
-      //   CESKState(
-      //     control = Control.Expr(rhs),
-      //     store = state.store,
-      //     kont = state.kont
-      //   )
-      // case (Control.Value(n), ProgFrame(Statement.Assign(Expression.Var(x), rhs) :: rest, expr)) => 
-      //   CESKState(
-      //     control = Control.Search,
-      //     store = state.store + (x -> n),
-      //     kont = ProgFrame(rest, expr)
-      //   )
-        
-
-      // // While Loops
-      // case (Control.Value(n), ProgFrame(Statement.While(tst, body) :: rest, expr)) =>
-      //   if (n == 0) 
-      //     CESKState(
-      //       control = Control.Search,
-      //       store = state.store,
-      //       kont = ProgFrame(body :: Statement.While(tst, body) :: rest, expr)
-      //     )
-      //   else 
-      //     CESKState(
-      //       control = Control.Search,
-      //       store = state.store,
-      //       kont = ProgFrame(rest, expr)
-      //     )
-      // case (Control.Search, ProgFrame(Statement.While(tst, body) :: rest, expr)) =>
-      //   CESKState(
-      //     control = Control.Expr(tst),
-      //     store = state.store,
-      //     kont = state.kont
-      //   )
-
-      // // Conditionals
-      // case (Control.Value(n), ProgFrame(Statement.Ifelse(tst, thn, els) :: rest, expr)) =>
-      //   if (n == 0) 
-      //     CESKState(
-      //       control = Control.Search,
-      //       store = state.store,
-      //       kont = ProgFrame(thn :: rest, expr)
-      //     )
-      //   else 
-      //     CESKState(
-      //       control = Control.Search,
-      //       store = state.store,
-      //       kont = ProgFrame(els :: rest, expr)
-      //     )
-      // case (Control.Search, ProgFrame(Statement.Ifelse(tst, thn, els) :: rest, expr)) =>
-      //   CESKState(
-      //     control = Control.Expr(tst),
-      //     store = state.store,
-      //     kont = state.kont
-      //   )
-
-      // // Expresssions
-      // case (Control.Expr(Expression.Num(n)), _) => 
-      //   CESKState(
-      //     control = Control.Value(n),
-      //     store = state.store,
-      //     kont = state.kont
-      //   )
-      // case (Control.Expr(Expression.Var(x)), _) => 
-      //   state.store.get(x) match
-      //     case Some(n) => 
-      //       CESKState(
-      //         control = Control.Value(n),
-      //         store = state.store,
-      //         kont = state.kont
-      //       )
-      //     case None =>
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + x + " not found in store")
-      //       )
-      // case (Control.Expr(Expression.Add(Expression.Var(x), Expression.Var(y))), _) => 
-      //   (state.store.get(x), state.store.get(y)) match
-      //     case (Some(xNum), Some(yNum)) => 
-      //       CESKState(
-      //         control = Control.Value(xNum + yNum),
-      //         store = state.store,
-      //         kont = state.kont
-      //       )
-      //     case (Some(xNum), None) => 
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + y + " not found in store")
-      //       )
-      //     case _ => 
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + x + " not found in store")
-      //       )
-      // case (Control.Expr(Expression.Div(Expression.Var(x), Expression.Var(y))), _) =>
-      //   (state.store.get(x), state.store.get(y)) match
-      //     case (Some(xNum), Some(yNum)) => 
-      //       if yNum != 0.0 then
-      //         CESKState(
-      //           control = Control.Value(xNum / yNum),
-      //           store = state.store,
-      //           kont = state.kont
-      //         )
-      //       else
-      //         constructErrorState(
-      //           RuntimeError.DivisionByZero("Division by zero error in expression: " + x + " / " + y)
-      //         )
-      //     case (Some(xNum), None) => 
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + y + " not found in store")
-      //       )
-      //     case _ => 
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + x + " not found in store")
-      //       )
-      // case (Control.Expr(Expression.Equals(Expression.Var(x), Expression.Var(y))), _) =>
-      //   (state.store.get(x), state.store.get(y)) match
-      //     case (Some(xNum), Some(yNum)) => 
-      //       CESKState(
-      //         // intentionally using 0.0 for true and 1.0 for false to match if0 and while0 spec
-      //         control = Control.Value(if xNum == yNum then 0.0 else 1.0),
-      //         store = state.store,
-      //         kont = state.kont
-      //       )
-      //     case (Some(xNum), None) => 
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + y + " not found in store")
-      //       )
-      //     case _ => 
-      //       constructErrorState(
-      //         RuntimeError.VarNotFound("Variable " + x + " not found in store")
-      //       )
+      // While Loops
+      case (Control.Search, ProgFrame(Nil, CleanStmt.While(grd, body) :: stmts, expr)) =>
+        CESKState(
+          control = Control.Expr(grd),
+          env     = state.env,
+          store   = state.store,
+          kont    = state.kont
+        )
+      case (Control.Value(num), ProgFrame(Nil, CleanStmt.While(grd, body) :: stmts, expr)) =>
+        val loop = CleanStmt.While(grd, body)
+        if numValIsZero(num) then
+          CESKState(
+            control = Control.Search,
+            env     = state.env,
+            store   = state.store,
+            kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, body :: loop :: stmts, expr))
+          )
+        else 
+          CESKState(
+            control = Control.Search,
+            env     = state.env,
+            store   = state.store,
+            kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
+          )
 
       case _ =>
         throw new UnreachableStateException(
