@@ -19,8 +19,8 @@ exec racket -tm "$0" -- ${1+"$@"}
 (define HOME (find-system-path 'home-dir))
 (define TEMP (build-path HOME "check-program-tmp/"))
 (define MAKE "Makefile")
-(define XJSN "xvalid")
-(define AAAA "4")
+(define XJSN "xcesk")
+(define AAAA "5")
 (define GIT  "git@github.khoury.northeastern.edu:cs4400-f25/")
 
 (define (main . args)
