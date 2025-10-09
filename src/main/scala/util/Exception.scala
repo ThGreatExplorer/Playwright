@@ -11,4 +11,3 @@ package util
 class InputNotExampleException(msg: String) extends Exception(msg)
 class UnreachablePatternMatch(msg: String) extends Exception(msg)
 class UnreachableStateException(msg: String) extends Exception(msg)
-class UnloadedNonFinalStateException(msg: String) extends Exception(msg)

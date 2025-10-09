@@ -24,20 +24,19 @@ object ValidityChecker:
       * @return Tuple of List[DeclWE], Set[String]
       */
     def closedDecls(decls: List[CleanDecl], dvars: Set[String]) : (List[DeclWE], Set[String]) = 
+        def processDecl(x : String, rhs : CleanExpr, dvars : Set[String]) : DeclWE =
+            DeclWE.Def(
+                    ExprWE.Var(x),
+                    closedExpr(rhs, dvars)
+                )
         def closedDeclsHelp(declsRem: List[CleanDecl], declsSoFar: List[DeclWE], dvarsSoFar: Set[String]) 
         : (List[DeclWE], Set[String]) = 
             declsRem match
                 case Nil => 
                     (declsSoFar.reverse, dvarsSoFar)
-                    
-                case CleanDecl(CleanExpr.Var(x), rhs) :: tail => {
-                    val processedDecl = 
-                        DeclWE.Def(
-                            ExprWE.Var(x),
-                            closedExpr(rhs, dvarsSoFar)
-                        )
+                case CleanDecl(CleanExpr.Var(x), rhs) :: tail => 
+                    val processedDecl = processDecl(x, rhs, dvars)
                     closedDeclsHelp(tail, processedDecl :: declsSoFar, dvarsSoFar.incl(x))
-                }
         closedDeclsHelp(decls, Nil, dvars)
 
     def closedStmt(stmt: CleanStmt, dvars: Set[String]): StmtWE = stmt match
