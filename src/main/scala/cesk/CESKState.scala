@@ -17,7 +17,7 @@ final case class CESKState(
   * @param state the current state of the CESK machine
   * @return true if the state is final, false otherwise
   */
-  def isFinal() : Boolean =
+  def isFinal : Boolean =
     control match { 
       case Control.Err(_) => kont.isEmpty
       case Control.Value(_) => kont.isEmpty
@@ -29,6 +29,7 @@ final case class CESKState(
     store.getVal(loc) 
 
 object CESKState:
+
   /**
     * Helper method to construct an error state
     *
@@ -43,6 +44,11 @@ object CESKState:
       kont = KontStack()
     )
 
+object CESKConst:
+  val TRUTHY    : NumVal = 1.0
+  val FALSY     : NumVal = 0.0
+  val BLOCKFLAG : Unit   = ()
+
 /******************************************************************************
   Below we define interfaces and type aliases for CESK registers. 
   
@@ -51,9 +57,6 @@ object CESKState:
   swap out the underlying structure if desired.
 
  *****************************************************************************/
-
-// Inexact numbers that are understood to be Values in our CESK machine.
-type NumVal = Double
 
 // Locations corresponding to Values in Store. We want to have a (practically)
 // infinite set of possible locations such that we can always produce a fresh

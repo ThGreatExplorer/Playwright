@@ -77,7 +77,7 @@ enum ExprWE:
 type VarWE = ExprWE.Var | ExprWE.VarErrNode
 
 enum CleanExpr:
-    case Num(n: Double)
+    case Num(n: NumVal)
     case Var(x: String)
     case BinOpExpr(lhs: CleanVar, op: BinOp, rhs: CleanVar)
 
@@ -88,3 +88,5 @@ enum BinOp:
     case Div
     case Equals
 
+// Inexact numbers that are understood to be Values
+type NumVal = Double

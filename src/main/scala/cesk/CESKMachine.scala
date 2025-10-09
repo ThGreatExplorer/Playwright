@@ -3,8 +3,9 @@ package cesk
 import scala.collection.mutable.Map
 
 import ast._
-import util.{UnloadedNonFinalStateException, UnreachableStateException}
-import util.EPSILON
+import util.{UnreachablePatternMatch, UnreachableStateException}
+import util.InexactComparator._
+import cesk.CESKConst._
 
 object CESKMachine:
 
@@ -15,9 +16,9 @@ object CESKMachine:
   * @return the final number or an error
   * @throws UnreachableStateException if the program is malformed or an unexpected state is reached
   */
-  def run(prog: CleanProgram) : Number | RuntimeError =
+  def run(prog: CleanProgram) : NumVal | RuntimeError =
     var state = load(prog)
-    while !state.isFinal() do
+    while !state.isFinal do
       state = transition(state)
     unload(state)
 
@@ -44,14 +45,12 @@ object CESKMachine:
     * @return the final number or an error
     * @throws UnloadedNonFinalStateException if the state is not final
     */ 
-  private def unload(state: CESKState) : Number | RuntimeError =
+  private def unload(state: CESKState) : NumVal | RuntimeError =
     state.control match {
       case Control.Value(n) => n
-      case Control.Err(e) => e
-      case Control.Expr(_) => 
-        throw new UnloadedNonFinalStateException("Machine still evaluating expression")
-      case Control.Search => 
-        throw new UnloadedNonFinalStateException("Machine still searching")
+      case Control.Err(e)   => e
+      case _ => 
+        throw new UnreachablePatternMatch("Should never happen: at unload() Control is not final")
     }
 
   /**
@@ -63,125 +62,126 @@ object CESKMachine:
   private def transition(state :CESKState) : CESKState =
     (state.control, state.kont.topProgFrame) match 
 
-
-      // Expressions ---
-      case (Control.Expr(CleanExpr.Var(x)), _) =>
-        val num = state.lookupVar(x)
-        CESKState(
-          Control.Value(num),
-          state.env,
-          state.store,
-          state.kont
-        )
-      
-      case (Control.Expr(CleanExpr.BinOpExpr(CleanExpr.Var(lhs), BinOp, CleanExpr.Var(rhs))), _) =>
-        val val1 = state.lookupVar(lhs)
-        val val2 = state.lookupVar(rhs)
-        BinOp match
-          case BinOp.Add =>
-            CESKState(
-              Control.Value(val1 + val2),
-              state.env,
-              state.store,
-              state.kont
-            )    
-          case BinOp.Div =>
-            if val2 != 0.0 then
-              CESKState(
-                Control.Value(val1 / val2),
-                state.env,
-                state.store,
-                state.kont
-              ) 
-            else
-              CESKState.constructErrorState(RuntimeError.DivisionByZero(f"Dividing by Zero: $val1 / $val2"))
-          case BinOp.Equals =>
-            val diff = math.abs(val1 - val2);
-            // 1.0 is true, anything else is false
-            val result = if diff < EPSILON then 1.0 else 0.0;
-            CESKState(
-              Control.Value(result),
-              state.env,
-              state.store,
-              state.kont
-            )
-
-      // Assignment Statements
-      case (Control.Search, ProgFrame(Nil, CleanStmt.Assign(CleanExpr.Var(lhs), rhs) :: stmts, expr)) =>
-        CESKState(
-          Control.Expr(rhs),
-          state.env,
-          state.store,
-          state.kont
-        )
-      case (Control.Value(num), ProgFrame(Nil, CleanStmt.Assign(CleanExpr.Var(lhs), rhs) :: stmts, expr)) =>
-        val loc = state.env.getLoc(lhs)
-        CESKState(
-          Control.Search,
-          state.env,
-          state.store.updatedStore(loc, num),
-          state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
-        )
-
       // Defintions
       case (Control.Search, ProgFrame(CleanDecl(id, rhs) :: rest, stmts, r)) =>
         CESKState(
           control = Control.Expr(rhs),
-          env = state.env,
-          store = state.store,
-          kont = state.kont
+          env     = state.env,
+          store   = state.store,
+          kont    = state.kont
         )
       case (Control.Value(n), ProgFrame(CleanDecl(CleanVar(id), rhs) :: rest, stmts, r)) =>
         val (newStore, newLoc) = state.store.insertValAtNewLoc(n)
         CESKState(
-          Control.Search,
-          state.env.updatedEnv(id, newLoc),
-          newStore,
-          state.kont.updateTopProgFrame(ProgFrame(rest, stmts, r))
+          control = Control.Search,
+          env     = state.env.updatedEnv(id, newLoc),
+          store   = newStore,
+          kont    = state.kont.updateTopProgFrame(ProgFrame(rest, stmts, r))
         )
 
       // Block Statements
       case (Control.Search, ProgFrame(Nil, CleanBlock.One(stmt) :: rest, r)) =>
         CESKState(
-          control = Control.Search,
-          env = state.env,
-          store = state.store,
-          kont = state.kont.updateTopProgFrame(ProgFrame(Nil, stmt :: rest, r)) 
+          control  = Control.Search,
+          env      = state.env,
+          store    = state.store,
+          kont     = state.kont.updateTopProgFrame(ProgFrame(Nil, stmt :: rest, r)) 
         )
       case (Control.Search, ProgFrame(Nil, CleanBlock.Many(decls, stmts) :: rest, r)) =>
-        val newClosure = (ProgFrame(decls, stmts, ()), state.env)
+        val newClosure = (ProgFrame(decls, stmts, BLOCKFLAG), state.env)
         CESKState(
           control = Control.Search,
-          env = state.env,
-          store = state.store,
-          kont = state.kont.updateTopProgFrame(ProgFrame(Nil, rest, r))
-                           .push(newClosure)
+          env     = state.env,
+          store   = state.store,
+          kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, rest, r))
+                              .push(newClosure)
         )
-      case (Control.Search, ProgFrame(Nil, Nil, ())) =>
+      case (Control.Search, ProgFrame(Nil, Nil, BLOCKFLAG)) =>
         val restoredEnv = state.kont.topEnv
         CESKState(
           control = Control.Search,
-          env = restoredEnv,
-          store = state.store,
-          kont = state.kont.pop
+          env     = restoredEnv,
+          store   = state.store,
+          kont    = state.kont.pop
         )
 
       // End Of Program 
       case (Control.Search, ProgFrame(Nil, Nil, expr : CleanExpr)) =>
         CESKState(
           control = Control.Expr(expr),
-          env = state.env,
-          store = state.store,
-          kont = state.kont
+          env     = state.env,
+          store   = state.store,
+          kont    = state.kont
         )
       case (Control.Value(n), ProgFrame(Nil, Nil, expr : CleanExpr)) =>
         val restoredEnv = state.kont.topEnv
         CESKState(
           control = Control.Value(n),
-          env = restoredEnv,
-          store = state.store,
-          kont = state.kont.pop
+          env     = restoredEnv,
+          store   = state.store,
+          kont    = state.kont.pop
         )
+
+      // Expressions 
+      case (Control.Expr(CleanExpr.Var(x)), _) =>
+        val num = state.lookupVar(x)
+        CESKState(
+          control = Control.Value(num),
+          env     = state.env,
+          store   = state.store,
+          kont    = state.kont
+        )
+      
+      case (Control.Expr(CleanExpr.BinOpExpr(CleanExpr.Var(lhs), op @ BinOp, CleanExpr.Var(rhs))), _) =>
+        val val1 = state.lookupVar(lhs)
+        val val2 = state.lookupVar(rhs)
+        op match
+          case BinOp.Add =>
+            CESKState(
+              control = Control.Value(val1 + val2),
+              env     = state.env,
+              store   = state.store,
+              kont    = state.kont
+            )    
+          case BinOp.Div =>
+            if numValIsZero(val2) then
+              CESKState.constructErrorState(
+                RuntimeError.DivisionByZero(f"Dividing by Zero: $val1 / $val2")
+              )
+            else
+              CESKState(
+                control = Control.Value(val1 / val2),
+                env     = state.env,
+                store   = state.store,
+                kont    = state.kont
+              ) 
+          case BinOp.Equals =>
+            val result = if numValsAreEqual(val1, val2) then TRUTHY else FALSY
+            CESKState(
+              control = Control.Value(result),
+              env     = state.env,
+              store   = state.store,
+              kont    = state.kont
+            )
+
+      // Assignment Statements
+      case (Control.Search, ProgFrame(Nil, CleanStmt.Assign(CleanExpr.Var(lhs), rhs) :: stmts, expr)) =>
+        CESKState(
+          control = Control.Expr(rhs),
+          env     = state.env,
+          store   = state.store,
+          kont    = state.kont
+        )
+      case (Control.Value(num), ProgFrame(Nil, CleanStmt.Assign(CleanExpr.Var(lhs), rhs) :: stmts, expr)) =>
+        val loc = state.env.getLoc(lhs)
+        CESKState(
+          control = Control.Search,
+          env     = state.env,
+          store   = state.store.updatedStore(loc, num),
+          kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
+        )
+
+      
 
       // // Assignment Statements
       // case (Control.Search, ProgFrame(Nil, expr)) => 
