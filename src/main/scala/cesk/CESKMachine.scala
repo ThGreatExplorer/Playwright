@@ -139,7 +139,7 @@ object CESKMachine:
           kont    = state.kont
         )
       
-      case (Control.Expr(CleanExpr.BinOpExpr(CleanExpr.Var(lhs), op @ BinOp, CleanExpr.Var(rhs))), _) =>
+      case (Control.Expr(CleanExpr.BinOpExpr(CleanExpr.Var(lhs), op, CleanExpr.Var(rhs))), _) =>
         val val1 = state.lookupVar(lhs)
         val val2 = state.lookupVar(rhs)
         op match
@@ -239,7 +239,7 @@ object CESKMachine:
 
       case _ =>
         throw new UnreachableStateException(
-          "Unknown state reached in CSK machine transition function:" 
+          "Unknown state reached in CESK machine transition function:" 
           + "\nControl: " + state.control.toString() 
           + "\nEnvironment: " + state.env.toString() 
           + "\nStore: " + state.store.toString()

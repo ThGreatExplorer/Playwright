@@ -74,6 +74,7 @@ enum Control:
 trait Env:
   def updatedEnv(x : String, loc : Loc) : Env
   def getLoc(x : String) : Loc
+  override def toString(): String
 
 object Env:
 
@@ -84,6 +85,8 @@ object Env:
 
   // Actual class we instantiate that is hidden from users
   private class MapEnv(underlying : Map[String, Loc]) extends Env {
+
+    override def toString(): String = underlying.toString()
     
     def updatedEnv(x : String, loc : Loc) : Env =
       new MapEnv(underlying.updated(x, loc))
@@ -103,6 +106,7 @@ trait Store:
   def insertValAtNewLoc(n: NumVal) : (Store, Loc)
   def updatedStore(loc: Loc, n: NumVal) : Store
   def getVal(loc : Loc) : NumVal
+  override def toString(): String
 
 object Store:
 
@@ -115,6 +119,7 @@ object Store:
   private def freshLoc() : Loc = locactionGenerator.next()
 
   private class MapStore(underlying : Map[Loc, NumVal]) extends Store {
+    override def toString(): String = underlying.toString()
 
     def insertValAtNewLoc(n : NumVal) : (Store, Loc) =
       val loc = freshLoc();
@@ -140,7 +145,7 @@ type Closure = (ProgFrame, Env)
 // ProgramFrame represents remaining instructions of either the TL program
 // or a nested block; if the frame corresponds to a Block, expr is initialized
 // with a Unit ()
-case class ProgFrame(
+final case class ProgFrame(
   decls: List[CleanDecl], 
   stmts: List[CleanStmt | CleanBlock], 
   expr: CleanExpr | Unit
@@ -148,6 +153,7 @@ case class ProgFrame(
 
 // Kont Register is a Stack of Closures with the following interface
 trait KontStack:
+  override def toString(): String
   def push(clo : Closure) : KontStack
   def pop : KontStack
   def updateTopProgFrame(newProgFrame : ProgFrame) : KontStack
@@ -168,6 +174,7 @@ object KontStack:
       new StackifiedList(initStack)
 
   private class StackifiedList(underlying : List[Closure]) extends KontStack {
+    override def toString(): String = underlying.toString()
     def push(clo : Closure) : KontStack = new StackifiedList(clo :: underlying)
     def pop : KontStack = new StackifiedList(underlying.tail)
     def updateTopProgFrame(newProgFrame : ProgFrame) : KontStack = 
