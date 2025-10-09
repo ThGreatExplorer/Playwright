@@ -1,4 +1,4 @@
-// package test
+package test
 
 import munit.FunSuite
 import main.MainFuncs
