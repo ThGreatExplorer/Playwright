@@ -3,7 +3,7 @@ package cesk
 import scala.collection.mutable.{Stack}
 import scala.collection.immutable.Map
 import ast._
-import util.UnreachableStateException
+import util.{UnreachableStateException, UnreachablePatternMatch}
 import util.EPSILON
 import scala.compiletime.ops.double
 
@@ -15,36 +15,61 @@ enum Control:
 
 type Loc = Integer
 
-class Env() {
-  private var env : Map[String, Loc] = Map()
-}
+// Think of trait as a type defintion
+trait Env:
+  def updatedEnv(x : String, loc : Loc) : Env
+  def getLoc(x : String) : Loc
 
-object Env {
+// Object is a factory that creates instances of something typed with Env
+object Env:
 
-  def updateEnv(env : Env, x : String, loc : Loc): Env = 
-    env.env = env.env.updated(x, loc)
-    env
+  // Factory methods that return instances of the trait
+  def apply(entries: (String, Loc)*): Env = 
+    new MapEnv(Map(entries*))
 
-  def getEnvVal(env : Env, x : String): Loc = 
-    env.env.get(x).get
-}
+  // Actual class we instantiate that is hidden from users
+  private class MapEnv(underlying : Map[String, Loc]) extends Env {
+    
+    def updatedEnv(x : String, loc : Loc) : Env =
+      new MapEnv(underlying.updated(x, loc))
 
-class Store() {
-  private var store : Map[Loc, Double] = Map()
-}
+    def getLoc(x : String) : Loc =
+      underlying.get(x) match
+        case Some(loc) => loc
+        case None =>   
+          throw new UnreachablePatternMatch("Should never happen: variable " + x + " not found in environment")    
+  }
 
-object Store {
-  val locactionGenerator = Iterator.from(0)
-  def freshLoc() : Loc = locactionGenerator.next()
 
-  def updateStore(store : Store, num : Double): (Loc, Store) =
-    val loc = freshLoc();
-    store.store = store.store.updated(loc, num)
-    (loc, store)
+trait Store:
+  def insertValAtNewLoc(n: Double) : (Store, Loc)
+  def updatedStore(loc: Loc, n: Double) : Store
+  def getVal(loc : Loc) : Double
 
-  def getValFromStore(store : Store, loc: Loc): Double = 
-    store.store.get(loc).get
-}
+object Store:
+
+  def apply(entries: (Loc, Double)*): Store = 
+    new MapStore(Map(entries*))
+
+  private val locactionGenerator = Iterator.from(0)
+  private def freshLoc() : Loc = locactionGenerator.next()
+
+  private class MapStore(underlying : Map[Loc, Double]) extends Store {
+
+    def insertValAtNewLoc(n : Double) : (Store, Loc) =
+      val loc = freshLoc();
+      val newStore = new MapStore(underlying.updated(loc, n))
+      (newStore, loc)
+
+    def updatedStore(loc : Loc, n : Double) : Store =
+      new MapStore(underlying.updated(loc, n))
+
+    def getVal(loc : Loc) : Double =
+      underlying.get(loc) match
+        case Some(n) => n
+        case None =>   
+          throw new UnreachablePatternMatch("Should never happen: location " + loc + " not found in store")    
+  }
 
 // A closure combines a program AST with an environment. The AST 
 // represents the remaining instructions of either the top-most program 
@@ -54,49 +79,69 @@ object Store {
 // surrounding context.
 type Closure = (ProgFrame, Env)
 
-case class ProgFrame(decls: List[CleanDecl], stmts: List[CleanStmt | CleanBlock], expr: CleanExpr | Unit)
+case class ProgFrame(
+  decls: List[CleanDecl], 
+  stmts: List[CleanStmt | CleanBlock], 
+  expr: CleanExpr | Unit
+)
 
-class Kont() {
-  private var k : Stack[Closure] = Stack()
-}
+trait KontStack:
+  def push(clo : Closure) : KontStack
+  def pop : KontStack
+  def updateTopProgFrame(newProgFrame : ProgFrame) : KontStack
+  def isEmpty : Boolean 
+  def top : Closure
+  def topProgFrame : ProgFrame
+  def topEnv : Env 
 
-object Kont {
+object KontStack:
 
-  def updateTop(kont : Kont, newProgFrame : ProgFrame) = 
-    val (_, oldEnv) = kont.k.top
-    kont.k.pop()
-    kont.k.push((newProgFrame, oldEnv))
-    kont
+  def apply(entries: Closure*) : KontStack = new StackifiedList(List(entries*))
 
-  def top(kont : Kont) = kont.k.top
+  def constructWithTL(initProg : CleanProgram): KontStack = initProg match
+    case CleanProgram(decls, stmts, expr) =>
+      val progClosure = (ProgFrame(decls, stmts, expr), Env())
+      val initStack = List(progClosure)
+      new StackifiedList(initStack)
 
-  def push(kont : Kont, clo : Closure) = {kont.k.push(clo); kont}
+  private class StackifiedList(underlying : List[Closure]) extends KontStack {
+    def push(clo : Closure) : KontStack = new StackifiedList(clo :: underlying)
+    def pop : KontStack = new StackifiedList(underlying.tail)
+    def updateTopProgFrame(newProgFrame : ProgFrame) : KontStack = 
+      val (_, oldEnv) = underlying.head
+      val newClosure = (newProgFrame, oldEnv)
+      new StackifiedList(newClosure :: underlying.tail)
+  
+    def isEmpty : Boolean = underlying.isEmpty
+    def top : Closure = underlying.head
+    def topProgFrame : ProgFrame = { val (pf, _) = underlying.head; pf }
+    def topEnv : Env =  { val (_, env) = underlying.head; env }
+  }
 
-  def pop(kont : Kont) = {val closure = kont.k.pop; (closure, kont)}
-
-  def isEmpty(kont : Kont) = kont.k.isEmpty
-
-}
 
 final case class CESKState(
   control : Control, 
   env : Env,
   store : Store, 
-  kont: Kont
+  kont: KontStack
 ):
   /**
   * Returns true if the given state is a final state. A final state is either an Error state or 
-  * a Success state with Value in Control and an empty Kont stack.
+  * a Success state with Value in Control and an empty KontStack stack.
   *
   * @param state the current state of the CESK machine
   * @return true if the state is final, false otherwise
   */
   def isFinal() : Boolean =
     control match { 
-      case Control.Err(_) => Kont.isEmpty(kont)
-      case Control.Value(_) => Kont.isEmpty(kont)
+      case Control.Err(_) => kont.isEmpty
+      case Control.Value(_) => kont.isEmpty
       case _ => false
     }
+
+  def lookupVar(x : String) : Double = 
+    val loc = env.getLoc(x) 
+    store.getVal(loc) 
 
 object CESKState:
 
@@ -107,14 +152,12 @@ object CESKState:
     * @throws UnreachableStateException if the current state is malformed or an unexpected state is reached
     */
   def transition(state :CESKState) : CESKState =
-    val (topFrame, _) = Kont.top(state.kont)
-    (state.control, topFrame) match 
+    (state.control, state.kont.topProgFrame) match 
 
 
       // Expressions ---
       case (Control.Expr(CleanExpr.Var(x)), _) =>
-        val loc = Env.getEnvVal(state.env, x) 
-        val num = Store.getValFromStore(state.store, loc) 
+        val num = state.lookupVar(x)
         CESKState(
           Control.Value(num),
           state.env,
@@ -123,8 +166,8 @@ object CESKState:
         )
       
       case (Control.Expr(CleanExpr.BinOpExpr(CleanExpr.Var(lhs), BinOp, CleanExpr.Var(rhs))), _) =>
-        val val1 = Store.getValFromStore(state.store, Env.getEnvVal(state.env, lhs));
-        val val2 = Store.getValFromStore(state.store, Env.getEnvVal(state.env, rhs));
+        val val1 = state.lookupVar(lhs)
+        val val2 = state.lookupVar(rhs)
         BinOp match
           case BinOp.Add =>
             CESKState(
@@ -163,12 +206,12 @@ object CESKState:
           state.kont
         )
       case (Control.Value(num), ProgFrame(Nil, CleanStmt.Assign(CleanExpr.Var(lhs), rhs) :: stmts, expr)) =>
-        val (_, newStore) = Store.updateStore(state.store, num)
+        val loc = state.env.getLoc(lhs)
         CESKState(
           Control.Search,
           state.env,
-          newStore,
-          Kont.updateTop(state.kont, ProgFrame(Nil, stmts, expr))
+          state.store.updatedStore(loc, num),
+          state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
         )
 
       // Defintions
@@ -180,13 +223,12 @@ object CESKState:
           kont = state.kont
         )
       case (Control.Value(n), ProgFrame(CleanDecl(CleanVar(id), rhs) :: rest, stmts, r)) =>
-        val (newLoc, newStore) = Store.updateStore(state.store, n)
-        val newEnv = Env.updateEnv(state.env, id, newLoc)
+        val (newStore, newLoc) = state.store.insertValAtNewLoc(n)
         CESKState(
-          control = Control.Search,
-          env = newEnv,
-          store = newStore,
-          kont = Kont.updateTop(state.kont, ProgFrame(rest, stmts, r))
+          Control.Search,
+          state.env.updatedEnv(id, newLoc),
+          newStore,
+          state.kont.updateTopProgFrame(ProgFrame(rest, stmts, r))
         )
 
       // Block Statements
@@ -195,24 +237,24 @@ object CESKState:
           control = Control.Search,
           env = state.env,
           store = state.store,
-          kont = Kont.updateTop(state.kont, ProgFrame(Nil, stmt :: rest, r))
+          kont = state.kont.updateTopProgFrame(ProgFrame(Nil, stmt :: rest, r)) 
         )
       case (Control.Search, ProgFrame(Nil, CleanBlock.Many(decls, stmts) :: rest, r)) =>
-        val stashedStack = Kont.updateTop(state.kont, ProgFrame(Nil, rest, r))
-        val newClo = (ProgFrame(decls, stmts, ()), state.env)
+        val newClosure = (ProgFrame(decls, stmts, ()), state.env)
         CESKState(
           control = Control.Search,
           env = state.env,
           store = state.store,
-          kont = Kont.push(stashedStack, newClo)
+          kont = state.kont.updateTopProgFrame(ProgFrame(Nil, rest, r))
+                           .push(newClosure)
         )
       case (Control.Search, ProgFrame(Nil, Nil, ())) =>
-        val ((_, restoredEnv), restOfStack) = Kont.pop(state.kont)
+        val restoredEnv = state.kont.topEnv
         CESKState(
           control = Control.Search,
           env = restoredEnv,
           store = state.store,
-          kont = restOfStack
+          kont = state.kont.pop
         )
 
       // End Of Program 
@@ -224,12 +266,12 @@ object CESKState:
           kont = state.kont
         )
       case (Control.Value(n), ProgFrame(Nil, Nil, expr : CleanExpr)) =>
-        val ((_, restoredEnv), restOfStack) = Kont.pop(state.kont)
+        val restoredEnv = state.kont.topEnv
         CESKState(
           control = Control.Value(n),
           env = restoredEnv,
           store = state.store,
-          kont = restOfStack
+          kont = state.kont.pop
         )
 
       // // Assignment Statements
@@ -373,6 +415,7 @@ object CESKState:
         throw new UnreachableStateException(
           "Unknown state reached in CSK machine transition function:" 
           + "\nControl: " + state.control.toString() 
+          + "\nEnvironment: " + state.env.toString() 
           + "\nStore: " + state.store.toString()
           + "\nKont: " + state.kont.toString() 
         )
@@ -388,5 +431,5 @@ object CESKState:
       control = Control.Err(e),
       env = Env(),
       store = Store(),
-      kont = Kont()
+      kont = KontStack()
     )

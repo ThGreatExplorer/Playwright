@@ -26,18 +26,16 @@ object CESKMachine:
     * contains the entire program prog in the only frame in the stack.
     *
     * @param prog the programAST
-    * @return the initial CSKState
+    * @return the initial CEKState
     */
-  private def load(prog: CleanProgram) : CESKState = prog match
-    case CleanProgram(decls, stmts, expr) =>
-      val progClosure = (ProgFrame(decls, stmts, expr), Env())
-      CESKState(
+  private def load(prog: CleanProgram) : CESKState =
+    CESKState(
         control = Control.Search,
-        env = Env(),
-        store = Store(),
-        kont = Kont.push(Kont(), progClosure)
+        env     = Env(),
+        store   = Store(),
+        kont    = KontStack.constructWithTL(prog)
       )
-
+     
   /**
     * Unloads the final result of a computation from a final CESKState.
     * 
