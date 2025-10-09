@@ -213,6 +213,30 @@ object CESKMachine:
             kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
           )
 
+      // Conditionals
+      case (Control.Search, ProgFrame(Nil, CleanStmt.Ifelse(guard, tbranch, ebranch) :: stmts, expr)) =>
+        CESKState(
+          control = Control.Expr(guard),
+          env     = state.env,
+          store   = state.store,
+          kont    = state.kont
+        )
+      case (Control.Value(tst), ProgFrame(Nil, CleanStmt.Ifelse(guard, tbranch, ebranch) :: stmts, expr)) =>
+        if numValIsZero(tst) then
+          CESKState(
+            control = Control.Search,
+            env     = state.env,
+            store   = state.store,
+            kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, tbranch :: stmts, expr))
+          )
+        else
+          CESKState(
+            control = Control.Search,
+            env     = state.env,
+            store   = state.store,
+            kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, ebranch :: stmts, expr))
+          )
+
       case _ =>
         throw new UnreachableStateException(
           "Unknown state reached in CSK machine transition function:" 

@@ -18,12 +18,14 @@ object ValidityChecker:
         : (List[DeclWE], Set[String]) = declsRem match
             case Nil => (declsSoFar.reverse, dvars)
             case CleanDecl(CleanExpr.Var(x), rhs) :: tail => 
-                val processedDecl = 
-                    DeclWE.Def(
+                val processedDecl = processDecl(x, rhs, dvars)
+                closedDecls(tail, processedDecl :: declsSoFar, dvars.incl(x))
+            
+            def processDecl(x : String, rhs : CleanExpr, dvars : Set[String]) : DeclWE =
+                DeclWE.Def(
                         ExprWE.Var(x),
                         closedExpr(rhs, dvars)
                     )
-                closedDecls(tail, processedDecl :: declsSoFar, dvars.incl(x))
 
     def closedStmt(stmt: CleanStmt, dvars: Set[String]): StmtWE = stmt match
         case CleanStmt.Assign(id @ CleanExpr.Var(_), rhs) => 
