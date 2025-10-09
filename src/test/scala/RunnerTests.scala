@@ -9,7 +9,38 @@ import main.AssignmentRunner._
 import main._
 
 class RunnerTests extends FunSuite {
-  val casesA4 = Seq(
+  val casesA5 = List(
+    (
+      """
+      ((def x 1.0) (def y x) (x = 0.0) x y)
+      """,
+      Result.ParseError,
+      "\"parser error\""
+    ),
+    (
+      """
+      ((def y 1.0) (x = 1.0) x)
+      """,
+      Result.UndefinedVarError,
+      "\"undeclared variable error\""
+    ),
+    (
+      """
+      ((def x 0.0) (x = 0.0) (while0 x (x = 2.0)) x)
+      """,
+      Result.Success(2.0),
+      "2.0"
+    ),
+    (
+      """
+      ((def x 0.0) (x / x))
+      """,
+      Result.RuntimeError,
+      "\"run-time error\""
+    )
+  )
+
+  val casesA4 = List(
     (
       """
       ((def x 1.0) (def y x) (x = 0.0) x y)
@@ -33,17 +64,7 @@ class RunnerTests extends FunSuite {
     )
   )
 
-  casesA4.foreach { (input, expectedResult, expectedString) =>
-    test(s"Assignment 4 Runner test for: $input") {
-      val inputSexp = MainFuncs.readSexp(input)
-      val result    = AssignmentRunner.coreValidityChecker(inputSexp)
-      val outString = result.outputString
-      assertEquals(result, expectedResult)
-      assertEquals(outString, expectedString)
-    }
-  }
-
-  val casesA2 = Seq(
+  val casesA2 = List(
     (
       """
       ((if0 (c + d) (x = y) a (block (a = b) (while0 8.0 (variable = (liz == l))))) (x / y))
@@ -66,17 +87,8 @@ class RunnerTests extends FunSuite {
       "\"belongs\""
     )
   )
-  casesA2.foreach { (input, expectedResult, expectedString) =>
-    test(s"Assignment 2 Runner test for: $input") {
-      val inputSexp = MainFuncs.readSexp(input)
-      val result    = AssignmentRunner.parserBareBones(inputSexp)
-      val outString = result.outputString
-      assertEquals(result, expectedResult)
-      assertEquals(outString, expectedString)
-    }
-  }
 
-  val casesA1 = Seq((
+  val casesA1 = List((
     """((Someone has created files that contain information of this shape)
         (An Example is one of)
             (a Name like this)
@@ -88,14 +100,23 @@ class RunnerTests extends FunSuite {
     "\"38\""
   ))
 
-  casesA1.foreach { (input, expectedResult, expectedString) =>
-    test(s"Assignment 1 Runner test for: $input") {
-      val inputSexp = MainFuncs.readSexp(input)
-      val result    = AssignmentRunner.startUp(inputSexp)
-      val outString = result.outputString
-      assertEquals(result, expectedResult)
-      assertEquals(outString, expectedString)
-    }
-  }
+  val runnerTestsByAssignment = List(
+    (5, ceskCore(_), casesA5), 
+    (4, coreValidityChecker(_), casesA4),
+    // (3, cskBareBones(_), casesA3),
+    (2, parserBareBones(_), casesA2),
+    (1, startUp(_), casesA1),
+  )
 
+  runnerTestsByAssignment.foreach( (assignNum, runnerFun, cases) => 
+    cases.foreach ( (input, expectedResult, expectedString) =>
+      test(s"Assignment $assignNum Runner test for: $input") {
+        val inputSexp = MainFuncs.readSexp(input)
+        val result    = runnerFun(inputSexp)
+        val outString = result.outputString
+        assertEquals(result, expectedResult)
+        assertEquals(outString, expectedString)
+      }
+    )
+  )
 }

@@ -1,6 +1,6 @@
 package cesk
 
-import scala.collection.mutable.Map
+import scala.annotation.tailrec
 
 import ast._
 import util.{UnreachablePatternMatch, UnreachableStateException}
@@ -17,11 +17,18 @@ object CESKMachine:
   * @throws UnreachableStateException if the program is malformed or an unexpected state is reached
   */
   def run(prog: CleanProgram) : NumVal | RuntimeError =
-    var state = load(prog)
-    while !state.isFinal do
-      state = transition(state)
-    unload(state)
+    @tailrec
+    def loopUntilFinal(state : CESKState) : CESKState = 
+      if state.isFinal then 
+        state
+      else
+        val nextState = transition(state)
+        loopUntilFinal(nextState)
 
+    val initState = load(prog)
+    val finalState = loopUntilFinal(initState)
+    unload(finalState)
+    
   /**
     * Loads a program into the initial state of the CSK machine where the 
     * control is set to Search, the environment and store are empty, and the continuation 
@@ -240,8 +247,8 @@ object CESKMachine:
       case _ =>
         throw new UnreachableStateException(
           "Unknown state reached in CESK machine transition function:" 
-          + "\nControl: " + state.control.toString() 
-          + "\nEnvironment: " + state.env.toString() 
-          + "\nStore: " + state.store.toString()
-          + "\nKont: " + state.kont.toString() 
+          + "\nControl: "     + state.control 
+          + "\nEnvironment: " + state.env
+          + "\nStore: "       + state.store
+          + "\nKont: "        + state.kont
         )
