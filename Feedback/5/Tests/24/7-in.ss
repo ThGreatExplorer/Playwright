@@ -1,0 +1,1 @@
+((def a 0.5) (def b 0.0) (if0 0.0 (block (def a 1.0) (b = (a + a))) (a = 0.0)) b)

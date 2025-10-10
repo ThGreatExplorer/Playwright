@@ -1,0 +1,1 @@
+((def x 0.0) (def z 10.0) (def y (z / x)) y)

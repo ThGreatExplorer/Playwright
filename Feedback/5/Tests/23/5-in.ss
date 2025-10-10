@@ -1,0 +1,5 @@
+((def x 0.0)
+ (def y 10.0)
+ (def result 0.0)
+ (result = (y / x))
+ result)

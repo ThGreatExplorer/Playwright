@@ -1,0 +1,15 @@
+((def x 100.0)
+   (def w 0.0)
+   (def y 300.0)
+   (def me 100.0)
+   (def ten 10.0)
+   (def z (x + y))
+   (def k 100.0)
+   (while0
+    (x == me)
+    (block
+        (y = (y + z))
+        (if0 (w == k)
+            (block (x = 0.0))
+            (block (w = (w + ten))))))
+   y)

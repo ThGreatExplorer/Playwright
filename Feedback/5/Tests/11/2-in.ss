@@ -1,0 +1,1 @@
+((def x 1.0) (def x x) x)

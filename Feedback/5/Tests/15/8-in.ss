@@ -1,0 +1,1 @@
+((def flag 0.0) (def result 10.0) (def newval 25.0) (while0 flag (block (result = newval) (flag = 1.0))) result)

@@ -1,0 +1,1 @@
+((def x 1.0) (def x 2.0) (def y (x + x)) (def x 0.0) (if0 x (block (def x 7.0) (y = x)) (y = 1.0)) (x + y))

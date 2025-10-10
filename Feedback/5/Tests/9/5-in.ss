@@ -1,0 +1,5 @@
+((def a 1.0)
+ (def b a)
+ (def a 2.0)
+ (def b a)
+ b)

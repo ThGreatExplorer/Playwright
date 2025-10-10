@@ -1,0 +1,12 @@
+((def x 5.0) 
+ (def y 10.0) 
+ (def z 15.0) 
+ (def result 0.0) 
+ (def hundred 100.0) 
+ (def conda (x == y)) 
+ (def condb (y == z)) 
+ (def finalCond (conda == condb)) 
+ (if0 finalCond 
+         (result = (result + hundred))
+         (x = 30.0)) 
+ result)

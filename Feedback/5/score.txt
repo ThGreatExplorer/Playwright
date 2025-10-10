@@ -1,0 +1,2 @@
+Total Score: 235 / 220
++15 "bonus points for bugs found in other students' xcesk programs (Max 15)"

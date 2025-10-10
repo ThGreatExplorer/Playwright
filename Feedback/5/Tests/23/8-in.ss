@@ -1,0 +1,5 @@
+((def x 7.5)
+ (def y 7.5)
+ (def result 0.0)
+ (result = (x == y))
+ result)

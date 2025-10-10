@@ -1,0 +1,1 @@
+((def cond 0.0) (def a 5.0) (if0 cond (block (def b 0.0) (b = 1.0)) (b = 7.0)) 0.0)

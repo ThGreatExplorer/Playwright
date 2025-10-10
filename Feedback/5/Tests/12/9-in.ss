@@ -1,0 +1,1 @@
+((def x 3.0) (def y 1.0) (def z (y / x)) (def result (x + z)) (def ten 10.0) (result = (result / z)) (ten == result))
