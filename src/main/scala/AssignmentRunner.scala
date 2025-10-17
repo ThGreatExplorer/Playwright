@@ -1,17 +1,18 @@
 package main
 
 import sexprs.SExprs._
-import static.ValidityChecker
 import ast.ConverterToClean.progToClean
-import ast.NumVal
+import ast.{NumVal, ProgramWE, CleanProgram}
 import static.Parser
-import cesk.{CESKMachine, RuntimeError}
-import static.Parser
+import static.{VCheckClassDups, VCheckMethodFieldParamDups, VCheckUndefined}
+// import cesk.{CESKMachine, RuntimeError}
 
 enum Result:
   case Count(n : Int)
   case ParseError
   case ParseBelongs
+  case DupClassDefs
+  case DupMethodFieldParams
   case UndefinedVarError
   case ValidityBelongs
   case Success(n : Number)
@@ -21,32 +22,64 @@ enum Result:
     case Count(n) => s"\"$n\""
     case ParseError => "\"parser error\""
     case ParseBelongs => "\"belongs\""
+
+    case DupClassDefs => "\"duplicate class name\""
+    case DupMethodFieldParams => "\"duplicate method, field, or parameter name\""
     case UndefinedVarError => "\"undeclared variable error\""
     case ValidityBelongs => "\"belongs\""
+
     case Success(n) => s"$n"
     case RuntimeError => "\"run-time error\""
 
 object AssignmentRunner:
+
+  def resOrClean(errRes : Result, prog : ProgramWE) : Either[Result, CleanProgram] =
+    progToClean(prog) match 
+      case None            => Left[Result, CleanProgram](errRes)
+      case Some(cleanProg) => Right[Result, CleanProgram](cleanProg)
+
+  def unpackResult(realRes : Either[Result, CleanProgram], resOnSucc : Result) : Result =
+    realRes match 
+      case Left(errRes)    => errRes
+      case Right(_)        => resOnSucc
+
+  /**
+    * Result printer for Assignment 6 — Class: Syntax
+    * 
+    * @param input SExpr read from stdin
+    */
+  def classParseAndValidity(input: SExpr): Result =
+
+    val pipeRes = 
+      for 
+        parsedProg     <- resOrClean(Result.ParseError, Parser.parseProg(input))
+        progNoDupClass <- resOrClean(Result.DupClassDefs, VCheckClassDups.classDupsProg(parsedProg))
+        progNoDupMFPs  <- resOrClean(Result.DupMethodFieldParams, VCheckMethodFieldParamDups.mfpDupsProg(progNoDupClass))
+        validProg      <- resOrClean(Result.UndefinedVarError, VCheckUndefined.closedProg(progNoDupMFPs))
+      yield
+        validProg
+    
+    unpackResult(pipeRes, Result.ValidityBelongs)
 
   /**
     * Result printer for Assignment 5 — Core: CESK
     * 
     * @param input SExpr read from stdin
     */
-  def ceskCore(input: SExpr): Result =
-    val parsedProg = Parser.parseProg(input)
+  // def ceskCore(input: SExpr): Result =
+  //   val parsedProg = Parser.parseProg(input)
 
-    progToClean(parsedProg) match
-      case None => Result.ParseError
-      case Some(cleanProg) => 
-        val validatedProg = ValidityChecker.closedProg(cleanProg)
+  //   progToClean(parsedProg) match
+  //     case None => Result.ParseError
+  //     case Some(cleanProg) => 
+  //       val validatedProg = ValidityChecker.closedProg(cleanProg)
         
-        progToClean(validatedProg) match 
-          case None    => Result.UndefinedVarError
-          case Some(validProg) => 
-            CESKMachine.run(validProg) match
-              case n : NumVal => Result.Success(n)
-              case e : RuntimeError => Result.RuntimeError
+  //       progToClean(validatedProg) match 
+  //         case None    => Result.UndefinedVarError
+  //         case Some(validProg) => 
+  //           CESKMachine.run(validProg) match
+  //             case n : NumVal => Result.Success(n)
+  //             case e : RuntimeError => Result.RuntimeError
 
   /**
     * Result printer for Assignment 4 — Core: Validity
@@ -59,12 +92,11 @@ object AssignmentRunner:
     progToClean(parsedProg) match
       case None => Result.ParseError
       case Some(cleanProg) => 
-        val validatedProg = ValidityChecker.closedProg(cleanProg)
+        val validatedProg = VCheckUndefined.closedProg(cleanProg)
         
         progToClean(validatedProg) match 
           case None    => Result.UndefinedVarError
           case Some(_) => Result.ValidityBelongs
-  // TODO: Look into using Either[Result, CleanProgram]
 
   // /**
   //   * Result printer for Assignment 3 — Bare Bones: CSK

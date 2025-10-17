@@ -73,8 +73,9 @@ class Parser(lexer: Lexer) {
         case StringLit(s) => SString(s)
         case SymbolLit(s) =>
           s match { // NOTE: maybe we should have a BooleanLit as well
-            case "true"  => SBoolean(true)
-            case "false" => SBoolean(false)
+            // true and false are not booleans in our grammar!
+            // case "true"  => SBoolean(true)
+            // case "false" => SBoolean(false)
             case s       => SSymbol(s)
           }
         case QualifiedSymbol(o, s) => SQualifiedSymbol(o.map(SSymbol.apply), SSymbol(s))

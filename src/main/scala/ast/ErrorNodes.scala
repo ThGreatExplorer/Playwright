@@ -1,28 +1,37 @@
 package ast
 
-enum ProgErr:
-    case NotAList
-    case EmptyList
-
-enum StmtErr:
+enum ParseErrNodes:
+    // Prog
+    case ProgNotAList
+    case ProgEmptyList
+    // Class
+    case ClassMalformed
+    // Method
+    case MethodMalformed
+    // Statement
     case AssignRhsMalformed
     case IfelseMalformed
     case WhileMalformed
-    case Malformed
+    case StmtMalformed
     case DeclAtStmtPosition
-
-enum DeclErr:
-    case Malformed
-
-enum BlockErr:
-    case ManyNoStmts
-
-enum ExprErr:
-    case BadOperand
-    case Malformed
-    
-enum VarErr:
-    case IsKeyword
+    // Decl
+    case DeclMalformed
+    // Block
+    case BlockManyNoStmts
+    // Expr 
+    case ExprBadOperand
+    case ExprMalformed
+    // Name
+    case NameIsKeyword
     case NotAName
-    // The only error node added for Validity checking
-    case NotDeclared
+
+enum ValidityErrNodes:
+    // Name duplicates in Class definitons
+    case DuplicateClassName
+    case DuplicateFieldName
+    case DuplicateMethod
+    case DuplicateParamName
+    // Var ref to an undeclared variable
+    case VarNotDeclared
+    // Class ref to an undeclared class
+    case ClassNotDeclared

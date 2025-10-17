@@ -26,6 +26,16 @@ itest:
 	done
 	if [ "$(FEEDBACK)" = "true" ] ; then make feedback ; fi
 
+stest:
+	cd $(DIR) && \
+	for test_file in ../src/test/ForStudents/ForStudents_$(DIR)/*-in.ss; do \
+			if [ -f "$$test_file" ]; then \
+					test_num=$$(basename "$$test_file" -in.ss); \
+					echo "Running test $$test_num..."; \
+					exec ./$(EXE) < "$$test_file" | diff --ignore-trailing-space --ignore-blank-lines - ../src/test/ForStudents/ForStudents_$(DIR)/"$$test_num-out.ss"; \
+			fi; \
+	done
+
 feedback:
 		cd $(DIR) && \
 		for d in $$(find ../Feedback/$(DIR)/Tests -type d -mindepth 1 -maxdepth 1); do \

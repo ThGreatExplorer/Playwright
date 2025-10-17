@@ -1,0 +1,17 @@
+(
+  (class Point (x x) 
+    (method addCoords ()
+      (def tempX (this --> x))
+      (def tempY (this --> y))
+      (tempX + tempY)
+    )
+  )
+  (class Point (x y) 
+    (method addCoords ()
+      (def tempX (this --> x))
+      (def tempY (this --> y))
+      (tempX + tempY)  
+    )
+  )
+  1.0
+)

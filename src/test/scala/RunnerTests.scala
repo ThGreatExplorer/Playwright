@@ -9,6 +9,45 @@ import main.AssignmentRunner._
 import main._
 
 class RunnerTests extends FunSuite {
+  val casesA6 = List(
+    (
+      """
+      ((class) 413.0)
+      """,
+      Result.ParseError,
+      "\"parser error\""
+    ),
+    (
+      """
+      ((class OWO ()) (class OWO ()) 413.0)
+      """,
+      Result.DupClassDefs,
+      "\"duplicate class name\""
+    ),
+    (
+      """
+      ((class OWO ()) (class UWU (a a)) 413.0)
+      """,
+      Result.DupMethodFieldParams,
+      "\"duplicate method, field, or parameter name\""
+    ),
+    (
+      """
+      ((class OWO ()) (class UWU (a) (method wow (hai) a)) 413.0)
+      """,
+      Result.UndefinedVarError,
+      "\"undeclared variable error\""
+    ),
+    (
+      """
+      ((class OWO ()) (class UWU (a) (method wow (hai) this)) 413.0)
+      """,
+      Result.ValidityBelongs,
+      "\"belongs\""
+    )
+  )
+
+
   val casesA5 = List(
     (
       """
@@ -101,7 +140,8 @@ class RunnerTests extends FunSuite {
   ))
 
   val runnerTestsByAssignment = List(
-    (5, ceskCore(_), casesA5), 
+    (6, classParseAndValidity(_), casesA6),
+    // (5, ceskCore(_), casesA5), 
     (4, coreValidityChecker(_), casesA4),
     // (3, cskBareBones(_), casesA3),
     (2, parserBareBones(_), casesA2),

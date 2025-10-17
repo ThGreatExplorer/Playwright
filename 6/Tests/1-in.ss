@@ -1,0 +1,10 @@
+ (
+  (class Point (x)
+    (method addy (y) (x + y))
+  )
+  (def this 2.0)
+  (def three 3.0)
+  (def new (new Point (this)))
+  (new --> x = 4.0)
+  (new --> addy (three))
+)

@@ -4,6 +4,7 @@ import munit.FunSuite
 import main.MainFuncs
 import static.Parser
 import ast._
+import ast.ParseErrNodes._
 import ast.ConverterToClean.progToClean
 
 class ParserTests extends FunSuite {
@@ -34,110 +35,224 @@ object ParserTests:
   val validCases = Seq(
     (
       "((foo = 123.4) bar)",
-      ProgramWE.Prog(
+      WE.Node(Program(
+        clss = List(),
         decls = List(),
-        stmts = List(StmtWE.Assign(lhs = ExprWE.Var("foo"), rhs = ExprWE.Num(123.4))),
-        expr = ExprWE.Var("bar")
-      ),
+        stmts = List(WE.Node(Stmt.Assign(
+          lhs = WE.Node(VarRef("foo")), 
+          rhs = WE.Node(Expr.Num(123.4))
+        ))),
+        expr = WE.Node(Expr.Var(WE.Node(VarRef("bar"))))
+      )),
       false
     ),
     (
       """((if0 bar (block (baz = 1.0)) (block (qux = -2.3))) foo)""",
-      ProgramWE.Prog(
+      WE.Node(Program(
+        clss = List(),
         decls = List(),
         stmts = List(
-          StmtWE.Ifelse(
-            ExprWE.Var("bar"),
-            BlockWE.Many(
+          WE.Node(Stmt.Ifelse(
+            WE.Node(Expr.Var(WE.Node(VarRef("bar")))),
+            WE.Node(Block.Many(
               List(),
               List(
-                StmtWE.Assign(
-                  lhs = ExprWE.Var("baz"),
-                  rhs = ExprWE.Num(1.0)
-                )
+                WE.Node(Stmt.Assign(
+                  lhs = WE.Node(VarRef("baz")),
+                  rhs = WE.Node(Expr.Num(1.0))
+                ))
               )
-            ),
-            BlockWE.Many(
+            )),
+            WE.Node(Block.Many(
               List(),
               List(
-                StmtWE.Assign(
-                  ExprWE.Var("qux"),
-                  ExprWE.Num(-2.3)
-                )
+                WE.Node(Stmt.Assign(
+                  WE.Node(VarRef("qux")),
+                  WE.Node(Expr.Num(-2.3))
+                ))
               )
-            )
+            ))
           )
-        ),
-        expr = ExprWE.Var("foo")
-      ),
+        )),
+        expr = WE.Node(Expr.Var(WE.Node(VarRef("foo"))))
+      )),
       false
     ),
     (
       """((while0 10.0 (block (foo = 10.0) (bar = -5.5))) (foo == bar))""",
-      ProgramWE.Prog(
+      WE.Node(Program(
+        clss = List(),
         decls = List(),
         stmts = List(
-          StmtWE.While(
-            guard = ExprWE.Num(10.0),
-            body = BlockWE.Many(
+          WE.Node(Stmt.While(
+            guard = WE.Node(Expr.Num(10.0)),
+            body = WE.Node(Block.Many(
                 List(),
               stmts = List(
-                StmtWE.Assign(
-                  ExprWE.Var("foo"),
-                  ExprWE.Num(10.0)
-                ),
-                StmtWE.Assign(
-                  ExprWE.Var("bar"),
-                  ExprWE.Num(-5.5)
-                )
+                WE.Node(Stmt.Assign(
+                  WE.Node(VarRef("foo")),
+                  WE.Node(Expr.Num(10.0))
+                )),
+                WE.Node(Stmt.Assign(
+                  WE.Node(VarRef("bar")),
+                  WE.Node(Expr.Num(-5.5))
+                ))
               )
             )
-          )
-        ),
-        expr = ExprWE.BinOpExpr(ExprWE.Var("foo"), BinOp.Equals, ExprWE.Var("bar"))
-      ),
+          ))
+        )),
+        expr = WE.Node(Expr.BinOpExpr(
+          WE.Node(VarRef("foo")), 
+          BinOp.Equals, 
+          WE.Node(VarRef("bar"))
+        ))
+      )),
       false
     ),
     (
       """((foo = (bar + baz)) (if0 qux (block (baz = 1.0)) (block (foo = -0.5))) bar)""",
-      ProgramWE.Prog(
+      WE.Node(Program(
+        clss = List(),
         decls = List(),
         stmts = List(
-          StmtWE.Assign(
-            lhs = ExprWE.Var("foo"),
-            rhs = ExprWE.BinOpExpr(
-              lhs = ExprWE.Var("bar"),
-              BinOp.Add,
-              rhs = ExprWE.Var("baz")
+          WE.Node(Stmt.Assign(
+            lhs = WE.Node(VarRef("foo")),
+            rhs = WE.Node(Expr.BinOpExpr(
+              WE.Node(VarRef("bar")), 
+              BinOp.Add, 
+              WE.Node(VarRef("baz"))
+            ))
+          )),
+          WE.Node(Stmt.Ifelse(
+            guard = WE.Node(Expr.Var(WE.Node(VarRef("qux")))),
+            tbranch = WE.Node(Block.Many(
+                List(),
+              List(
+                WE.Node(Stmt.Assign(
+                  WE.Node(VarRef("baz")),
+                  WE.Node(Expr.Num(1.0))
+                ))
+              )
+            )),
+            ebranch = WE.Node(Block.Many(
+                List(),
+              List(
+                WE.Node(Stmt.Assign(
+                  WE.Node(VarRef("foo")),
+                  WE.Node(Expr.Num(-0.5))
+                ))
+              )
+            ))
+          ))
+        ),
+        expr = WE.Node(Expr.Var(WE.Node(VarRef("bar"))))
+      )),
+      false
+    ),
+    (
+      """(
+      (class Point (x y) 
+        (method addCoords ()
+          (def tempX (this --> x))
+          (def tempY (this --> y))
+          (tempX + tempY)  
+        )
+      )
+      (def x 3.0)
+      (def y 2.0)
+      (def pointA (new Point (x y)))
+      (pointA --> addCoords ())
+      )""",
+      WE.Node(
+        Program(
+          clss = List(
+            WE.Node(
+              Class(
+                cname = WE.Node(Name("Point")),
+                fields = List(WE.Node(Name("x")), WE.Node(Name("y"))),
+                methods = List(
+                  WE.Node(
+                    Method(
+                      mname = WE.Node(Name("addCoords")),
+                      params = Nil,
+                      decls = List(
+                        WE.Node(
+                          Decl(
+                            varDecl = WE.Node(Name("tempX")),
+                            rhs = WE.Node(
+                              Expr.GetField(
+                                instance = WE.Node(VarRef("this")),
+                                field = WE.Node(Name("x"))
+                              )
+                            )
+                          )
+                        ),
+                        WE.Node(
+                          Decl(
+                            varDecl = WE.Node(Name("tempY")),
+                            rhs = WE.Node(
+                              Expr.GetField(
+                                instance = WE.Node(VarRef("this")),
+                                field = WE.Node(Name("y"))
+                              )
+                            )
+                          )
+                        )
+                      ),
+                      stmts = Nil,
+                      expr = WE.Node(
+                        Expr.BinOpExpr(
+                          lhs = WE.Node(VarRef("tempX")),
+                          op = BinOp.Add,
+                          rhs = WE.Node(VarRef("tempY"))
+                        )
+                      )
+                    )
+                  )
+                )
+              )
             )
           ),
-          StmtWE.Ifelse(
-            guard = ExprWE.Var("qux"),
-            tbranch = BlockWE.Many(
-                List(),
-              List(
-                StmtWE.Assign(
-                  lhs = ExprWE.Var("baz"),
-                  rhs = ExprWE.Num(1.0)
-                )
+          decls = List(
+            WE.Node(
+              Decl(
+                varDecl = WE.Node(Name("x")),
+                rhs = WE.Node(Expr.Num(3.0))
               )
             ),
-            ebranch = BlockWE.Many(
-                List(),
-              List(
-                StmtWE.Assign(
-                  lhs = ExprWE.Var("foo"),
-                  rhs = ExprWE.Num(-0.5)
+            WE.Node(
+              Decl(
+                varDecl = WE.Node(Name("y")),
+                rhs = WE.Node(Expr.Num(2.0))
+              )
+            ),
+            WE.Node(
+              Decl(
+                varDecl = WE.Node(Name("pointA")),
+                rhs = WE.Node(
+                  Expr.NewInstance(
+                    cname = WE.Node(Name("Point")),
+                    args = List(
+                      WE.Node(VarRef("x")),
+                      WE.Node(VarRef("y"))
+                    )
+                  )
                 )
               )
             )
+          ),
+          stmts = Nil,
+          expr = WE.Node(
+            Expr.CallMethod(
+              instance = WE.Node(VarRef("pointA")),
+              method = WE.Node(Name("addCoords")),
+              args = Nil
+            )
           )
-        ),
-        expr = ExprWE.Var("bar")
+        )
       ),
       false
     )
-    // Add more cases as needed
   )
 
 
@@ -150,172 +265,298 @@ object ParserTests:
             (a sequence of space separated Examples wrapped in ( and ))
         () () ()
     )""",
-      ProgramWE.Prog(
+      WE.Node(Program(
+        clss = List(),
         decls = List(),
         stmts = List(
-          StmtWE.Err(
-            e = StmtErr.Malformed
-          ),
-          StmtWE.Err(
-            e = StmtErr.Malformed
-          ),
-          StmtWE.Err(
-            e = StmtErr.Malformed
-          ),
-          StmtWE.Err(
-            e = StmtErr.Malformed
-          ),
-          StmtWE.Err(
-            e = StmtErr.Malformed
-          ),
-          StmtWE.Err(
-            e = StmtErr.Malformed
-          ),
-          StmtWE.Err(
-            e = StmtErr.Malformed
-          )
+          WE.Err(StmtMalformed),
+          WE.Err(StmtMalformed),
+          WE.Err(StmtMalformed),
+          WE.Err(StmtMalformed),
+          WE.Err(StmtMalformed),
+          WE.Err(StmtMalformed),
+          WE.Err(StmtMalformed)
         ),
-        expr = ExprWE.Err(
-          e = ExprErr.Malformed
-        )
-      ),
+        expr = WE.Err(ExprMalformed) 
+      )),
       true
     ),
     (
       """
       ((foo = ) =)
       """,
-      ProgramWE.Prog(
+      WE.Node(Program(
+        clss = List(),
         decls = List(),
         stmts = List(
-          StmtWE.Err(StmtErr.AssignRhsMalformed)
+          WE.Err(AssignRhsMalformed)
         ),
-        expr = 
-          ExprWE.VarErrNode(
-            e = VarErr.IsKeyword
-          )
-      ),
+        expr = WE.Node(Expr.Var(WE.Err(NameIsKeyword)))
+      )),
       true
     ),
     (
       "()",
-      ProgramWE.Err(ProgErr.EmptyList),
+      WE.Err(ProgEmptyList),
       true
     ),
     (
       "((def x 1.0) (def y 2.0) (def x) (x + y))",
-      ProgramWE.Prog(
+      WE.Node(Program(
+        clss = List(),
         decls = List(
-          DeclWE.Def(
-            ExprWE.Var("x"),
-            ExprWE.Num(1.0),
-          ),
-          DeclWE.Def(
-            ExprWE.Var("y"),
-            ExprWE.Num(2.0)
-          ),
-          DeclWE.Err(DeclErr.Malformed),
+          WE.Node(Decl(
+            WE.Node(Name("x")),
+            WE.Node(Expr.Num(1.0))
+          )),
+          WE.Node(Decl(
+            WE.Node(Name("y")),
+            WE.Node(Expr.Num(2.0))
+          )),
+          WE.Err(DeclMalformed),
         ),
         stmts = List(),
-        ExprWE.BinOpExpr(ExprWE.Var("x"),BinOp.Add,ExprWE.Var("y"))
-      ),
+        WE.Node(Expr.BinOpExpr(
+          WE.Node(VarRef("x")),
+          BinOp.Add,
+          WE.Node(VarRef("y"))))
+      )),
       true
     ),
     (
       """((while0 10.0 (block )) (foo == bar))""",
-      ProgramWE.Prog(
+      WE.Node(Program(
+        clss = List(),
         decls = List(),
         stmts = List(
-          StmtWE.While(
-            guard = ExprWE.Num(10.0),
-            body = BlockWE.Err(BlockErr.ManyNoStmts)
-          )
+          WE.Node(Stmt.While(
+            guard = WE.Node(Expr.Num(10.0)),
+            body = WE.Err(BlockManyNoStmts)
+          ))
         ),
-        expr = ExprWE.BinOpExpr(ExprWE.Var("foo"), BinOp.Equals, ExprWE.Var("bar"))
-      ),
+        expr = WE.Node(Expr.BinOpExpr(
+          WE.Node(VarRef("foo")), 
+          BinOp.Equals, 
+          WE.Node(VarRef("bar"))
+        ))
+      )),
       true
     ),
     (
       "a",
-      ProgramWE.Err(ProgErr.NotAList),
+      WE.Err(ProgNotAList),
       true
     ),
     (
       "((1.0 = 1.0))",
-      ProgramWE.Prog(
+      WE.Node(Program(
+        clss = List(),
         decls = List(),
         stmts = List(),
-        expr = ExprWE.Err(ExprErr.BadOperand)
-      ),
+        expr = WE.Err(ExprBadOperand)
+      )),
       true
     ),
     (
       "((1.0 == 1.0))",
-      ProgramWE.Prog(
+      WE.Node(Program(
+        clss = List(),
         decls = List(),
         stmts = List(),
-        expr = ExprWE.BinOpExpr(
-          ExprWE.VarErrNode(VarErr.NotAName),
+        expr = WE.Node(Expr.BinOpExpr(
+          WE.Err(NotAName),
           BinOp.Equals,
-          ExprWE.VarErrNode(VarErr.NotAName)
+          WE.Err(NotAName)
+        ))
+      )),
+      true
+    ),
+    (
+      "((def x 1.0) (x = 0.0) (def y x) y)",
+       WE.Node(Program(
+        clss = List(),
+        decls = List(
+          WE.Node(Decl(
+            WE.Node(Name("x")),
+            WE.Node(Expr.Num(1.0))
+          ))
+        ),
+        stmts = List(
+          WE.Node(Stmt.Assign(
+            WE.Node(VarRef("x")),
+            WE.Node(Expr.Num(0.0))
+          )),
+          WE.Err(DeclAtStmtPosition)
+        ),
+        expr = WE.Node(Expr.Var(WE.Node(VarRef("y"))))
+      )),
+      true
+    ),
+    (
+      """((def x 0.0) (while0 x (x + 1.0)) (foo == bar))""",
+      WE.Node(Program(
+        clss = List(),
+        decls = List(
+          WE.Node(Decl(
+            WE.Node(Name("x")),
+            WE.Node(Expr.Num(0.0))
+          ))
+        ),
+        stmts = List(
+          WE.Node(Stmt.While(
+            guard = WE.Node(Expr.Var(WE.Node(VarRef("x")))),
+            body = WE.Node(
+              Block.One(WE.Err(StmtMalformed)))
+          ))
+        ),
+        expr = WE.Node(Expr.BinOpExpr(
+          WE.Node(VarRef("foo")), 
+          BinOp.Equals, 
+          WE.Node(VarRef("bar"))
+        ))
+      )),
+      true
+    ),
+    (
+      "((while0 ) 1.0)",
+      WE.Node(Program(
+        clss = List(),
+        decls = List(),
+        stmts = List(
+          WE.Err(WhileMalformed)
+        ),
+        expr = WE.Node(Expr.Num(1.0))
+      )),
+      true
+    ),
+    (
+      """(
+      (class Point)
+      (def clark (new Point ()))
+      (clark isa Point)
+      )""",
+      WE.Node(
+        Program(
+          clss = List(
+            WE.Err(ClassMalformed)
+          ),
+          decls = List(
+            WE.Node(
+              Decl(
+                varDecl = WE.Node(Name("clark")),
+                rhs = WE.Node(
+                  Expr.NewInstance(
+                    cname = WE.Node(Name("Point")),
+                    args = List()
+                  )
+                )
+              )
+            )
+          ),
+          stmts = List(),
+          expr = WE.Node(
+            Expr.IsInstanceOf(
+              instance = WE.Node(VarRef("clark")),
+              cname = WE.Node(Name("Point"))
+            )
+          )
         )
       ),
       true
     ),
     (
-      "((def x 1.0) (x = 0.0) (def y x) y)",
-       ProgramWE.Prog(
-        decls = List(
-          DeclWE.Def(
-            ExprWE.Var("x"),
-            ExprWE.Num(1.0)
-          )
-        ),
-        stmts = List(
-          StmtWE.Assign(
-            ExprWE.Var("x"),
-            ExprWE.Num(0.0)
+      """
+      (
+      (class Point (x) 
+        (method dummy x)
+        (method addy (y) (x + y))
+      )
+      (def this 2.0)
+      (def three 3.0)
+      (def new (new Point (this)))
+      (new --> x = 4.0)
+      (new --> addy (3.0))
+      )
+      """,
+      WE.Node(
+        Program(
+          clss = List(
+            WE.Node(
+              Class(
+                cname = WE.Node(Name("Point")),
+                fields = List(
+                  WE.Node(Name("x"))
+                ),
+                methods = List(
+                  WE.Err(MethodMalformed),
+                  WE.Node(
+                    Method(
+                      mname = WE.Node(Name("addy")),
+                      params = List(
+                        WE.Node(Name("y"))
+                      ),
+                      decls = List(),
+                      stmts = List(),
+                      expr = WE.Node(
+                        Expr.BinOpExpr(
+                          lhs = WE.Node(VarRef("x")),
+                          op = BinOp.Add,
+                          rhs = WE.Node(VarRef("y"))
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
           ),
-          StmtWE.Err(
-            StmtErr.DeclAtStmtPosition
-          )
-        ),
-        expr = ExprWE.Var("y")
-      ),
-      true
-    ),
-    (
-      """((def x 0.0) (while0 x (x + 1.0)) (foo == bar))""",
-      ProgramWE.Prog(
-        decls = List(
-          DeclWE.Def(
-            ExprWE.Var("x"),
-            ExprWE.Num(0.0)
-          )
-        ),
-        stmts = List(
-          StmtWE.While(
-            guard = ExprWE.Var("x"),
-            body = BlockWE.One(
-              StmtWE.Err(
-                StmtErr.Malformed
+          decls = List(
+            WE.Node(
+              Decl(
+                varDecl = WE.Node(Name("this")),
+                rhs = WE.Node(Expr.Num(2.0))
+              )
+            ),
+            WE.Node(
+              Decl(
+                varDecl = WE.Node(Name("three")),
+                rhs = WE.Node(Expr.Num(3.0))
+              )
+            ),
+            WE.Node(
+              Decl(
+                varDecl = WE.Err(NameIsKeyword),
+                rhs = WE.Node(
+                  Expr.NewInstance(
+                    cname = WE.Node(Name("Point")),
+                    args = List(
+                      WE.Node(VarRef("this"))
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          stmts = List(
+            WE.Node(
+              Stmt.FieldAssign(
+                instance = WE.Err(NameIsKeyword),
+                field = WE.Node(Name("x")),
+                rhs = WE.Node(Expr.Num(4.0))
+              )
+            )
+          ),
+          expr = WE.Node(
+            Expr.CallMethod(
+              instance = WE.Err(NameIsKeyword),
+              method = WE.Node(Name("addy")),
+              args = List(
+                WE.Err(NotAName)
               )
             )
           )
-        ),
-        expr = ExprWE.BinOpExpr(ExprWE.Var("foo"), BinOp.Equals, ExprWE.Var("bar"))
+       )
       ),
       true
-    ),
-    (
-      "((while0 ) 1.0)",
-      ProgramWE.Prog(
-        decls = List(),
-        stmts = List(
-          StmtWE.Err(StmtErr.WhileMalformed)
-        ),
-        expr = ExprWE.Num(1.0)
-      ),
-      true
-    ),
+    )
   )

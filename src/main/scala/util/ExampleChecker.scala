@@ -3,21 +3,49 @@ package util
 import sexprs.SExprs._
 import scala.annotation.tailrec
 
-object ExampleKeyword:
-  val Def = "def"
-  val Assign = "="
-  val If = "if0"
-  val While = "while0"
-  val Block = "block"
-  val Div = "/"
-  val Plus = "+"
-  val Eq = "=="
+enum ExampleKeyword(val value: String):
+  case Def      extends ExampleKeyword("def")
+  case Assign   extends ExampleKeyword("=")
+  case If       extends ExampleKeyword("if0")
+  case While    extends ExampleKeyword("while0")
+  case Block    extends ExampleKeyword("block")
+  case Div      extends ExampleKeyword("/")
+  case Plus     extends ExampleKeyword("+")
+  case Eq       extends ExampleKeyword("==")
+  case Class    extends ExampleKeyword("class")
+  case Method   extends ExampleKeyword("method")
+  case IsA      extends ExampleKeyword("isa")
+  case New      extends ExampleKeyword("new")
+  case Accessor extends ExampleKeyword("-->")
 
-  private val allKeywords: Set[String] = Set(
-    Def, Assign, If, While, Block, Div, Plus, Eq
-  )
+object ExampleKeyword:
+  def isKeyword(s: String): Boolean =
+    values.exists(_.value == s)
+
+  // implicit conversion to string to maintain backward compatiblity
+  given Conversion[ExampleKeyword, String] with
+    def apply(k: ExampleKeyword): String = k.value
+
+// object ExampleKeyword:
+//   val Def = "def"
+//   val Assign = "="
+//   val If = "if0"
+//   val While = "while0"
+//   val Block = "block"
+//   val Div = "/"
+//   val Plus = "+"
+//   val Eq = "=="
+//   val Class = "class"
+//   val Method = "method"
+//   val IsA = "isa"
+//   val New = "new"
+//   val Accessor = "-->"
+
+//   private val allKeywords: Set[String] = Set(
+//     Def, Assign, If, While, Block, Div, Plus, Eq
+//   )
   
-  def isKeyword(s: String): Boolean = allKeywords.contains(s)
+//   def isKeyword(s: String): Boolean = allKeywords.contains(s)
 
 object ExampleChecker:
   /** Internal utility method to assert that a given SExpr is an ExampleCC

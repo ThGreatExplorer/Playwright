@@ -12,81 +12,109 @@
 
 package ast
 
-// Program    ::= (Declaration^* Statement^* Expression)
-enum ProgramWE:
-    case Prog(decls: List[DeclWE], stmts: List[StmtWE], expr: ExprWE)
-    case Err(e: ProgErr)
+type Clean[A] = A
+enum WE[A]:
+    case Node(n : A)
+    case Err(e : ParseErrNodes | ValidityErrNodes)
 
-final case class CleanProgram(
-    decls: List[CleanDecl], 
-    stmts: List[CleanStmt], 
-    expr: CleanExpr
+// Program     ::= (Class^* Declaration^* Statement^* Expression)
+final case class Program[Node[_]](
+    clss:  List[Node[Class[Node]]],
+    decls: List[Node[Decl[Node]]],
+    stmts: List[Node[Stmt[Node]]],
+    expr:  Node[Expr[Node]]
 )
 
+type CleanProgram = Clean[Program[Clean]]
+type ProgramWE    = WE[Program[WE]]
+
+// Class       ::= (class ClassName (FieldName^*) Method^*)
+final case class Class[Node[_]](
+    cname:   Node[Name], 
+    fields:  List[Node[Name]], 
+    methods: List[Node[Method[Node]]]
+)
+
+type CleanClass = Clean[Class[Clean]]
+type ClassWE    = WE[Class[WE]]
+
+// Method      ::= (method MethodName (Parameter^*)
+//                      Declaration^* Statement^* Expression)
+final case class Method[Node[_]](
+    mname:  Node[Name], 
+    params: List[Node[Name]], 
+    decls:  List[Node[Decl[Node]]], 
+    stmts:  List[Node[Stmt[Node]]], 
+    expr:   Node[Expr[Node]]
+)
+
+type CleanMethod = Clean[Method[Clean]]
+type MethodWE    = WE[Method[WE]]
 
 // Declaration ::= (def Variable Expression)
-enum DeclWE:
-    case Def(lhs: VarWE, rhs: ExprWE)
-    case Err(e: DeclErr)
-
-final case class CleanDecl(
-    lhs: CleanVar,
-    rhs: CleanExpr
+final case class Decl[Node[_]](
+    varDecl: Node[Name],
+    rhs: Node[Expr[Node]]
 )
 
+type CleanDecl = Clean[Decl[Clean]]
+type DeclWE    = WE[Decl[WE]]
 
 //   Statement  ::= (Variable = Expression)
 //                | (if0 Expression Block Block)
 //                | (while0 Expression Block)
-enum StmtWE:
-    case Assign(lhs: VarWE, rhs: ExprWE)
-    case Ifelse(guard: ExprWE, tbranch: BlockWE, ebranch: BlockWE)
-    case While(guard: ExprWE, body: BlockWE)
-    case Err(e: StmtErr)
+//                | (Variable --> FieldName = Expression)
+enum Stmt[Node[_]]:
+    case Assign(lhs: Node[VarRef], rhs: Node[Expr[Node]])
+    case Ifelse(guard: Node[Expr[Node]], tbranch: Node[Block[Node]], ebranch: Node[Block[Node]])
+    case While(guard: Node[Expr[Node]], body: Node[Block[Node]])
+    case FieldAssign(instance: Node[VarRef], field: Node[Name], rhs: Node[Expr[Node]])
 
-enum CleanStmt:
-    case Assign(lhs: CleanVar, rhs: CleanExpr)
-    case Ifelse(guard: CleanExpr, tbranch: CleanBlock, ebranch: CleanBlock)
-    case While(guard: CleanExpr, body: CleanBlock)
+type CleanStmt = Clean[Stmt[Clean]]
+type StmtWE    = WE[Stmt[WE]]
 
 
 //   Block      ::= Statement
 //                | (block Declaration^* Statement^+)
-enum BlockWE:
-    case One(stmt: StmtWE)
-    case Many(decls: List[DeclWE], stmts: List[StmtWE])
-    case Err(e: BlockErr)
+enum Block[Node[_]]:
+    case One(stmt: Node[Stmt[Node]])
+    case Many(decls: List[Node[Decl[Node]]], stmts: List[Node[Stmt[Node]]])
 
-enum CleanBlock:
-    case One(stmt: CleanStmt)
-    case Many(decls: List[CleanDecl], stmts: List[CleanStmt])
-
+type CleanBlock = Clean[Block[Clean]]
+type BlockWE    = WE[Block[WE]]
 
 //   Expression ::= GoodNumber
 //                | Variable
 //                | (Variable + Variable)
 //                | (Variable / Variable)
 //                | (Variable == Variable)
-enum ExprWE:
-    case Num(n: Double)
-    case Var(x: String)
-    case BinOpExpr(lhs: VarWE, op: BinOp, rhs: VarWE)
-    case Err(e: ExprErr)
-    case VarErrNode(e : VarErr)
-
-type VarWE = ExprWE.Var | ExprWE.VarErrNode
-
-enum CleanExpr:
+//                | (new ClassName (Variable^*))
+//                | (Variable --> FieldName)
+//                | (Variable --> MethodName (Variable^*))
+//                | (Variable isa ClassName)
+enum Expr[Node[_]]:
     case Num(n: NumVal)
-    case Var(x: String)
-    case BinOpExpr(lhs: CleanVar, op: BinOp, rhs: CleanVar)
-
-type CleanVar = CleanExpr.Var
+    case Var(x: Node[VarRef])
+    case BinOpExpr(lhs: Node[VarRef], op: BinOp, rhs: Node[VarRef])
+    case NewInstance(cname: Node[Name], args: List[Node[VarRef]])
+    case GetField(instance: Node[VarRef], field: Node[Name])
+    case CallMethod(instance: Node[VarRef], method: Node[Name], args: List[Node[VarRef]])
+    case IsInstanceOf(instance: Node[VarRef], cname: Node[Name])
 
 enum BinOp:
-    case Add
-    case Div
-    case Equals
+    case Add, Div, Equals
 
+type CleanExpr = Expr[Clean]
+type ExprWE    = WE[Expr[WE]]
+
+final case class VarRef(x: String)
+type CleanVarRef = Clean[VarRef]
+type VarRefWE    = WE[VarRef]
+
+// TODO: add implicit coersion to string? 
+final case class Name(x: String)
+type CleanName = Clean[Name]
+type NameWE    = WE[Name]
+    
 // Inexact numbers that are understood to be Values
 type NumVal = Double
