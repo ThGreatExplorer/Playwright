@@ -1,0 +1,1 @@
+((class Hello () (method Speak () (def x 42.0) this)) (def h (new Hello ())) (h --> Speak ()))

@@ -1,0 +1,1 @@
+((class C (x) (method m (z) (def zero 0.0) (if0 zero (block (def y 1.0) (z = 2.0)) (zero = (new C ()))) 0.0)) 0.0)

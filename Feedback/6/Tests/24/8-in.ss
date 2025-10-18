@@ -1,0 +1,6 @@
+((class Counter (count)
+  (method inc ()
+    undefined))
+(def initVal 0.0)
+(def c (new Counter (initVal)))
+(c --> inc ()))

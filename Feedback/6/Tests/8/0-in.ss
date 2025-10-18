@@ -1,0 +1,1 @@
+((class C () (method m () 0.0)) (def z 0.0) (if0 z (block (def a 1.0) (def b a) (a = b)) (block (def a 2.0) (def b a) (a = b))) 0.0)

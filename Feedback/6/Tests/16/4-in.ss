@@ -1,0 +1,6 @@
+((class Calculator (x)
+   (method compute () x)
+   (method compute () (x + x)))
+ (def val 5.0)
+ (def c (new Calculator (val)))
+ (c --> compute ()))

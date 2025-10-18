@@ -1,0 +1,5 @@
+((class Box (val val)
+  (method get () (this --> val)))
+(def initVal 5.0)
+(def obj (new Bar (initVal)))
+obj)

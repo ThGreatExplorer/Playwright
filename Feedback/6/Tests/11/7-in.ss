@@ -1,0 +1,1 @@
+((def CatClass 17.0) (def x 1.0) (x isa CatClass))

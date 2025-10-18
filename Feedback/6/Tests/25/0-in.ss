@@ -1,0 +1,1 @@
+((class A () (method f () this)) 0.0)

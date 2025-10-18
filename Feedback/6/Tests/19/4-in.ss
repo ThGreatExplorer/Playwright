@@ -1,0 +1,11 @@
+(
+ (class dog ())
+ (class cat (height age))
+ (class fish ())
+ (class rat ())
+ (class cat (height age)
+   (method getAge ()
+     age))
+ (def cat (new Cat (nine six)))
+ (cat --> age)
+)

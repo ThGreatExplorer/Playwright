@@ -1,0 +1,1 @@
+((class C (x) (method m (param) param)) (def y 4.0) C)

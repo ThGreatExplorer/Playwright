@@ -1,0 +1,1 @@
+((class Animal ()) (class Dog ()) (def pet (new Dog ())) (pet isa Dog))

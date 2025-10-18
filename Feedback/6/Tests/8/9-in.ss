@@ -1,0 +1,1 @@
+((class C () (method m () (def this 1.0) this)) 0.0)

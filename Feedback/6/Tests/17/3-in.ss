@@ -1,0 +1,1 @@
+((class C ()) (def a 1.0) (new C (a)))

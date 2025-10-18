@@ -1,0 +1,1 @@
+((class c (fieldOne fieldTwo fieldOne)) 1.0)

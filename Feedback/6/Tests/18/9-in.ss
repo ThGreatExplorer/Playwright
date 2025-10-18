@@ -1,0 +1,10 @@
+(
+  (class cell (f)
+    (method getf () f)
+    (method setf (v) (f = v) v))
+  (def a 1.0)
+  (def c (new cell (a)))
+  (c --> setf (a))
+  (def b (c --> getf ()))
+  (b == a)
+)

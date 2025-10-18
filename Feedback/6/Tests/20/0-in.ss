@@ -1,0 +1,7 @@
+((class classone (a b c) 
+(method methodone (a a) (a + a)))
+(def a 0.0)
+(def b 1.0)
+(if0 b (a = a) 
+(block (a = (a + b))
+(a = (a + b)))))

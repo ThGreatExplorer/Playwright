@@ -1,0 +1,1 @@
+((def class 1.0) (def isa 0.0) (def new -1.0) 2.0)

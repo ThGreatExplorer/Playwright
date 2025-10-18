@@ -1,0 +1,23 @@
+(
+    (class A (x y z)
+             (method addition (a a)
+                              (def c (new B ()))
+                              (def d c)
+                              (b = (a + b))
+                              (b = a)
+                              (c = b)
+                              b
+             )
+    )
+    (class B (x y)
+             (method cbm () (new A ())))
+    (def objectA (new A ()))
+    (def one 1.0)
+    (def two 2.0)
+    (def result (objectA --> addition (one two)))
+    (def afield (objectA --> hi))
+    (if0 (objectA isa H)
+         (block (one = 2.0))
+         (block (one = 0.0)))
+    result
+)

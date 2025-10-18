@@ -1,0 +1,1 @@
+((class BananaClass (protein) (method peel (force) (def protein (this --> protein)) (protein + force))) 1.0)

@@ -1,0 +1,15 @@
+((class Shell (q)
+   (method get () q)
+   (method set (n) (q = n) q))
+
+ (class Driver ()
+   (method run ()
+     (def one 1.0)
+     (def sh (new Shell (one)))
+     (def v (sh --> get ()))
+     (def bad (new Ghost (v)))
+     v))
+
+ (def one 1.0)
+ (def d (new Driver ()))
+ (d --> run ()))

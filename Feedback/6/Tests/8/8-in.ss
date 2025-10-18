@@ -1,0 +1,1 @@
+((class C () (method m () 0.0)) (def o (new C ())) (o isa D))
