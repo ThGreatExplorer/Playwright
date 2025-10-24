@@ -8,6 +8,7 @@ enum ParseErrNodes:
     case ClassMalformed
     // Method
     case MethodMalformed
+    case MethodNoExpr
     // Statement
     case AssignRhsMalformed
     case IfelseMalformed

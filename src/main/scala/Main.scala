@@ -13,7 +13,7 @@ import util.ExampleChecker.assertExample
   val inputSexp = MainFuncs.readSexp(inputString)
   assertExample(inputSexp)
 
-  val result = AssignmentRunner.classParseAndValidity(inputSexp)
+  val result = AssignmentRunner.ceskClass(inputSexp)
   println(result.outputString)
 
 object MainFuncs:

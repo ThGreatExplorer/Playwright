@@ -9,6 +9,8 @@ import main.AssignmentRunner._
 import main._
 
 class RunnerTests extends FunSuite {
+
+  
   val casesA6 = List(
     (
       """
@@ -47,7 +49,6 @@ class RunnerTests extends FunSuite {
     )
   )
 
-
   val casesA5 = List(
     (
       """
@@ -67,7 +68,7 @@ class RunnerTests extends FunSuite {
       """
       ((def x 0.0) (x = 0.0) (while0 x (x = 2.0)) x)
       """,
-      Result.Success(2.0),
+      Result.SuccNum(2.0),
       "2.0"
     ),
     (
@@ -102,6 +103,30 @@ class RunnerTests extends FunSuite {
       "\"belongs\""
     )
   )
+
+  // val casesA3 = List(
+  //   (
+  //     """
+  //     ((x = 0.0) x y)
+  //     """,
+  //     Result.ParseError,
+  //     "\"parser error\""
+  //   ),
+  //   (
+  //     """
+  //     ((x = 0.0) (while0 x (x = 2.0)) x)
+  //     """,
+  //     Result.SuccNum(2.0),
+  //     "2.0"
+  //   ),
+  //   (
+  //     """
+  //     ((x = 1.0) (x / y))
+  //     """,
+  //     Result.RuntimeError,
+  //     "\"run-time error\""
+  //   )
+  // )
 
   val casesA2 = List(
     (
@@ -141,7 +166,7 @@ class RunnerTests extends FunSuite {
 
   val runnerTestsByAssignment = List(
     (6, classParseAndValidity(_), casesA6),
-    // (5, ceskCore(_), casesA5), 
+    (5, ceskCore(_), casesA5), 
     (4, coreValidityChecker(_), casesA4),
     // (3, cskBareBones(_), casesA3),
     (2, parserBareBones(_), casesA2),

@@ -79,6 +79,8 @@ object Parser:
 
     def parseMethod(sexp: SExpr): MethodWE = sexp match
         // Method: (method MethodName (Parameter^*) Declaration^* Statement^* Expression)
+        case SList(SSymbol(Keyword.Method.value) :: methodName :: SList(params) :: Nil) =>
+            WE.Err(MethodNoExpr)
         case SList(SSymbol(Keyword.Method.value) :: methodName :: SList(params) :: rest) =>
             val (decls, stmts) = splitDeclsAndStmts(rest.dropRight(1))
             val expr = rest.last        

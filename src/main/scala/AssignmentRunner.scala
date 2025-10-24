@@ -5,7 +5,7 @@ import ast.ConverterToClean.progToClean
 import ast.{NumVal, ProgramWE, CleanProgram}
 import static.Parser
 import static.{VCheckClassDups, VCheckMethodFieldParamDups, VCheckUndefined}
-// import cesk.{CESKMachine, RuntimeError}
+import cesk.{CESKMachine, RuntimeError, ObjectVal}
 
 enum Result:
   case Count(n : Int)
@@ -15,7 +15,8 @@ enum Result:
   case DupMethodFieldParams
   case UndefinedVarError
   case ValidityBelongs
-  case Success(n : Number)
+  case SuccObj
+  case SuccNum(n : Number)
   case RuntimeError
 
   def outputString: String = this match
@@ -28,7 +29,8 @@ enum Result:
     case UndefinedVarError => "\"undeclared variable error\""
     case ValidityBelongs => "\"belongs\""
 
-    case Success(n) => s"$n"
+    case SuccObj => "\"object\""
+    case SuccNum(n) => s"$n"
     case RuntimeError => "\"run-time error\""
 
 object AssignmentRunner:
@@ -42,6 +44,30 @@ object AssignmentRunner:
     realRes match 
       case Left(errRes)    => errRes
       case Right(_)        => resOnSucc
+
+  /**
+    * Result printer for Assignment 7 — Class: Semantics
+    * 
+    * @param input SExpr read from stdin
+    */
+  def ceskClass(input: SExpr): Result =
+
+    val pipeRes = 
+      for 
+        parsedProg     <- resOrClean(Result.ParseError,   Parser.parseProg(input))
+        progNoDupClass <- resOrClean(Result.DupClassDefs, VCheckClassDups.classDupsProg(parsedProg))
+        progNoDupMFPs  <- resOrClean(Result.DupMethodFieldParams, VCheckMethodFieldParamDups.mfpDupsProg(progNoDupClass))
+        validProg      <- resOrClean(Result.UndefinedVarError,    VCheckUndefined.closedProg(progNoDupMFPs))
+      yield
+        validProg
+    
+    pipeRes match 
+      case Left(errRes)     => errRes
+      case Right(validProg) => 
+        CESKMachine(validProg).run match
+          case n: NumVal    => Result.SuccNum(n)
+          case o: ObjectVal => Result.SuccObj
+          case _            => Result.RuntimeError
 
   /**
     * Result printer for Assignment 6 — Class: Syntax
@@ -66,20 +92,21 @@ object AssignmentRunner:
     * 
     * @param input SExpr read from stdin
     */
-  // def ceskCore(input: SExpr): Result =
-  //   val parsedProg = Parser.parseProg(input)
+  def ceskCore(input: SExpr): Result =
+    val parsedProg = Parser.parseProg(input)
 
-  //   progToClean(parsedProg) match
-  //     case None => Result.ParseError
-  //     case Some(cleanProg) => 
-  //       val validatedProg = ValidityChecker.closedProg(cleanProg)
+    progToClean(parsedProg) match
+      case None => Result.ParseError
+      case Some(cleanProg) => 
+        val validatedProg = VCheckUndefined.closedProg(cleanProg)
         
-  //       progToClean(validatedProg) match 
-  //         case None    => Result.UndefinedVarError
-  //         case Some(validProg) => 
-  //           CESKMachine.run(validProg) match
-  //             case n : NumVal => Result.Success(n)
-  //             case e : RuntimeError => Result.RuntimeError
+        progToClean(validatedProg) match 
+          case None    => Result.UndefinedVarError
+          case Some(validProg) => 
+            CESKMachine(validProg).run match
+              case n : NumVal => Result.SuccNum(n)
+              case o : ObjectVal => Result.SuccObj
+              case e : RuntimeError => Result.RuntimeError
 
   /**
     * Result printer for Assignment 4 — Core: Validity
@@ -98,6 +125,9 @@ object AssignmentRunner:
           case None    => Result.UndefinedVarError
           case Some(_) => Result.ValidityBelongs
 
+  //////////////
+  // DOES NOT WORK DUE TO CESK MACHINE EXPECTING VAR DECLS
+  //////////////
   // /**
   //   * Result printer for Assignment 3 — Bare Bones: CSK
   //   *
@@ -105,13 +135,13 @@ object AssignmentRunner:
   //   */
   // def cskBareBones(input: SExpr): Result = 
   //   val prog = Parser.parseProg(input)
-
-  //   if progHasError(prog) then
-  //     Result.ParseError
-  //   else
-  //     CSKMachine.run(prog) match
-  //       case n: Number => Result.Success(n)
-  //       case _ => Result.RuntimeError
+  //   progToClean(prog) match
+  //     case None => Result.ParseError
+  //     case Some(cleanProg) => 
+  //       CESKMachine(cleanProg).run match
+  //         case n: NumVal => Result.SuccNum(n)
+  //         case _ => Result.RuntimeError
+  //////////////
 
   /**
     * Result printer for Assignment 2 — Bare Bones: Parser

@@ -558,5 +558,32 @@ object ParserTests:
        )
       ),
       true
+    ),
+    (
+      """
+      (
+      (class Point (x) 
+        (method addy (y))
+      )
+      2.0
+      )
+      """,
+      WE.Node(
+        Program(
+          clss = List(
+            WE.Node(
+              Class(
+                cname = WE.Node(Name("Point")),
+                fields = List(WE.Node(Name("x"))),
+                methods = List(WE.Err(MethodNoExpr))
+              )
+            )
+          ),
+          decls = List(),
+          stmts = List(),
+          expr = WE.Node(Expr.Num(2.0))
+       )
+      ),
+      true
     )
   )
