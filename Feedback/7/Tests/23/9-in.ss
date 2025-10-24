@@ -1,0 +1,5 @@
+((class Adder ()
+   (method add (x y z) (def sum (x + y)) (sum + z)))
+ (def a (new Adder ()))
+(def two 2.0)
+ (a --> add (two two two)))

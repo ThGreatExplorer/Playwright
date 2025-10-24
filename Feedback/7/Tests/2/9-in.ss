@@ -1,0 +1,1 @@
+((class classA (fieldOne) (method mOne () this)) (def aField 0.0) (def aInstance (new classA (aField))) (aInstance --> mOne ()))

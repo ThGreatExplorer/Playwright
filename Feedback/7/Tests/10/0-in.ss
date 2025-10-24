@@ -1,0 +1,1 @@
+((class A () (method m () (def x 1.0))) x)

@@ -1,0 +1,8 @@
+((class Foo ()
+    (method test ()
+      (def x 10.0)
+      x))
+  (def x 1.0)
+  (def obj (new Foo ()))
+  (def result (obj --> test ()))
+  x)

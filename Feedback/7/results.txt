@@ -1,0 +1,12 @@
+Tests Passed: 194/215
+Tests from the following groups failed:
+'(("25" "wild-mustangs" "4 failed")
+  ("23" "strong-bears" "1 failed")
+  ("20" "sly-raccoons" "4 failed")
+  ("12" "happy-penguins" "2 failed")
+  ("11" "gentle-pandas" "1 failed")
+  ("9" "fearless-tigers" "2 failed")
+  ("7" "electric-eels" "1 failed")
+  ("5" "cunning-wolves" "2 failed")
+  ("3" "chill-sloths" "1 failed")
+  ("instructor" "Matthias Felleisen" "3 failed"))

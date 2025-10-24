@@ -1,0 +1,4 @@
+Total Score: 290 / 350
+-45 "instructor tests failed to pass student executable"
++15 "bonus points for bugs found in other students' xrun programs (Max 15)"
+-30 "Challenge incomplete (GRADE PENDING)"

@@ -1,0 +1,1 @@
+((class A ()) (class B ()) (def obj (new A ())) (obj isa B))

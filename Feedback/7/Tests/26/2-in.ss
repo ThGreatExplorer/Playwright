@@ -1,0 +1,14 @@
+((class Job (age) 
+    (method salary ()
+        (def pay (this --> age))
+        (def two 2.0)
+        (pay = (pay / two))
+    pay))
+    
+(def fifty 50.0)
+(def newAge fifty)
+(def newestAge newAge)
+(def Bob (new Job (fifty)))
+(def Janet (new Job (newestAge)))
+
+(Bob / Janet))

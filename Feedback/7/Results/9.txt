@@ -1,0 +1,118 @@
+(testing /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./7/xrun)
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/0-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/0-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/1-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/1-out.ss)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((class Add
+     (x y)
+     (method
+      calculate
+      ()
+      (def xVal (this --> x))
+      (def yVal (this --> y))
+      (xVal + yVal)))
+   (class Divide
+     (x y)
+     (method
+      calculate
+      ()
+      (def xVal (this --> x))
+      (def yVal (this --> y))
+      (xVal / yVal)))
+   (class XYCalculator
+     (Add Divide)
+     (method
+      init
+      (x y)
+      (this --> Add = (new Add (x y)))
+      (this --> Divide = (new Divide (x y)))
+      0.0)
+     (method Add () (def Add (this --> Add)) (Add --> calculate ()))
+     (method
+      Divide
+      ()
+      (def Divide (this --> Divide))
+      (Divide --> calculate ())))
+   (def result 0.0)
+   (def tmp 0.0)
+   (def one 1.0)
+   (def four 4.0)
+   (def a 0.0)
+   (a = (new XYCalculator (a a)))
+   (tmp = (a --> init (one four)))
+   (result = (a --> Add ()))
+   (tmp = (a --> Divide ()))
+   (result = (result + tmp))
+   result))
+(*** expected)
+'(5.25)
+(*** but received)
+'(((plain fast with-newline plain-unicode) ("run-time error")))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/2-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/2-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/3-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/3-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/4-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/4-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/5-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/5-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/6-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/6-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/7-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/7-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/8-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/8-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/9-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/9-out.ss)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((class A
+     (fa fb fc)
+     (method
+      sum
+      (a b c)
+      (def sum 0.0)
+      (def fa (this --> fa))
+      (def fb (this --> fb))
+      (def fc (this --> fc))
+      (sum = (fa + fb))
+      (sum = (sum + fc))
+      sum))
+   (class B
+     (fa fb fc)
+     (method
+      sum
+      (this)
+      (def sum 0.0)
+      (def result (new A (sum sum sum)))
+      (def fa (this --> fa))
+      (def fb (this --> fb))
+      (def fc (this --> fc))
+      (this --> fa = result)
+      (sum = (fa + fb))
+      (sum = (sum + fc))
+      sum))
+   (def one 1.0)
+   (def two 2.0)
+   (def three 3.0)
+   (def four 4.0)
+   (def cA (new A (one two three)))
+   (def cB (new B (one one one)))
+   (def result 0.0)
+   (cA --> fa = cB)
+   (result = (cB --> sum (one)))
+   (cB --> fa)))
+(*** expected)
+'("object")
+(*** but received)
+'(((plain fast with-newline plain-unicode) (1.0)))
+
+
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/0-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/1-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/2-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/3-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/4-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/5-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/6-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/7-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/8-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/9-in.ss fail)
+((/course/cs4400f25/ta4400/all-repos/students/7/???/Tests/0-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/0-out.ss) (/course/cs4400f25/ta4400/all-repos/students/7/???/Tests/2-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/2-out.ss) (/course/cs4400f25/ta4400/all-repos/students/7/???/Tests/3-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/3-out.ss) (/course/cs4400f25/ta4400/all-repos/students/7/???/Tests/4-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/4-out.ss) (/course/cs4400f25/ta4400/all-repos/students/7/???/Tests/5-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/5-out.ss) (/course/cs4400f25/ta4400/all-repos/students/7/???/Tests/6-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/6-out.ss) (/course/cs4400f25/ta4400/all-repos/students/7/???/Tests/7-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/7-out.ss) (/course/cs4400f25/ta4400/all-repos/students/7/???/Tests/8-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/8-out.ss))
+((passed 8) (total 10) (partial-score 8))

@@ -1,0 +1,1 @@
+((class C (x)) (def z 1.0) (def obj (new C (z))) (obj --> x = 42.0) (obj --> x))

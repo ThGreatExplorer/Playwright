@@ -1,0 +1,7 @@
+((class Test (x) (method getX () (this --> x)))
+(class Mutator (test) (method mutate () (def y (this --> test)) (y --> x = 2.0) 0.0)) 
+    (def x 1.0)
+    (def test (new Test (x)))
+    (def mutator (new Mutator (test)))
+    (x = (mutator --> mutate ()))
+    (test --> getX ()))

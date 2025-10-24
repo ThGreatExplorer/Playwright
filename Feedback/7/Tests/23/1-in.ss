@@ -1,0 +1,11 @@
+((class C (x)
+   (method loop (y)
+     (while0 (this --> x)
+       (block
+         (def x 50.0)
+         (y = (y + x))
+         (this --> x = 1.0)))
+     (this --> x)))
+(def zero 0.0)
+ (def c (new C (zero)))
+ (c --> loop (zero)))

@@ -1,0 +1,1 @@
+((class C () (method m (x) x)) (def obj (new C ())) (obj --> m))

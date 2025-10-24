@@ -1,0 +1,5 @@
+((class C (f))
+ (def a 1.0)
+ (def o (new C (a)))
+ (o --> g = a)
+ a)

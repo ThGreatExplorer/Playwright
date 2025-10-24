@@ -1,0 +1,1 @@
+((class Apple ()) (def apple (new Apple ())) (def five 5.0) (five / apple))

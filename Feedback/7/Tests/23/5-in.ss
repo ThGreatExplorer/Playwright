@@ -1,0 +1,6 @@
+((class C (x)
+   (method add (x) (def fieldx (this --> x)) (x + fieldx)))
+(def ten 10.0)
+(def five 5.0)
+ (def c (new C (ten)))
+ (c --> add (five)))

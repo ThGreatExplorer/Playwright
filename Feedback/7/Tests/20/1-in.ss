@@ -1,0 +1,5 @@
+((class A (x)
+   (method getx () (this --> x)))
+ (def x 5.0)
+ (def a (new A (x)))
+ (a --> getx ()))

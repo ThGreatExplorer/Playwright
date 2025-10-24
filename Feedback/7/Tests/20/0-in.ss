@@ -1,0 +1,7 @@
+((class C ()
+    (method id ()
+      (def x 3.0)
+      x))
+ (def x 100.0)
+ (def c (new C ()))
+ (c --> id ()))

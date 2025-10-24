@@ -1,0 +1,10 @@
+(
+    (class A (x) (method f (a xnew) (a --> x = xnew) 0.0)) 
+    (def var 0.0) 
+    (def a (new A (var))) 
+    (def other (new A (var))) 
+    (def temp 0.0) 
+    (var = 1.5) 
+    (temp = (a --> f (other var))) 
+    (other --> x)
+)

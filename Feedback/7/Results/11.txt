@@ -1,0 +1,36 @@
+(testing /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./7/xrun)
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/0-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/0-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/5-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/5-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/7-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/7-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/8-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/8-out.ss)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((class Counter
+     (initial)
+     (method
+      increment
+      (delta)
+      (def current (this --> initial))
+      (def next (current + delta))
+      (this --> initial = next)
+      next))
+   (def zero 0.0)
+   (def myCounter (new Counter (zero)))
+   (def one 1.0)
+   (def tmp (myCounter --> increment (one)))
+   (myCounter --> increment (one))))
+(*** expected)
+'(2.0)
+(*** but received)
+'(((plain fast with-newline plain-unicode) (1.0)))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/9-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/9-out.ss)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/0-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/5-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/7-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/8-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/9-in.ss pass)
+((/course/cs4400f25/ta4400/all-repos/students/7/???/Tests/0-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/0-out.ss) (/course/cs4400f25/ta4400/all-repos/students/7/???/Tests/5-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/5-out.ss) (/course/cs4400f25/ta4400/all-repos/students/7/???/Tests/7-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/7-out.ss) (/course/cs4400f25/ta4400/all-repos/students/7/???/Tests/9-in.ss /course/cs4400f25/ta4400/all-repos/students/7/???/Tests/9-out.ss))
+((passed 4) (total 5) (partial-score 4))

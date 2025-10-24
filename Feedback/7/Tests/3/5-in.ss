@@ -1,0 +1,1 @@
+((class C (x) (method addToField (val) (def f (this --> x)) (f + val))) (def ten 10.0) (def c (new C (ten))) (def five 5.0) (c --> addToField (five)))

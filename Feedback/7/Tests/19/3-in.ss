@@ -1,0 +1,5 @@
+((class Point (x y))
+(def x 1.0)
+(def point (new Point (x x)))
+(def z (point --> z))
+z)

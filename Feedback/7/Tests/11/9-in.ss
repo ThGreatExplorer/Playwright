@@ -1,0 +1,1 @@
+((class Counter (initial) (method increment (delta) (def current (this --> initial)) (def next (current + delta)) (this --> initial = next) next)) (def zero 0.0) (def myCounter (new Counter (zero))) (def one 1.0) (def tmp (myCounter --> increment (one))) (tmp = (myCounter --> increment (one))) (myCounter --> initial = 1000.0) (myCounter --> increment (one)))

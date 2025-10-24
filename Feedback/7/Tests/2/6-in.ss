@@ -1,0 +1,1 @@
+((class this ()) (def this 10.0) (new this (this)))

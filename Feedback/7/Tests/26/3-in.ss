@@ -1,0 +1,10 @@
+((class Person (age)
+    (method birthday () 
+        (def one 1.0) 
+        (this --> age = (one + one))
+        (this --> age)))
+    
+    (def twenty 20.0)
+    (def sophia (new Person (twenty)))
+    (def chris sophia)
+(chris --> birthday()))

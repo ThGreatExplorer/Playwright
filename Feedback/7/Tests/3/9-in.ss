@@ -1,0 +1,6 @@
+((class Builder (value)
+               (method setValue (v) (this --> value = v) this))
+             (def zero 0.0)
+             (def b (new Builder (zero)))
+             (def ten 10.0)
+             (b --> setValue (ten)))

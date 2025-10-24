@@ -1,0 +1,30 @@
+(
+  (class C
+    (x y)
+    (method delta (x)
+      (def a 1000.0)
+      (def b (this --> x))
+      (this --> x = a)
+      (b = (a + a))
+      b))
+  (class B
+    (x y)
+    (method delta (x)
+    (def a -1.0)
+    (def b 2.0)
+      (def prevClass (new C (a b)))
+      (a = (prevClass --> x))
+      (a / x)
+      ))
+      (def result -1.0)
+      (def a 1.0)
+      (def b 2.0)
+      (def varOne (new C (a b)))
+      (def varTwo (new B (a b)))
+      (
+        if0 (varOne == varTwo)
+        (result = (a + b))
+        (result = (a / b))
+      )
+  result
+)
