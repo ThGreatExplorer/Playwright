@@ -394,8 +394,8 @@ final class CESKMachine(prog: CleanProgram):
               case Left(err) => 
                 constructErrorState(err)
               case Right(_) =>
-                val updObj = obj.updateField(field, exprVal)
-                val newStore = state.setVarInStore(instance, updObj)
+                obj.updateField(field, exprVal)
+                val newStore = state.setVarInStore(instance, obj)
                 CESKState(
                   control = Control.Search,
                   env     = state.env,

@@ -4,6 +4,7 @@ import ast._
 // import scala.annotation.meta.field
 import util.UnreachablePatternMatch
 import ast.Expr.Num
+import scala.collection.mutable.Map as MutableMap
 
 final case class MethodCallConstructorData(
 	params: List[CleanName],
@@ -59,18 +60,18 @@ object ClassDefs:
 					Left(RuntimeError.NewInstWrongFieldCount) 
 				case ClassDef(fields, methods) =>
 					val fieldMap = fields.zip(argVals).toMap
-					Right(ObjectVal(className, fieldMap))
+					Right(ObjectVal(className, MutableMap(fieldMap.toSeq*)))
 
 
-final case class ObjectVal(
+case class ObjectVal(
 	className: String,
-	fieldVals: Map[String, CESKValue]
+	fieldVals: MutableMap[String, CESKValue]
 ):
 	def lookupField(field: String): Either[RuntimeError, CESKValue] =
 		fieldVals.get(field).toRight(RuntimeError.FieldNotFound)
 
-	def updateField(field: String, v: CESKValue): ObjectVal =
-		new ObjectVal(className, fieldVals.updated(field, v))
+	def updateField(field: String, v: CESKValue): Unit =
+		this.fieldVals.updated(field, v)
 
 	def checkMethod(classDefs: ClassDefs, methodName: String, argVals: List[CESKValue]): Either[RuntimeError, MethodCallConstructorData] =
 		classDefs.getMethod(className, methodName) match
@@ -82,5 +83,8 @@ final case class ObjectVal(
 	override def equals(that: Any): Boolean = 
 		that match
 			case ObjectVal(thatName, thatFieldVals) =>
-				thatName.equals(className) && this.fieldVals.equals(thatFieldVals)
+				thatName.equals(className) && thatFieldVals.equals(this.fieldVals)
 			case _ => false
+
+	override def hashCode(): Int = 
+		(className, fieldVals).hashCode()
