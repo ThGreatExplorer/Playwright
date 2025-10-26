@@ -213,7 +213,7 @@ object Parser:
                 case _                      =>  WE.Err(ExprBadOperand)
         }
         
-        case _ => 
+        case _ =>
             WE.Err(ExprMalformed)
 
     def parseVarRef(ssymbol : SExpr) : VarRefWE = 
