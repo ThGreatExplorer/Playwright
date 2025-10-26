@@ -1,5 +1,8 @@
 package main
 
+import org.apache.logging.log4j.scala.Logging
+import org.apache.logging.log4j.Level
+
 import sexprs.SExprs._
 import ast.ConverterToClean.progToClean
 import ast.{NumVal, ProgramWE, CleanProgram}
@@ -33,11 +36,13 @@ enum Result:
     case SuccNum(n) => s"$n"
     case RuntimeError => "\"run-time error\""
 
-object AssignmentRunner:
+object AssignmentRunner extends Logging:
 
   def resOrClean(errRes : Result, prog : ProgramWE) : Either[Result, CleanProgram] =
-    progToClean(prog) match 
-      case None            => Left[Result, CleanProgram](errRes)
+    progToClean(prog) match   
+      case None            => 
+        logger.info("AST of ProgWE: \n" + prog)
+        Left [Result, CleanProgram](errRes)
       case Some(cleanProg) => Right[Result, CleanProgram](cleanProg)
 
   def unpackResult(realRes : Either[Result, CleanProgram], resOnSucc : Result) : Result =
