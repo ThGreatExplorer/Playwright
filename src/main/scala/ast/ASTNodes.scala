@@ -17,12 +17,38 @@ enum WE[A]:
     case Node(n : A)
     case Err(e : ParseErrNodes | ValidityErrNodes)
 
+//  System ::= (Module^* Import^* Declaration^* Statement^* Expression)
+final case class System[Node[_]](
+    modules: List[Node[Module[Node]]],
+    imports: List[Node[Import[Node]]],
+    progb:   Node[Block.WithExpr[Node]]
+)
+
+type CleanSystem = Clean[System[Clean]]
+type SystemWE    = WE[System[WE]]
+
+//  Module ::= (module ModuleName Import^* Class)
+final case class Module[Node[_]](
+    modname: Node[Name],
+    imports: List[Node[Import[Node]]],
+    clas:    Node[Class[Node]]
+)
+
+type CleanModule = Clean[Module[Clean]]
+type ModuleWE    = WE[Module[WE]]
+
+//  Import ::= (import ModuleName)
+final case class Import[Node[_]](
+    modname:  Node[Name]
+)
+
+type CleanImport = Clean[Import[Clean]]
+type ImportWE    = WE[Import[WE]]
+
 // Program     ::= (Class^* Declaration^* Statement^* Expression)
 final case class Program[Node[_]](
     clss:  List[Node[Class[Node]]],
-    decls: List[Node[Decl[Node]]],
-    stmts: List[Node[Stmt[Node]]],
-    expr:  Node[Expr[Node]]
+    progb: Node[Block.WithExpr[Node]]
 )
 
 type CleanProgram = Clean[Program[Clean]]
@@ -43,9 +69,7 @@ type ClassWE    = WE[Class[WE]]
 final case class Method[Node[_]](
     mname:  Node[Name], 
     params: List[Node[Name]], 
-    decls:  List[Node[Decl[Node]]], 
-    stmts:  List[Node[Stmt[Node]]], 
-    expr:   Node[Expr[Node]]
+    progb:  Node[Block.WithExpr[Node]]
 )
 
 type CleanMethod = Clean[Method[Clean]]
@@ -66,8 +90,8 @@ type DeclWE    = WE[Decl[WE]]
 //                | (Variable --> FieldName = Expression)
 enum Stmt[Node[_]]:
     case Assign(lhs: Node[VarRef], rhs: Node[Expr[Node]])
-    case Ifelse(guard: Node[Expr[Node]], tbranch: Node[Block[Node]], ebranch: Node[Block[Node]])
-    case While(guard: Node[Expr[Node]], body: Node[Block[Node]])
+    case Ifelse(guard: Node[Expr[Node]], tbranch: Node[StmtBlock[Node]], ebranch: Node[StmtBlock[Node]])
+    case While(guard: Node[Expr[Node]], body: Node[StmtBlock[Node]])
     case FieldAssign(instance: Node[VarRef], field: Node[Name], rhs: Node[Expr[Node]])
 
 type CleanStmt = Clean[Stmt[Clean]]
@@ -76,9 +100,19 @@ type StmtWE    = WE[Stmt[WE]]
 
 //   Block      ::= Statement
 //                | (block Declaration^* Statement^+)
+type StmtBlock[Node[_]] = Block.NoExpr[Node] | Stmt[Node]
+
+// Declaration^* Statement^* | Declaration^* Statement^* Expression
 enum Block[Node[_]]:
-    case One(stmt: Node[Stmt[Node]])
-    case Many(decls: List[Node[Decl[Node]]], stmts: List[Node[Stmt[Node]]])
+    case NoExpr(
+        decls: List[Node[Decl[Node]]], 
+        stmts: List[Node[Stmt[Node]]]
+    )
+    case WithExpr(
+        decls: List[Node[Decl[Node]]], 
+        stmts: List[Node[Stmt[Node]]], 
+        expr:  Node[Expr[Node]]
+    )
 
 type CleanBlock = Clean[Block[Clean]]
 type BlockWE    = WE[Block[WE]]
