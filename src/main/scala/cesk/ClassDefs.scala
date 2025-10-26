@@ -2,9 +2,11 @@ package cesk
 
 import ast._
 // import scala.annotation.meta.field
-import util.UnreachablePatternMatch
+import util.{UnreachablePatternMatch, =~=, isZero}
 import ast.Expr.Num
 import scala.collection.mutable.Map as MutableMap
+import scala.reflect.Selectable.reflectiveSelectable
+import java.sql.Ref
 
 final case class MethodCallConstructorData(
 	params: List[CleanName],
@@ -67,11 +69,28 @@ case class ObjectVal(
 	className: String,
 	fieldVals: MutableMap[String, CESKValue]
 ):
+
+	private class RefSet[A <: AnyRef](underlying: List[A]) extends Seq[A] {
+
+		def length: Int = underlying.length
+		def apply(idx: Int): A = underlying(idx)
+		def iterator: Iterator[A] = underlying.iterator
+
+		def addElem(value: A): RefSet[A] =
+			if underlying.forall(obj => obj ne value) then
+				RefSet(value :: underlying)
+			else
+				this
+  
+		def containsByRef(value: A): Boolean =
+			underlying.exists(obj => obj eq value)
+	}
+
 	def lookupField(field: String): Either[RuntimeError, CESKValue] =
 		fieldVals.get(field).toRight(RuntimeError.FieldNotFound)
 
 	def updateField(field: String, v: CESKValue): Unit =
-		this.fieldVals.updated(field, v)
+		this.fieldVals(field) = v
 
 	def checkMethod(classDefs: ClassDefs, methodName: String, argVals: List[CESKValue]): Either[RuntimeError, MethodCallConstructorData] =
 		classDefs.getMethod(className, methodName) match
@@ -79,12 +98,46 @@ case class ObjectVal(
 			case Right(MethodCallConstructorData(params, progFrame)) if params.lengthIs != argVals.length =>
 				Left(RuntimeError.MethodCallWrongArgCount)
 			case Right(m) => Right(m)
+
+	private def structuralEquality(that: ObjectVal): Boolean =
+		def addElemByReferenceToSet(objValsSeen: List[ObjectVal], value: ObjectVal): List[ObjectVal] =
+			if objValsSeen.forall(obj => obj ne value) then
+				value :: objValsSeen
+			else
+				objValsSeen
+
+		def checkElemInSet(objValsSeen: List[ObjectVal], value: ObjectVal): Boolean =
+			objValsSeen.exists(obj => obj eq value)
+
+		def mapEquals(curr: MutableMap[String, CESKValue], target: MutableMap[String, CESKValue], objValsSeen: RefSet[ObjectVal], level: Int) : Boolean =
+			curr.size == target.size && curr.forall { case (key, currVal) =>
+				target.get(key) match
+					case None => false
+					case Some(targetVal) => 
+						(currVal, targetVal) match
+							case (currNum : NumVal, targetNum : NumVal) => currNum =~= targetNum
+							case (currObj : ObjectVal, targetObj : ObjectVal) => 
+								val updatedFieldValsSeen = objValsSeen.addElem(currObj)
+								if objValsSeen.containsByRef(currObj) then 
+									true
+								else 
+									val updatedUpdatedFieldValsSeen = updatedFieldValsSeen.addElem(targetObj)
+									equalsHelper(currObj, targetObj, updatedFieldValsSeen, level + 1)
+							case (_, _) => false
+			}
+
+		def equalsHelper(currObj: ObjectVal, targetObj: ObjectVal, objValsSeen: RefSet[ObjectVal], level: Int): Boolean =
+			currObj match
+				case ObjectVal(currName, currFieldVals) =>
+					currName.equals(targetObj.className) && mapEquals(currFieldVals, targetObj.fieldVals, objValsSeen, level)
+		
+		equalsHelper(this, that, RefSet(List(this)), 0)
 	
-	override def equals(that: Any): Boolean = 
+	override def equals(that: Any): Boolean = 	
 		that match
-			case ObjectVal(thatName, thatFieldVals) =>
-				thatName.equals(className) && thatFieldVals.equals(this.fieldVals)
-			case _ => false
+				case that: ObjectVal =>
+					structuralEquality(that)
+				case _ => false
 
 	override def hashCode(): Int = 
 		(className, fieldVals).hashCode()
