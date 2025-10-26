@@ -4,7 +4,7 @@ import scala.annotation.tailrec
 
 import ast._
 import util.{UnreachablePatternMatch, UnreachableStateException}
-import util.InexactComparator._
+import util.{=~=, isZero}
 import cesk.CESKConst._
 import cesk.CESKState.constructErrorState
 import main.main
@@ -177,7 +177,7 @@ final class CESKMachine(prog: CleanProgram):
                   kont    = state.kont
                 )    
               case BinOp.Div =>
-                if numValIsZero(val2) then
+                if val2.isZero() then
                   CESKState.constructErrorState(
                     RuntimeError.DivisionByZero(f"Dividing by Zero: $val1 / $val2")
                   )
@@ -189,7 +189,7 @@ final class CESKMachine(prog: CleanProgram):
                     kont    = state.kont
                   ) 
               case BinOp.Equals =>
-                val result = if numValsAreEqual(val1, val2) then TRUTHY else FALSY
+                val result = if val1 =~= val2 then TRUTHY else FALSY
                 CESKState(
                   control = Control.Value(result),
                   env     = state.env,
@@ -336,22 +336,31 @@ final class CESKMachine(prog: CleanProgram):
           store   = state.store,
           kont    = state.kont
         )
-      case (Control.Value(num : NumVal), ProgFrame(Nil, Stmt.While(grd, body) :: stmts, expr)) =>
-        val loop = Stmt.While[Clean](grd, body)
-        if numValIsZero(num) then
-          CESKState(
-            control = Control.Search,
-            env     = state.env,
-            store   = state.store,
-            kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, body :: loop :: stmts, expr))
-          )
-        else 
-          CESKState(
-            control = Control.Search,
-            env     = state.env,
-            store   = state.store,
-            kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
-          )
+      case (Control.Value(tst), ProgFrame(Nil, Stmt.While(grd, body) :: stmts, expr)) =>
+        tst match
+          case obj : ObjectVal =>
+            CESKState(
+                control = Control.Search,
+                env     = state.env,
+                store   = state.store,
+                kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
+              )
+          case num : NumVal =>
+            val loop = Stmt.While[Clean](grd, body)
+            if num.isZero() then
+              CESKState(
+                control = Control.Search,
+                env     = state.env,
+                store   = state.store,
+                kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, body :: loop :: stmts, expr))
+              )
+            else 
+              CESKState(
+                control = Control.Search,
+                env     = state.env,
+                store   = state.store,
+                kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
+              )
 
       // Conditionals
       case (Control.Search, ProgFrame(Nil, Stmt.Ifelse(guard, tbranch, ebranch) :: stmts, expr)) =>
@@ -361,21 +370,30 @@ final class CESKMachine(prog: CleanProgram):
           store   = state.store,
           kont    = state.kont
         )
-      case (Control.Value(tst : NumVal), ProgFrame(Nil, Stmt.Ifelse(guard, tbranch, ebranch) :: stmts, expr)) =>
-        if numValIsZero(tst) then
-          CESKState(
-            control = Control.Search,
-            env     = state.env,
-            store   = state.store,
-            kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, tbranch :: stmts, expr))
-          )
-        else
-          CESKState(
-            control = Control.Search,
-            env     = state.env,
-            store   = state.store,
-            kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, ebranch :: stmts, expr))
-          )
+      case (Control.Value(tst), ProgFrame(Nil, Stmt.Ifelse(guard, tbranch, ebranch) :: stmts, expr)) =>
+        tst match
+          case obj : ObjectVal => 
+            CESKState(
+              control = Control.Search,
+              env     = state.env,
+              store   = state.store,
+              kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, ebranch :: stmts, expr))
+            )
+          case num : NumVal =>
+            if num.isZero() then
+              CESKState(
+                control = Control.Search,
+                env     = state.env,
+                store   = state.store,
+                kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, tbranch :: stmts, expr))
+              )
+            else
+              CESKState(
+                control = Control.Search,
+                env     = state.env,
+                store   = state.store,
+                kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, ebranch :: stmts, expr))
+              )
       
       // Field update statement
       case (Control.Search, ProgFrame(Nil, Stmt.FieldAssign(VarRef(instance), Name(field), rhs) :: stmts, expr)) =>
@@ -395,11 +413,10 @@ final class CESKMachine(prog: CleanProgram):
                 constructErrorState(err)
               case Right(_) =>
                 obj.updateField(field, exprVal)
-                val newStore = state.setVarInStore(instance, obj)
                 CESKState(
                   control = Control.Search,
                   env     = state.env,
-                  store   = newStore,
+                  store   = state.store,
                   kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
                 )
 
