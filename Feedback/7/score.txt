@@ -1,4 +1,6 @@
-Total Score: 290 / 350
+Total Score: 300 / 350
 -45 "instructor tests failed to pass student executable"
 +15 "bonus points for bugs found in other students' xrun programs (Max 15)"
--30 "Challenge incomplete (GRADE PENDING)"
+-10 "Challenge: program doesn't terminate with a run-time error in the then branch (5 per program)"
+-20 "Challenge: stack size doesn't stay constant after 1 or 2 steps (10 per program)"
++10 "Challenge Bonus: Pointed to a unit test that showed the difference between the two pitch specifications"
