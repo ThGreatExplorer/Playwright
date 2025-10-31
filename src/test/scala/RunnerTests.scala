@@ -10,7 +10,72 @@ import main._
 
 class RunnerTests extends FunSuite {
 
-  
+  val casesA7 = List(
+    (
+      """
+      ((class) 413.0)
+      """,
+      Result.ParseError,
+      "\"parser error\""
+    ),
+    (
+      """
+      ((class OWO ()) (class OWO ()) 413.0)
+      """,
+      Result.DupClassDefs,
+      "\"duplicate class name\""
+    ),
+    (
+      """
+      ((class OWO ()) (class UWU (a a)) 413.0)
+      """,
+      Result.DupMethodFieldParams,
+      "\"duplicate method, field, or parameter name\""
+    ),
+    (
+      """
+      ((class OWO ()) (class UWU (a) (method wow (hai) a)) 413.0)
+      """,
+      Result.UndefinedVarError,
+      "\"undeclared variable error\""
+    ),
+    (
+      """
+      ((class OWO ()) 
+       (class UWU (a) 
+         (method wow (x) (new UWU (x)))
+       )
+        (def x 413.0) 
+        (def o (new UWU (x))) 
+        (o --> wow (x)))
+      """,
+      Result.SuccObj,
+      "\"object\""
+    ), 
+    (
+      """
+      ((class OWO (a)) 
+        (def x 413.0) 
+        (def o (new OWO (x))) 
+        (o --> a))
+      """,
+      Result.SuccNum(413.0),
+      "413.0"
+    )
+    , 
+    (
+      """
+      ((class OWO (a)) 
+        (def x 413.0) 
+        (def o (new OWO (x))) 
+        (x --> a = 612.0)
+        x)
+      """,
+      Result.RuntimeError,
+      "\"run-time error\""
+    )
+  )
+
   val casesA6 = List(
     (
       """
@@ -165,6 +230,7 @@ class RunnerTests extends FunSuite {
   ))
 
   val runnerTestsByAssignment = List(
+    (7, ceskClass(_), casesA7),
     (6, classParseAndValidity(_), casesA6),
     (5, ceskCore(_), casesA5), 
     (4, coreValidityChecker(_), casesA4),

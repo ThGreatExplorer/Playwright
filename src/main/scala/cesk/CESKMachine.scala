@@ -82,7 +82,7 @@ final class CESKMachine(prog: CleanProgram):
           store   = state.store,
           kont    = state.kont
         )
-      case (Control.Value(n), ProgFrame(Decl(Name(id), rhs) :: rest, stmts, r)) =>
+      case (Control.Value(n), ProgFrame(Decl(id, rhs) :: rest, stmts, r)) =>
         val (newStore, newLoc) = state.store.insertValAtNewLoc(n)
         CESKState(
           control = Control.Search,
@@ -92,14 +92,14 @@ final class CESKMachine(prog: CleanProgram):
         )
 
       // Block Statements
-      case (Control.Search, ProgFrame(Nil, Block.One(stmt) :: rest, r)) =>
+      case (Control.Search, ProgFrame(Nil, StmtBlock.One(stmt) :: rest, r)) =>
         CESKState(
           control  = Control.Search,
           env      = state.env,
           store    = state.store,
           kont     = state.kont.updateTopProgFrame(ProgFrame(Nil, stmt :: rest, r)) 
         )
-      case (Control.Search, ProgFrame(Nil, Block.Many(decls, stmts) :: rest, r)) =>
+      case (Control.Search, ProgFrame(Nil, StmtBlock.Many(decls, stmts) :: rest, r)) =>
         val newClosure = (ProgFrame(decls, stmts, BLOCKFLAG), state.env)
         CESKState(
           control = Control.Search,
@@ -139,15 +139,6 @@ final class CESKMachine(prog: CleanProgram):
           store   = updStore,
           kont    = state.kont.pop
         )
-      // End Of Program 
-      case (Control.Value(n), ProgFrame(Nil, Nil, expr : CleanExpr)) =>
-        val restoredEnv = state.kont.topEnv
-        CESKState(
-          control = Control.Value(n),
-          env     = restoredEnv,
-          store   = state.store,
-          kont    = state.kont.pop
-        )
 
       // Expressions 
       case (Control.Expr(Expr.Num(num)), _) =>
@@ -157,7 +148,7 @@ final class CESKMachine(prog: CleanProgram):
           store   = state.store,
           kont    = state.kont
         )
-      case (Control.Expr(Expr.Var(VarRef(x))), _) =>
+      case (Control.Expr(Expr.Var(x)), _) =>
         val num = state.lookupVar(x)
         CESKState(
           control = Control.Value(num),
@@ -165,7 +156,7 @@ final class CESKMachine(prog: CleanProgram):
           store   = state.store,
           kont    = state.kont
         )
-      case (Control.Expr(Expr.BinOpExpr(VarRef(lhs), op, VarRef(rhs))), _) =>
+      case (Control.Expr(Expr.BinOpExpr(lhs, op, rhs)), _) =>
         (state.lookupVar(lhs), state.lookupVar(rhs)) match 
           case (val1 : NumVal, val2 : NumVal) => {
             op match
@@ -238,8 +229,8 @@ final class CESKMachine(prog: CleanProgram):
                 )
           }
       // Object Expressions
-      case (Control.Expr(Expr.NewInstance(Name(cname), args)), _) =>
-        val fieldVals = args.map(arg => state.lookupVar(arg.x))
+      case (Control.Expr(Expr.NewInstance(cname, args)), _) =>
+        val fieldVals = args.map(state.lookupVar(_))
         classDefs.getInstanceOfClass(cname, fieldVals) match
           case Left(err) => 
             constructErrorState(err)
@@ -250,7 +241,7 @@ final class CESKMachine(prog: CleanProgram):
               store   = state.store,
               kont    = state.kont
             )
-      case (Control.Expr(Expr.IsInstanceOf(VarRef(x), Name(cname))), _) =>
+      case (Control.Expr(Expr.IsInstanceOf(x, cname)), _) =>
         state.lookupVar(x) match
           case _: NumVal => 
             CESKState(
@@ -267,13 +258,14 @@ final class CESKMachine(prog: CleanProgram):
               kont    = state.kont 
             )
       // Expr: Get Field
-      case (Control.Expr(Expr.GetField(VarRef(x), Name(field))), _) =>
+      case (Control.Expr(Expr.GetField(x, field)), _) =>
         state.lookupVar(x) match
           case _: NumVal => 
             constructErrorState(RuntimeError.ValNotAnObject)
           case obj: ObjectVal =>
             obj.lookupField(field) match
-              case Left(err) => constructErrorState(err)
+              case Left(err) => 
+                constructErrorState(err)
               case Right(fieldVal) =>
                 CESKState(
                   control = Control.Value(fieldVal),
@@ -282,18 +274,17 @@ final class CESKMachine(prog: CleanProgram):
                   kont    = state.kont  
                 )
       // Expr: Method call
-      case (Control.Expr(Expr.CallMethod(VarRef(instance), Name(method), args)), _) =>
+      case (Control.Expr(Expr.CallMethod(instance, mname, args)), _) =>
         state.lookupVar(instance) match
           case _: NumVal => 
             constructErrorState(RuntimeError.ValNotAnObject)
           case obj: ObjectVal =>
-            val paramVals = args.map(arg => state.lookupVar(arg.x))
+            val paramVals = args.map(state.lookupVar(_))
 
-            obj.checkMethod(classDefs, method, paramVals) match
+            obj.checkMethod(classDefs, mname, paramVals) match
               case Left(err) => 
                 constructErrorState(err)
-              case Right(MethodCallConstructorData(params, methodFrame)) => 
-                val paramNames = params.map(_.x)
+              case Right(MethodDef(paramNames, methodFrame)) => 
                 val valLookupMap = 
                   paramNames.zip(paramVals).toMap.updated("this", obj)
                 val (newEnv, newStore) = valLookupMap.foldLeft((Env(), state.store)) { 
@@ -312,14 +303,14 @@ final class CESKMachine(prog: CleanProgram):
                 )            
 
       // Assignment Statements
-      case (Control.Search, ProgFrame(Nil, Stmt.Assign(VarRef(lhs), rhs) :: stmts, expr)) =>
+      case (Control.Search, ProgFrame(Nil, Stmt.Assign(lhs, rhs) :: stmts, expr)) =>
         CESKState(
           control = Control.Expr(rhs),
           env     = state.env,
           store   = state.store,
           kont    = state.kont
         )
-      case (Control.Value(num), ProgFrame(Nil, Stmt.Assign(VarRef(lhs), rhs) :: stmts, expr)) =>
+      case (Control.Value(num), ProgFrame(Nil, Stmt.Assign(lhs, rhs) :: stmts, expr)) =>
         val loc = state.env.getLoc(lhs)
         CESKState(
           control = Control.Search,
@@ -396,14 +387,14 @@ final class CESKMachine(prog: CleanProgram):
               )
       
       // Field update statement
-      case (Control.Search, ProgFrame(Nil, Stmt.FieldAssign(VarRef(instance), Name(field), rhs) :: stmts, expr)) =>
+      case (Control.Search, ProgFrame(Nil, Stmt.FieldAssign(instance, field, rhs) :: stmts, expr)) =>
         CESKState(
           control = Control.Expr(rhs),
           env     = state.env,
           store   = state.store,
           kont    = state.kont  
         )
-      case (Control.Value(exprVal), ProgFrame(Nil, Stmt.FieldAssign(VarRef(instance), Name(field), rhs) :: stmts, expr)) =>
+      case (Control.Value(exprVal), ProgFrame(Nil, Stmt.FieldAssign(instance, field, rhs) :: stmts, expr)) =>
         state.lookupVar(instance) match
           case _: NumVal => 
             constructErrorState(RuntimeError.ValNotAnObject)
@@ -422,9 +413,5 @@ final class CESKMachine(prog: CleanProgram):
 
       case _ =>
         throw new UnreachableStateException(
-          "Unknown state reached in CESK machine transition function:" 
-          + "\nControl: "     + state.control 
-          + "\nEnvironment: " + state.env
-          + "\nStore: "       + state.store
-          + "\nKont: "        + state.kont
+          "Unknown state reached in CESK machine transition function:" + state
         )

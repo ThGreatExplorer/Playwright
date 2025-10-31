@@ -1,6 +1,13 @@
 package ast
 
 enum ParseErrNodes:
+    // System
+    case SystemNotAList
+    case SystemEmptyList
+    // Module
+    case ModuleMalformed
+    // Import
+    case ImportMalformed
     // Prog
     case ProgNotAList
     case ProgEmptyList
@@ -8,7 +15,8 @@ enum ParseErrNodes:
     case ClassMalformed
     // Method
     case MethodMalformed
-    case MethodNoExpr
+    // ProgBlock
+    case ProgBlockNoExpr
     // Statement
     case AssignRhsMalformed
     case IfelseMalformed
@@ -27,12 +35,15 @@ enum ParseErrNodes:
     case NotAName
 
 enum ValidityErrNodes:
-    // Name duplicates in Class definitons
+    // Name duplicates in Class/Module definitons
+    case DuplicateModuleName
     case DuplicateClassName
     case DuplicateFieldName
     case DuplicateMethod
     case DuplicateParamName
     // Var ref to an undeclared variable
     case VarNotDeclared
+    // Import ref to an undeclared module
+    case ModuleNotDeclared
     // Class ref to an undeclared class
     case ClassNotDeclared

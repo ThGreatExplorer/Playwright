@@ -20,13 +20,8 @@ lazy val root = project
     // wartremover
     // wartremoverWarnings ++= Warts.allBut(Wart.Throw),
     Compile / compile / wartremoverWarnings ++= Warts.allBut(Wart.Throw, Wart.Recursion, 
-    Wart.StringPlusAny, Wart.Any, Wart.Equals, Wart.IterableOps),
+    Wart.StringPlusAny, Wart.Any, Wart.Equals, Wart.IterableOps, Wart.MutableDataStructures),
     wartremoverExcluded += baseDirectory.value / "src" / "main" / "scala" / "sexprs",
     libraryDependencies += "org.scalameta" %% "munit" % "1.0.0" % Test,
 
-    // Compile / compile / logLevel := Level.Info,
-    libraryDependencies ++= Seq(
-      "org.apache.logging.log4j" %% "log4j-api-scala" % "13.1.0",
-      "org.apache.logging.log4j" % "log4j-core" % "2.25.2" % Runtime
-    )
   )

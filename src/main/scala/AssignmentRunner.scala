@@ -1,13 +1,13 @@
 package main
 
-import org.apache.logging.log4j.scala.Logging
-import org.apache.logging.log4j.Level
-
 import sexprs.SExprs._
-import ast.ConverterToClean.progToClean
-import ast.{NumVal, ProgramWE, CleanProgram}
-import static.Parser
-import static.{VCheckClassDups, VCheckMethodFieldParamDups, VCheckUndefined}
+import ast.ConverterToClean.{progToClean, systemToClean}
+import ast.{NumVal, ProgramWE, CleanProgram, CleanSystem, SystemWE}
+import static.Parser.{parseProg, parseSys}
+import static.VCheckTLDups.{classDupsProg, moduleDupsSys}
+import static.VCheckMFPNameDups.{mfpDupsProg, mfpDupsSys}
+import static.VCheckUndefined.{closedProg, closedSystem}
+import static.SystemToClassLinker.{renameClassesUsingDependencyGraph,convertModulesToClasses}
 import cesk.{CESKMachine, RuntimeError, ObjectVal}
 
 enum Result:
@@ -15,6 +15,7 @@ enum Result:
   case ParseError
   case ParseBelongs
   case DupClassDefs
+  case DupModuleDefs
   case DupMethodFieldParams
   case UndefinedVarError
   case ValidityBelongs
@@ -28,6 +29,7 @@ enum Result:
     case ParseBelongs => "\"belongs\""
 
     case DupClassDefs => "\"duplicate class name\""
+    case DupModuleDefs => "\"duplicate module name\""
     case DupMethodFieldParams => "\"duplicate method, field, or parameter name\""
     case UndefinedVarError => "\"undeclared variable error\""
     case ValidityBelongs => "\"belongs\""
@@ -36,12 +38,19 @@ enum Result:
     case SuccNum(n) => s"$n"
     case RuntimeError => "\"run-time error\""
 
-object AssignmentRunner extends Logging:
+object AssignmentRunner: 
 
-  def resOrClean(errRes : Result, prog : ProgramWE) : Either[Result, CleanProgram] =
+  def resOrCleanSys(errRes : Result, sys : SystemWE) : Either[Result, CleanSystem] =
+    systemToClean(sys) match   
+      case None            => 
+        // println("AST of SystemWE: \n" + sys)
+        Left [Result, CleanSystem](errRes)
+      case Some(cleanSys) => Right[Result, CleanSystem](cleanSys)
+
+  def resOrCleanProg(errRes : Result, prog : ProgramWE) : Either[Result, CleanProgram] =
     progToClean(prog) match   
       case None            => 
-        logger.info("AST of ProgWE: \n" + prog)
+        // System.err.println("AST of ProgWE: \n" + prog
         Left [Result, CleanProgram](errRes)
       case Some(cleanProg) => Right[Result, CleanProgram](cleanProg)
 
@@ -49,6 +58,33 @@ object AssignmentRunner extends Logging:
     realRes match 
       case Left(errRes)    => errRes
       case Right(_)        => resOnSucc
+
+  /**
+    * Result printer for Assignment 8 — Modules
+    * 
+    * @param input SExpr read from stdin
+    */
+  def ceskModule(input: SExpr): Result =
+
+    val pipeRes = 
+      for 
+        parsedSys     <- resOrCleanSys(Result.ParseError,           parseSys(input))
+        sysNoDupMods  <- resOrCleanSys(Result.DupModuleDefs,         moduleDupsSys(parsedSys))
+        sysNoDupMFPs  <- resOrCleanSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
+        validSys      <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysNoDupMFPs))
+      yield
+        validSys
+    
+    pipeRes match 
+      case Left(errRes)     => errRes
+      case Right(validProg) => Result.ValidityBelongs
+        // run the linker
+        val (baseModule, renamedProg) = renameClassesUsingDependencyGraph(validProg)
+        val classProg = convertModulesToClasses(renamedProg)
+        CESKMachine(classProg).run match
+          case n: NumVal    => Result.SuccNum(n)
+          case o: ObjectVal => Result.SuccObj
+          case _            => Result.RuntimeError
 
   /**
     * Result printer for Assignment 7 — Class: Semantics
@@ -59,10 +95,10 @@ object AssignmentRunner extends Logging:
 
     val pipeRes = 
       for 
-        parsedProg     <- resOrClean(Result.ParseError,   Parser.parseProg(input))
-        progNoDupClass <- resOrClean(Result.DupClassDefs, VCheckClassDups.classDupsProg(parsedProg))
-        progNoDupMFPs  <- resOrClean(Result.DupMethodFieldParams, VCheckMethodFieldParamDups.mfpDupsProg(progNoDupClass))
-        validProg      <- resOrClean(Result.UndefinedVarError,    VCheckUndefined.closedProg(progNoDupMFPs))
+        parsedProg     <- resOrCleanProg(Result.ParseError,           parseProg(input))
+        progNoDupClass <- resOrCleanProg(Result.DupClassDefs,         classDupsProg(parsedProg))
+        progNoDupMFPs  <- resOrCleanProg(Result.DupMethodFieldParams, mfpDupsProg(progNoDupClass))
+        validProg      <- resOrCleanProg(Result.UndefinedVarError,    closedProg(progNoDupMFPs))
       yield
         validProg
     
@@ -83,10 +119,10 @@ object AssignmentRunner extends Logging:
 
     val pipeRes = 
       for 
-        parsedProg     <- resOrClean(Result.ParseError, Parser.parseProg(input))
-        progNoDupClass <- resOrClean(Result.DupClassDefs, VCheckClassDups.classDupsProg(parsedProg))
-        progNoDupMFPs  <- resOrClean(Result.DupMethodFieldParams, VCheckMethodFieldParamDups.mfpDupsProg(progNoDupClass))
-        validProg      <- resOrClean(Result.UndefinedVarError, VCheckUndefined.closedProg(progNoDupMFPs))
+        parsedProg     <- resOrCleanProg(Result.ParseError,           parseProg(input))
+        progNoDupClass <- resOrCleanProg(Result.DupClassDefs,         classDupsProg(parsedProg))
+        progNoDupMFPs  <- resOrCleanProg(Result.DupMethodFieldParams, mfpDupsProg(progNoDupClass))
+        validProg      <- resOrCleanProg(Result.UndefinedVarError,    closedProg(progNoDupMFPs))
       yield
         validProg
     
@@ -98,12 +134,12 @@ object AssignmentRunner extends Logging:
     * @param input SExpr read from stdin
     */
   def ceskCore(input: SExpr): Result =
-    val parsedProg = Parser.parseProg(input)
+    val parsedProg = parseProg(input)
 
     progToClean(parsedProg) match
       case None => Result.ParseError
       case Some(cleanProg) => 
-        val validatedProg = VCheckUndefined.closedProg(cleanProg)
+        val validatedProg = closedProg(cleanProg)
         
         progToClean(validatedProg) match 
           case None    => Result.UndefinedVarError
@@ -119,12 +155,12 @@ object AssignmentRunner extends Logging:
     * @param input SExpr read from stdin
     */
   def coreValidityChecker(input: SExpr): Result =
-    val parsedProg = Parser.parseProg(input)
+    val parsedProg = parseProg(input)
 
     progToClean(parsedProg) match
       case None => Result.ParseError
       case Some(cleanProg) => 
-        val validatedProg = VCheckUndefined.closedProg(cleanProg)
+        val validatedProg = closedProg(cleanProg)
         
         progToClean(validatedProg) match 
           case None    => Result.UndefinedVarError
@@ -154,7 +190,7 @@ object AssignmentRunner extends Logging:
     * @param input SExpr read from stdin
     */
   def parserBareBones(input: SExpr): Result = 
-    val parsedProg = Parser.parseProg(input)
+    val parsedProg = parseProg(input)
 
     progToClean(parsedProg) match
       case None => 

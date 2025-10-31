@@ -1,7 +1,10 @@
 /******************************************************************************
-  This file defines our AST data represetnation.
+  This file defines data represetnation for Class and Module ASTs. The two AST
+  definitons rely on the shared set of sub-tree constructors, so we define them
+  in the same file. 
 
-  Each node type has two versions:
+  We use parametrized type definitons to help us create two versions for each
+  AST node type:
     - NameWE: represents an AST node that can potentically include error nodes
       in its chidren nodes or be an error node itself.
       (WE stands for "with error")
@@ -17,11 +20,15 @@ enum WE[A]:
     case Node(n : A)
     case Err(e : ParseErrNodes | ValidityErrNodes)
 
+/******************************************************************************
+  Module AST
+ *****************************************************************************/
+
 //  System ::= (Module^* Import^* Declaration^* Statement^* Expression)
 final case class System[Node[_]](
     modules: List[Node[Module[Node]]],
-    imports: List[Node[Import[Node]]],
-    progb:   Node[Block.WithExpr[Node]]
+    imports: List[Node[ImportedMod]],
+    progb:   Node[ProgBlock[Node]]
 )
 
 type CleanSystem = Clean[System[Clean]]
@@ -29,26 +36,30 @@ type SystemWE    = WE[System[WE]]
 
 //  Module ::= (module ModuleName Import^* Class)
 final case class Module[Node[_]](
-    modname: Node[Name],
-    imports: List[Node[Import[Node]]],
+    mname: Node[Name],
+    imports: List[Node[ImportedMod]],
     clas:    Node[Class[Node]]
 )
 
 type CleanModule = Clean[Module[Clean]]
 type ModuleWE    = WE[Module[WE]]
 
-//  Import ::= (import ModuleName)
-final case class Import[Node[_]](
-    modname:  Node[Name]
-)
+extension (clss : List[Module[Clean]])
+    def getMDNames : List[String] = clss.map{ case Module(mname, _, _) => mname }
 
-type CleanImport = Clean[Import[Clean]]
-type ImportWE    = WE[Import[WE]]
+//  Import ::= (import ModuleName)
+type ImportedMod = String
+type CleanImportedMod = Clean[ImportedMod]
+type ImportedModWE    = WE[ImportedMod]
+
+/******************************************************************************
+  Class AST
+ *****************************************************************************/
 
 // Program     ::= (Class^* Declaration^* Statement^* Expression)
 final case class Program[Node[_]](
     clss:  List[Node[Class[Node]]],
-    progb: Node[Block.WithExpr[Node]]
+    progb: Node[ProgBlock[Node]]
 )
 
 type CleanProgram = Clean[Program[Clean]]
@@ -64,16 +75,37 @@ final case class Class[Node[_]](
 type CleanClass = Clean[Class[Clean]]
 type ClassWE    = WE[Class[WE]]
 
+extension (clss : List[Class[Clean]])
+    def getCNames : List[String] = clss.map{ case Class(cname, _, _) => cname }
+
 // Method      ::= (method MethodName (Parameter^*)
 //                      Declaration^* Statement^* Expression)
 final case class Method[Node[_]](
     mname:  Node[Name], 
     params: List[Node[Name]], 
-    progb:  Node[Block.WithExpr[Node]]
+    progb:  Node[ProgBlock[Node]]
 )
 
 type CleanMethod = Clean[Method[Clean]]
 type MethodWE    = WE[Method[WE]]
+
+extension (methods : List[Method[Clean]])
+    def getMNames : List[String] = methods.map{ case Method(mname, _, _) => mname }
+
+/******************************************************************************
+  Core AST 
+ *****************************************************************************/
+
+// Core computation block ::= Declaration^* Statement^* Expression 
+// Not in the grammar, but makes sense to abstract (occurs in System, Program, Method)
+final case class ProgBlock[Node[_]](
+    decls: List[Node[Decl[Node]]], 
+    stmts: List[Node[Stmt[Node]]], 
+    expr:  Node[Expr[Node]]
+)
+
+type CleanProgBlock = Clean[ProgBlock[Clean]]
+type ProgBlockWE    = WE[ProgBlock[WE]]
 
 // Declaration ::= (def Variable Expression)
 final case class Decl[Node[_]](
@@ -97,25 +129,17 @@ enum Stmt[Node[_]]:
 type CleanStmt = Clean[Stmt[Clean]]
 type StmtWE    = WE[Stmt[WE]]
 
-
 //   Block      ::= Statement
 //                | (block Declaration^* Statement^+)
-type StmtBlock[Node[_]] = Block.NoExpr[Node] | Stmt[Node]
-
-// Declaration^* Statement^* | Declaration^* Statement^* Expression
-enum Block[Node[_]]:
-    case NoExpr(
+enum StmtBlock[Node[_]]:
+    case One(stmt: Node[Stmt[Node]])
+    case Many(
         decls: List[Node[Decl[Node]]], 
         stmts: List[Node[Stmt[Node]]]
     )
-    case WithExpr(
-        decls: List[Node[Decl[Node]]], 
-        stmts: List[Node[Stmt[Node]]], 
-        expr:  Node[Expr[Node]]
-    )
 
-type CleanBlock = Clean[Block[Clean]]
-type BlockWE    = WE[Block[WE]]
+type CleanStmtBlock = Clean[StmtBlock[Clean]]
+type StmtBlockWE    = WE[StmtBlock[WE]]
 
 //   Expression ::= GoodNumber
 //                | Variable
@@ -141,12 +165,11 @@ enum BinOp:
 type CleanExpr = Expr[Clean]
 type ExprWE    = WE[Expr[WE]]
 
-final case class VarRef(x: String)
+type VarRef = String
 type CleanVarRef = Clean[VarRef]
 type VarRefWE    = WE[VarRef]
 
-// TODO: add implicit coersion to string? 
-final case class Name(x: String)
+type Name = String
 type CleanName = Clean[Name]
 type NameWE    = WE[Name]
     

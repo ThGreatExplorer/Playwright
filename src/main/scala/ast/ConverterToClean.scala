@@ -4,25 +4,51 @@ import util.traverse
 
 object ConverterToClean:
 
+    // Top Level converters
+
+    def systemToClean(sys : SystemWE) : Option[CleanSystem] = sys match
+        case WE.Err(_) => None
+        
+        case WE.Node(System(modules, imports, progb)) => 
+            for
+                modules  <- modules.traverse(moduleWEToClean)
+                imports <- imports.traverse(stringWEToClean)
+                progb  <- progBlockWEToClean(progb)
+            yield 
+                System[Clean](modules, imports, progb)
+
     def progToClean(prog: ProgramWE): Option[CleanProgram] = prog match 
         case WE.Err(_) => None
 
-        case WE.Node(Program(clss, decls, stmts, expr)) => 
+        case WE.Node(Program(clss, progb)) => 
             for
                 clss  <- clss.traverse(classWEToClean)
-                decls <- decls.traverse(declWEToClean)
-                stmts <- stmts.traverse(stmtWEToClean)
-                expr  <- exprWEToClean(expr)
+                progb  <- progBlockWEToClean(progb)
             yield 
-                Program[Clean](clss, decls, stmts, expr)
+                Program[Clean](clss, progb)
+
+    // Module helpers 
+
+    private def moduleWEToClean(m: ModuleWE): Option[CleanModule] = m match 
+        case WE.Err(_) => None
+
+        case WE.Node(Module(mname, imports, clas)) =>
+            for 
+                mname <- stringWEToClean(mname)
+                imports <- imports.traverse(stringWEToClean)
+                clas  <- classWEToClean(clas)
+            yield 
+                Module[Clean](mname, imports, clas)
+
+    // Class helpers 
         
     private def classWEToClean(c: ClassWE): Option[CleanClass] = c match 
         case WE.Err(_) => None
 
         case WE.Node(Class(cname, fields, methods)) =>
             for 
-                cname <- nameWEToClean(cname)
-                fields <- fields.traverse(nameWEToClean)
+                cname <- stringWEToClean(cname)
+                fields <- fields.traverse(stringWEToClean)
                 methods <- methods.traverse(methodWEToClean)
             yield 
                 Class[Clean](cname, fields, methods)
@@ -30,22 +56,33 @@ object ConverterToClean:
     private def methodWEToClean(m: MethodWE): Option[CleanMethod] = m match 
         case WE.Err(_) => None
 
-        case WE.Node(Method(mname, params, decls, stmts, expr)) =>
+        case WE.Node(Method(mname, params, progb)) =>
             for 
-                mname <- nameWEToClean(mname)
-                params <- params.traverse(nameWEToClean)
+                mname <- stringWEToClean(mname)
+                params <- params.traverse(stringWEToClean)
+                progb  <- progBlockWEToClean(progb)
+            yield
+                Method[Clean](mname, params, progb)
+    
+    // Core helpers
+
+    private def progBlockWEToClean(pblock : ProgBlockWE) : Option[CleanProgBlock] = pblock match
+        case WE.Err(_) => None
+        
+        case WE.Node(ProgBlock(decls, stmts, expr)) => 
+            for
                 decls <- decls.traverse(declWEToClean)
                 stmts <- stmts.traverse(stmtWEToClean)
-                expr <- exprWEToClean(expr)
-            yield
-                Method[Clean](mname, params, decls, stmts, expr)
-    
+                expr  <- exprWEToClean(expr)
+            yield 
+                ProgBlock[Clean](decls, stmts, expr)
+
     private def declWEToClean(d: DeclWE): Option[CleanDecl] = d match 
         case WE.Err(_) => None
 
         case WE.Node(Decl(varDecl, rhs)) =>
             for 
-                varDecl <- nameWEToClean(varDecl)
+                varDecl <- stringWEToClean(varDecl)
                 rhs <- exprWEToClean(rhs)
             yield 
                 Decl[Clean](varDecl, rhs)
@@ -55,7 +92,7 @@ object ConverterToClean:
 
         case WE.Node(Stmt.Assign(lhs, rhs)) => 
             for 
-                lhsClean <- varRefWEToClean(lhs)
+                lhsClean <- stringWEToClean(lhs)
                 rhsClean <- exprWEToClean(rhs)
             yield 
                 Stmt.Assign[Clean](lhsClean, rhsClean)
@@ -63,39 +100,38 @@ object ConverterToClean:
         case WE.Node(Stmt.Ifelse(guard, tbranch, ebranch)) =>
             for
                 guardClean <- exprWEToClean(guard)
-                tbranchClean <- blockWEToClean(tbranch)
-                ebranchClean <- blockWEToClean(ebranch)
+                tbranchClean <- stmtBlockWEToClean(tbranch)
+                ebranchClean <- stmtBlockWEToClean(ebranch)
             yield 
                 Stmt.Ifelse[Clean](guardClean, tbranchClean, ebranchClean)
 
         case WE.Node(Stmt.While(guard, body)) =>
             for 
                 guardClean <- exprWEToClean(guard)
-                bodyClean <- blockWEToClean(body)
+                bodyClean <- stmtBlockWEToClean(body)
             yield
                 Stmt.While[Clean](guardClean, bodyClean)
 
         case WE.Node(Stmt.FieldAssign(instance, field, rhs)) =>
             for 
-                instanceClean <- varRefWEToClean(instance)
-                fieldClean <- nameWEToClean(field)
+                instanceClean <- stringWEToClean(instance)
+                fieldClean <- stringWEToClean(field)
                 rhsClean <- exprWEToClean(rhs)
             yield 
                 Stmt.FieldAssign[Clean](instanceClean, fieldClean, rhsClean)
   
-    private def blockWEToClean(b: BlockWE): Option[CleanBlock] = b match 
+    private def stmtBlockWEToClean(b: StmtBlockWE): Option[CleanStmtBlock] = b match 
       case WE.Err(_) => None
 
-      case WE.Node(Block.One(stmt)) =>  
-        stmtWEToClean(stmt).map(Block.One[Clean])
+      case WE.Node(StmtBlock.One(stmt)) =>  
+        stmtWEToClean(stmt).map(StmtBlock.One[Clean])
           
-      case WE.Node(Block.Many(decls, stmts)) =>  
+      case WE.Node(StmtBlock.Many(decls, stmts)) =>  
         for 
             declsClean <- decls.traverse(declWEToClean)
             stmtsClean <- stmts.traverse(stmtWEToClean)
         yield 
-            Block.Many[Clean](declsClean, stmtsClean)
-
+            StmtBlock.Many[Clean](declsClean, stmtsClean)
   
     private def exprWEToClean(e: ExprWE): Option[CleanExpr] = e match 
         case WE.Err(_) => None
@@ -104,48 +140,44 @@ object ConverterToClean:
             Some(Expr.Num[Clean](n))
             
         case WE.Node(Expr.Var(x)) => 
-            varRefWEToClean(x).map(Expr.Var[Clean])
+            stringWEToClean(x).map(Expr.Var[Clean])
 
         case WE.Node(Expr.BinOpExpr(lhs, op, rhs)) => 
             for 
-                lhsClean <- varRefWEToClean(lhs)
-                rhsClean <- varRefWEToClean(rhs)
+                lhsClean <- stringWEToClean(lhs)
+                rhsClean <- stringWEToClean(rhs)
             yield 
                 Expr.BinOpExpr[Clean](lhsClean, op, rhsClean)
             
         case WE.Node(Expr.NewInstance(cname, args)) => 
             for 
-                cnameClean <- nameWEToClean(cname)
-                argsClean <- args.traverse(varRefWEToClean)
+                cnameClean <- stringWEToClean(cname)
+                argsClean <- args.traverse(stringWEToClean)
             yield
                 Expr.NewInstance[Clean](cnameClean, argsClean)
             
         case WE.Node(Expr.GetField(instance, field)) => 
             for
-                instanceClean <- varRefWEToClean(instance)
-                fieldClean <- nameWEToClean(field)
+                instanceClean <- stringWEToClean(instance)
+                fieldClean <- stringWEToClean(field)
             yield 
                 Expr.GetField[Clean](instanceClean, fieldClean)
             
         case WE.Node(Expr.CallMethod(instance, method, args)) => 
             for 
-                instanceClean <- varRefWEToClean(instance)
-                methodClean <- nameWEToClean(method)
-                argsClean <- args.traverse(varRefWEToClean)
+                instanceClean <- stringWEToClean(instance)
+                methodClean <- stringWEToClean(method)
+                argsClean <- args.traverse(stringWEToClean)
             yield 
                 Expr.CallMethod[Clean](instanceClean, methodClean, argsClean)
             
         case WE.Node(Expr.IsInstanceOf(instance, cname)) => 
             for 
-                instanceClean <- varRefWEToClean(instance)
-                cnameClean <- nameWEToClean(cname)
+                instanceClean <- stringWEToClean(instance)
+                cnameClean <- stringWEToClean(cname)
             yield 
                 Expr.IsInstanceOf[Clean](instanceClean, cnameClean)
 
-    private def varRefWEToClean(v: VarRefWE): Option[CleanVarRef] = v match 
+    private def stringWEToClean(v: WE[String]): Option[Clean[String]] = v match 
         case WE.Err(_) => None
         case WE.Node(vr) => Some(vr)
-
-    private def nameWEToClean(n: NameWE): Option[CleanName] = n match 
-        case WE.Err(_) => None
-        case WE.Node(name) => Some(name)

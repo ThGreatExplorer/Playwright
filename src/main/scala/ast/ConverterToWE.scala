@@ -2,30 +2,61 @@ package ast
 
 object ConverterToWE:
 
+    // Top Level converters
+
+    def systemToWE(s: CleanSystem): SystemWE = WE.Node( s match
+        case System[Clean](modules, imports, progb) => 
+            System[WE](
+                modules.map(moduleToWE),
+                imports.map(stringToWE),
+                progBlockToWE(progb)
+            )
+        )
+
     def programToWE(p: CleanProgram): ProgramWE = WE.Node( p match
-        case Program[Clean](clss, decls, stmts, expr) => 
+        case Program[Clean](clss, progb) => 
             Program[WE](
                 clss.map(classToWE),
-                decls.map(declToWE),
-                stmts.map(stmtToWE),
-                exprToWE(expr)
+                progBlockToWE(progb)
             )
         )
     
+    // Module helpers
+
+    def moduleToWE(m : CleanModule): ModuleWE = WE.Node(m match
+        case Module[Clean](mname, imports, clas) =>
+            Module[WE](
+                stringToWE(mname), 
+                imports.map(stringToWE),
+                classToWE(clas)
+            )
+        )
+
+    // Class helpers 
+
     def classToWE(c: CleanClass): ClassWE = WE.Node(c match
         case Class[Clean](cname, fields, methods) => 
             Class[WE](
-                nameToWE(cname),
-                fields.map(nameToWE),
+                stringToWE(cname),
+                fields.map(stringToWE),
                 methods.map(methodToWE)
             )
         )
     
     def methodToWE(m: CleanMethod): MethodWE = WE.Node( m match
-        case Method[Clean](mname, params, decls, stmts, expr) => 
+        case Method[Clean](mname, params, progb) => 
             Method[WE](
-                nameToWE(mname),
-                params.map(nameToWE),
+                stringToWE(mname),
+                params.map(stringToWE),
+                progBlockToWE(progb)
+            )
+        )
+
+    // Core helpers
+
+    def progBlockToWE(p : CleanProgBlock): ProgBlockWE = WE.Node(p match
+        case ProgBlock[Clean](decls, stmts, expr) => 
+            ProgBlock[WE](
                 decls.map(declToWE),
                 stmts.map(stmtToWE),
                 exprToWE(expr)
@@ -35,7 +66,7 @@ object ConverterToWE:
     def declToWE(d: CleanDecl): DeclWE = WE.Node( d match
         case Decl[Clean](varDecl, rhs) => 
             Decl[WE](
-                nameToWE(varDecl),
+                stringToWE(varDecl),
                 exprToWE(rhs)
             )
         )
@@ -43,7 +74,7 @@ object ConverterToWE:
     def stmtToWE(s: CleanStmt): StmtWE = WE.Node( s match
         case Stmt.Assign[Clean](lhs, rhs) =>
             Stmt.Assign[WE](
-                varRefToWE(lhs), 
+                stringToWE(lhs), 
                 exprToWE(rhs))
             
         case Stmt.Ifelse(guard, tbranch, ebranch) =>
@@ -61,18 +92,18 @@ object ConverterToWE:
             
         case Stmt.FieldAssign(instance, field, rhs) =>
             Stmt.FieldAssign[WE](
-                varRefToWE(instance),
-                nameToWE(field),
+                stringToWE(instance),
+                stringToWE(field),
                 exprToWE(rhs)
             )
         )
     
-    def blockToWE(b: CleanBlock): BlockWE = WE.Node( b match 
-        case Block.One(stmt) =>
-            Block.One[WE](stmtToWE(stmt))
+    def blockToWE(b: CleanStmtBlock): StmtBlockWE = WE.Node( b match 
+        case StmtBlock.One(stmt) =>
+            StmtBlock.One[WE](stmtToWE(stmt))
             
-        case Block.Many(decls, stmts) =>
-            Block.Many[WE](
+        case StmtBlock.Many(decls, stmts) =>
+            StmtBlock.Many[WE](
                 decls.map(declToWE),
                 stmts.map(stmtToWE)
             )
@@ -84,45 +115,41 @@ object ConverterToWE:
             Expr.Num[WE](n)
             
         case Expr.Var(x) => 
-            Expr.Var[WE](varRefToWE(x))
+            Expr.Var[WE](stringToWE(x))
             
         case Expr.BinOpExpr(lhs, op, rhs) =>
             Expr.BinOpExpr[WE](
-                varRefToWE(lhs), 
+                stringToWE(lhs), 
                 op, 
-                varRefToWE(rhs)
+                stringToWE(rhs)
             )
             
         case Expr.NewInstance(cname, args) =>
             Expr.NewInstance[WE](
-                nameToWE(cname),
-                args.map(varRefToWE)
+                stringToWE(cname),
+                args.map(stringToWE)
             )
             
         case Expr.GetField(instance, field) =>
             Expr.GetField[WE](
-                varRefToWE(instance), 
-                nameToWE(field)
+                stringToWE(instance), 
+                stringToWE(field)
             )
             
         case Expr.CallMethod(instance, method, args) =>
             Expr.CallMethod[WE](
-                varRefToWE(instance),
-                nameToWE(method),
-                args.map(varRefToWE)
+                stringToWE(instance),
+                stringToWE(method),
+                args.map(stringToWE)
             )
             
         case Expr.IsInstanceOf(instance, cname) =>
             Expr.IsInstanceOf[WE](
-                varRefToWE(instance), 
-                nameToWE(cname)
+                stringToWE(instance), 
+                stringToWE(cname)
             )
         )
     
-    def varRefToWE(v: CleanVarRef): VarRefWE = 
+    def stringToWE(v: Clean[String]): WE[String] = 
         WE.Node(v)
-    
-    def nameToWE(n: CleanName): NameWE = 
-        WE.Node(n)
-    
 

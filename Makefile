@@ -52,6 +52,9 @@ feedback:
 		done
 
 coverage:
-	sbt compile coverage test
+	sbt coverage test
 	sbt coverageAggregate
+	make open-report
+
+open-report:
 	firefox target/scala-3.7.2/scoverage-report/index.html

@@ -28,10 +28,11 @@ final case class CESKState(
     val loc = env.getLoc(x) 
     store.getVal(loc) 
 
-  def setVarInStore(x : String, v : CESKValue) : Store = 
-    val loc = env.getLoc(x) 
-    val _ = store.getVal(loc) // Will throw if value not in store
-    store.updatedStore(loc, v) 
+  override def toString() : String = 
+      "\nControl: "     + control 
+    + "\nEnvironment: " + env
+    + "\nStore: "       + store
+    + "\nKont: "        + kont
 
 object CESKState:
 
@@ -54,8 +55,7 @@ object CESKConst:
   val FALSY      : NumVal = 1.0
   val BLOCKFLAG  : Unit   = ()
   val DUMMYFLAG  : Unit   = ()
-  val DUMMYCLO   : Closure = (ProgFrame(Nil, Nil, DUMMYFLAG), Env())
-
+  val DUMMYFRAME : ProgFrame = ProgFrame(Nil, Nil, DUMMYFLAG)
 /******************************************************************************
   Below we define interfaces and type aliases for CESK registers. 
   
@@ -157,7 +157,7 @@ type Closure = (ProgFrame, Env)
 // with a Unit ()
 final case class ProgFrame(
   decls: List[CleanDecl], 
-  stmts: List[CleanStmt | CleanBlock], 
+  stmts: List[CleanStmt | CleanStmtBlock], 
   expr: CleanExpr | Unit
 )
 
@@ -169,7 +169,6 @@ trait KontStack:
   def pop : KontStack
   def updateTopProgFrame(newProgFrame : ProgFrame) : KontStack
   def isEmpty : Boolean 
-  def top : Closure
   def topProgFrame : ProgFrame
   def topEnv : Env 
 
@@ -179,9 +178,9 @@ object KontStack:
 
   // Special constructor called from load 
   def constructWithTL(initProg : CleanProgram): KontStack = initProg match
-    case Program[Clean](_, decls, stmts, expr) =>
+    case Program[Clean](_, ProgBlock(decls, stmts, expr)) =>
       val progClosure  = (ProgFrame(decls, stmts, expr), Env())
-      val initStack = List(progClosure, CESKConst.DUMMYCLO) // Init stack with a dummy frame
+      val initStack = List(progClosure) 
       new StackifiedList(initStack)
 
   private class StackifiedList(underlying : List[Closure]) extends KontStack {
@@ -193,9 +192,20 @@ object KontStack:
       val newClosure = (newProgFrame, oldEnv)
       new StackifiedList(newClosure :: underlying.tail)
   
-    def isEmpty : Boolean = underlying.isEmpty || underlying.head.equals(CESKConst.DUMMYCLO)
-    def top : Closure = underlying.head
-    def topProgFrame : ProgFrame = { val (pf, _) = underlying.head; pf }
-    def topEnv : Env =  { val (_, env) = underlying.head; env }
-    def length : Int = underlying.length - 1 // subtract one to exclude the dummy frame from length.
+    def isEmpty : Boolean = underlying.isEmpty
+    def length : Int = underlying.length
+
+    def topProgFrame : ProgFrame = 
+      underlying.headOption match
+        case Some((pf, _)) => pf
+        // Boostrapping transition() at Top Level return expression evaluation 
+        case None => CESKConst.DUMMYFRAME 
+
+    def topEnv : Env =  
+      underlying.headOption match
+        case Some((_, env)) => env
+        case None => 
+          throw new UnreachablePatternMatch(
+            "Should never happen: attemped to get topEnv from empty KontStack"
+          )     
   }

@@ -7,65 +7,72 @@ import ast.ParseErrNodes._
 import sexprs.SExprs._
 import util.ExampleKeyword as Keyword
 import util.ExampleKeyword.isKeyword
+import util.takeWhileKWPrefix
 
 object Parser:
 
-    /** Parses the given sexpr into a BareBones program to the best of its ability.
+    /** Parses the given sexpr into a System AST to the best of its ability.
       * If grammar is invalid, an error node is inserted instead.
       *
       * @param sexpr SExpr read in from input
-      * @return BareBones AST with possible error nodes if grammar rules are violated
+      * @return AST with possible error nodes if grammar rules are violated
+      */
+    def parseSys(sexpr: SExpr): SystemWE = sexpr match
+        //  System ::= (Module^* Import^* Declaration^* Statement^* Expression)
+        case SList(Nil) => WE.Err(SystemEmptyList) 
+        case SList(elems) => 
+            val (modules, rest0) = elems.takeWhileKWPrefix(Keyword.Module)
+            val (imports, rest1) = rest0.takeWhileKWPrefix(Keyword.Import)
+            WE.Node(System(
+                modules.map(parseModule),
+                imports.map(parseImport),
+                parseProgBlock(rest1)
+            ))
+        case _ => WE.Err(SystemNotAList)
+
+    /** Parses the given sexpr into a Class program to the best of its ability.
+      * If grammar is invalid, an error node is inserted instead.
+      *
+      * @param sexpr SExpr read in from input
+      * @return Class AST with possible error nodes if grammar rules are violated
       */
     def parseProg(sexpr: SExpr): ProgramWE = sexpr match
-        // Program: (Declaration^* Statement^* Expression)  
+        // Program: (Class^* Declaration^* Statement^* Expression)  
         case SList(Nil) => WE.Err(ProgEmptyList) 
-        case SList(elems) => {
-            val (classes, decls, stmts) = splitClassDeclsAndStmts(elems.dropRight(1))
-            val expr = elems.last
+        
+        case SList(elems) => 
+            val (classes, rest) = elems.takeWhileKWPrefix(Keyword.Class)
             WE.Node(Program(
                 classes.map(parseClass),
-                decls.map(parseDecl),
-                stmts.map(parseStmt),
-                parseExpr(expr)
+                parseProgBlock(rest)
             ))
-        }
+
         case _ => WE.Err(ProgNotAList)
 
-    /**
-      * Splits a list of SExprs into three SExpr lists: 
-      *  - First contains longest prefix of Class declarations candidates: zero or more 
-      *    SLists with first element being the `class` keyword.
-      *  - Second contains longest prefix (after class declarations) of Variable declaration 
-      *    candidates: zero or more SLists with first element being the `def` keyword.
-      *  - Third contains the rest of the original SExpr list, which we expect to contain
-      *    statements.
-      * 
-      * Since we are using "longest prefix" heuristic, it is posisble to encounter declarations
-      * out of place. This will be caught by respective parse functions.
-      * 
-      * @param elems SExpr list
-      * @return Tuple of three SExpr lists: the first contains class declaration candidates,
-      *  second contains variable declaration candidates, last contains statement candidates
-      */
-    def splitClassDeclsAndStmts(elems: List[SExpr]) : (List[SExpr], List[SExpr], List[SExpr]) =
-        def loopClass(remaining: List[SExpr], accClass: List[SExpr]) : (List[SExpr], List[SExpr], List[SExpr]) =
-            remaining match
-                case Nil => (accClass.reverse, Nil, Nil)
-                case (head @ SList(SSymbol(Keyword.Class.value) :: _)) :: rest => 
-                    loopClass(rest, head :: accClass)
-                case rest => 
-                    val (decls, stmts) = splitDeclsAndStmts(rest)
-                    (accClass.reverse, decls, stmts) 
-        loopClass(elems, Nil)
-            
-    def splitDeclsAndStmts(elems: List[SExpr]) : (List[SExpr], List[SExpr]) = 
-        def loopDecl(remaining: List[SExpr], accDecls: List[SExpr]) : (List[SExpr], List[SExpr]) =
-            remaining match
-                case Nil => (accDecls.reverse, Nil)
-                case (head @ SList(SSymbol(Keyword.Def.value) :: _)) :: rest => 
-                    loopDecl(rest, head :: accDecls)
-                case _ => (accDecls.reverse, remaining)
-        loopDecl(elems, Nil)
+    // Module helpers
+
+    def parseModule(sexp: SExpr): ModuleWE = sexp match
+        // Module ::= (module ModuleName Import^* Class)
+        case SList(SSymbol(Keyword.Module.value) :: moduleName :: rest0) =>
+            val (imports, rest1) = rest0.takeWhileKWPrefix(Keyword.Import)
+            rest1 match
+                case clss :: Nil => 
+                    WE.Node(Module(
+                        parseName(moduleName),
+                        imports.map(parseImport),
+                        parseClass(clss)
+                    ))
+                case _ => WE.Err(ModuleMalformed) 
+        case _ => WE.Err(ModuleMalformed)
+
+    def parseImport(sexp: SExpr): ImportedModWE = sexp match
+        //  Import ::= (import ModuleName)
+        case SList(SSymbol(Keyword.Import.value) :: importName :: Nil) =>
+            parseName(importName)
+        case _ =>
+            WE.Err(ImportMalformed)
+
+    // Class helpers
 
     def parseClass(sexp: SExpr): ClassWE = sexp match
         // Class: (class ClassName (FieldName^*) Method^*)
@@ -79,19 +86,28 @@ object Parser:
 
     def parseMethod(sexp: SExpr): MethodWE = sexp match
         // Method: (method MethodName (Parameter^*) Declaration^* Statement^* Expression)
-        case SList(SSymbol(Keyword.Method.value) :: methodName :: SList(params) :: Nil) =>
-            WE.Err(MethodNoExpr)
-        case SList(SSymbol(Keyword.Method.value) :: methodName :: SList(params) :: rest) =>
-            val (decls, stmts) = splitDeclsAndStmts(rest.dropRight(1))
-            val expr = rest.last        
+        case SList(SSymbol(Keyword.Method.value) :: methodName :: SList(params) :: rest) =>    
             WE.Node(Method(
                 parseName(methodName),
                 params.map(parseName),
-                decls.map(parseDecl),
-                stmts.map(parseStmt),
-                parseExpr(expr)
+                parseProgBlock(rest)
             ))
         case _ => WE.Err(MethodMalformed)
+
+    // Core helpers
+
+    def parseProgBlock(sexprs : List[SExpr]) : ProgBlockWE =
+        // Program Block: Declaration^* Statement^* Expression
+        val (decls,   rest) = sexprs.takeWhileKWPrefix(Keyword.Def)
+        val (stmts,  restE) = (rest.dropRight(1), rest.takeRight(1))
+        restE match
+            case expr :: Nil => 
+                WE.Node(ProgBlock(
+                    decls.map(parseDecl),
+                    stmts.map(parseStmt),
+                    parseExpr(expr)
+                ))
+            case _ =>  WE.Err(ProgBlockNoExpr)
 
     def parseDecl(sexp: SExpr): DeclWE = sexp match
         // Declaration: (def Variable Expression)
@@ -144,17 +160,17 @@ object Parser:
 
         case _ => WE.Err(StmtMalformed)
 
-    def parseBlock(sexpr: SExpr): BlockWE = sexpr match
+    def parseBlock(sexpr: SExpr): StmtBlockWE = sexpr match
         // Many: (block Declaration^* Statement^+)
         case SList(SSymbol(Keyword.Block.value) :: Nil) => 
             WE.Err(BlockManyNoStmts)
         case SList(SSymbol(Keyword.Block.value) :: elems) => {
             // Ensures that we have at least one statement
-            splitDeclsAndStmts(elems) match
+            elems.takeWhileKWPrefix(Keyword.Def) match
                 case (decls, Nil) => 
                     WE.Err(BlockManyNoStmts)
                 case (decls, stmts) => 
-                    WE.Node(Block.Many(
+                    WE.Node(StmtBlock.Many(
                         decls.map(parseDecl),
                         stmts.map(parseStmt)
                     ))
@@ -162,7 +178,7 @@ object Parser:
             
         // One: Statement
         case _ => 
-            WE.Node(Block.One(parseStmt(sexpr)))
+            WE.Node(StmtBlock.One(parseStmt(sexpr)))
 
     def parseExpr(sexpr: SExpr): ExprWE = sexpr match
         // Num: the set of GoodNumbers comprises all inexact numbers
@@ -216,19 +232,15 @@ object Parser:
         case _ =>
             WE.Err(ExprMalformed)
 
-    def parseVarRef(ssymbol : SExpr) : VarRefWE = 
+    def parseStringWE(ssymbol : SExpr) : WE[String] = 
         ssymbol match
         case SSymbol(s) =>
-            if !isKeyword(s) then WE.Node(VarRef(s))
+            if !isKeyword(s) then WE.Node(s)
             else WE.Err(NameIsKeyword) 
         case _ =>
             WE.Err(NotAName)
 
-    def parseName(ssymbol : SExpr) : NameWE = 
-        ssymbol match
-        case SSymbol(s) =>
-            if !isKeyword(s) then WE.Node(Name(s))
-            else WE.Err(NameIsKeyword) 
-        case _ =>
-            WE.Err(NotAName)
+    def parseVarRef(ssymbol : SExpr) : VarRefWE = parseStringWE(ssymbol)
+    def parseName(ssymbol : SExpr)   : NameWE = parseStringWE(ssymbol)
+        
 
