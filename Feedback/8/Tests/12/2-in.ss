@@ -1,0 +1,7 @@
+((module Test (class Test (x)))
+ (module Other (class Test (x y)))
+    (import Test)
+    (import Other)
+    (def x 1.0)
+    (def test (new Test (x)))
+    (test --> x))

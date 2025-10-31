@@ -1,0 +1,7 @@
+((module A (class Point (x) (method get () (this --> x))))
+ (module B (class Point (y) (method get () (this --> y))))
+ (import A)
+ (import B)
+ (def v 5.0)
+ (def p (new Point (v)))
+ (p --> get ()))

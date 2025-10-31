@@ -1,0 +1,6 @@
+((module M (class C () (method m () 666.0)))
+ (module N (import M) (class C () (method id () 1.0) (method m () (new C ()))))
+ (import N)
+ (def c (new C ()))
+ (c = (c --> m ()))
+ (c --> id ()))

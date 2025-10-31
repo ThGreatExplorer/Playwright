@@ -1,0 +1,8 @@
+((module A (class Point (x)))
+ (module B (class Point (x y)))
+ (import A)
+ (import B)
+ (def a 1.0)
+ (def b 2.0)
+ (def p (new Point (a b)))
+ (p --> y))

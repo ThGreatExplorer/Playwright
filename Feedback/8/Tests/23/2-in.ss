@@ -1,0 +1,6 @@
+((module A (class foo ()))
+ (import B)
+ (import A)
+ (def obj (new bar ()))
+ (def bool (obj isa foobar))
+ 4.0)

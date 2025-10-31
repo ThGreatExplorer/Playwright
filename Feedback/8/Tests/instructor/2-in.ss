@@ -1,0 +1,10 @@
+((module C (class C
+             (x y)
+             (method delta (x) (def z (this --> x)) (def x (x + x)) (z + x))))
+ (import C)
+ (def x 1.0)
+ (def c (new C (x x)))
+ (def i (c isa C))
+ (x = (x + x))
+ (x = (c --> delta (x)))
+ (x + i))

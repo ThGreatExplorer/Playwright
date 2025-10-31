@@ -1,0 +1,6 @@
+((module A (class C ()
+               (method make () (new C ()))))
+ (import A)
+ (def c (new C ()))
+ (c --> make ())
+)

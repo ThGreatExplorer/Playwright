@@ -1,0 +1,15 @@
+((module ModA
+   (class Counter ()
+     (method add (x)
+       (def one 1.0)
+       (x + one))))
+ (module ModB
+   (class Counter ()
+     (method add (x)
+       (def two 2.0)
+       (x + two))))
+ (import ModA)
+ (import ModB)
+ (def c (new Counter ()))
+ (def zero 0.0)
+ (c --> add (zero)))

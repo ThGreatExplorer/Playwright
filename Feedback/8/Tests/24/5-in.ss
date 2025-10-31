@@ -1,0 +1,5 @@
+((module Math (class Counter (val)))
+ (module Math (class Box (x)))
+ (import Math)
+ (def v 5.0)
+ v)

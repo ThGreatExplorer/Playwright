@@ -1,0 +1,12 @@
+(
+    (module m (class c (f)))
+    (module n (class d (f)))
+    (import m)
+    (import n)
+    (def one 1.0)
+    (def x (new c (one)))
+    (def y (new d (one)))
+    (x --> f = y)
+    (y --> f = x)
+    (y == y)
+)

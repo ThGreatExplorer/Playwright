@@ -1,0 +1,1 @@
+((module M (class C x)) 0.0)

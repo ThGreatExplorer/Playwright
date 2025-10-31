@@ -1,0 +1,13 @@
+(
+  (module A (class classOne () (method getOne (num) 1.0)))
+  (module B (import A) 
+    (class classTwo () 
+      (method getTwo () (def one (new classOne ())) (def num 0.0) (def two (one --> getOne (num))) (two / num))))
+  (import A)
+  (import B)
+  (def a (new classOne ()))
+  (def b (new classTwo ()))
+  (def num 2.0)
+  (num = (b --> getTwo ()))
+  (a --> getOne (num))
+)

@@ -1,0 +1,6 @@
+((module C (class C () (method v () 7.0)))
+(module B (import C) (class B () (method make () 0.0)))
+(module A (import B) (class A () (method useC () (def z (new C ())) 0.0)))
+(import A)
+(def a (new A ()))
+(a --> useC ()))

@@ -1,0 +1,1 @@
+((module A (class Again () (method getVal () 1.0))) (module B (class Again () (method getVal () 2.0))) (import B) (import A) (def again (new Again ())) (again --> getVal ()))

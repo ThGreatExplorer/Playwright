@@ -1,0 +1,7 @@
+((module Point (class Point (x x) (method delta (x) 1.0)))
+ (import Point)
+ (def x 1.0)
+ (def point (new Point (x x)))
+ (point --> x = x)
+ (x = (point --> delta (x)))
+ x)

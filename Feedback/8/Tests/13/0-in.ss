@@ -1,0 +1,8 @@
+((module A (class A (x)))
+(module B (import A) (class B (x)))
+(module C (import A) (import B) (class C (x)))
+(module D (import C) (class D (x)))
+(module E (import F) (class E (x)))
+(module F (import A) (import B) (import C) (class E (x)))
+(def x 1.0)
+x)

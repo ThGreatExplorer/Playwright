@@ -1,0 +1,13 @@
+((module Entities (class Player (health score)))
+ (import Entities)
+ (def h 100.0)
+ (def s 0.0)
+ (def p (new Player (h s)))
+ (def newScore 50.0)
+ (def checkType (p isa Player))
+ (def result 999.0)
+ (p --> score = newScore)
+ (if0 checkType
+   (result = (p --> score))
+   (result = 999.0))
+ result)

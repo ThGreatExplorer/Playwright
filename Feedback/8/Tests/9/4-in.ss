@@ -1,0 +1,5 @@
+((module A (import Z))
+ (module B (import A) (class C ()))
+ (import A) (import B) (import Z)
+ (def c (new C ()))
+ c)

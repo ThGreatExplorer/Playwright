@@ -1,0 +1,16 @@
+((module Math
+   (class Calculator (value)
+     (method double ()
+       (def v (this --> value))
+       (v + v))))
+ (module Science
+   (class Calculator (val)
+     (method triple ()
+       (def v (this --> val))
+       (def doubled (v + v))
+       (doubled + v))))
+ (import Math)
+ (import Science)
+ (def x 5.0)
+ (def calc (new Calculator (x)))
+ (calc --> triple ()))

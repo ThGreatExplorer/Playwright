@@ -1,0 +1,1 @@
+((module First (import Second) (class FirstClass () (method m () (new SecondClass ())))) (module Second (class SecondClass ())) 3.0)

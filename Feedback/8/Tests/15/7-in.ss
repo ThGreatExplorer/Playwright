@@ -1,0 +1,7 @@
+((module A (class Duplicate (dupField dupField)
+              (method dupMethod () 1.0)))
+ (import A)
+ (def x 1.0)
+ (def y 2.0)
+ (def dupInst (new Duplicate (x y)))
+ (dupInst --> dupField))

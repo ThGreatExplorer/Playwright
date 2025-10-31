@@ -1,0 +1,5 @@
+((module Test (import Test) (class Test (x) (method getX () (this --> x))))
+    (import Test)
+    (def x 1.0)
+    (def test (new Test (x)))
+    (test --> getY (x)))

@@ -1,0 +1,1 @@
+((module A (class X ())) (module B (import A) (import A) (class Y () (method m () (new X ())))) (import A) (import A) (import B) (def y (new Y ())) (def x (new X ())) (y --> m ()))

@@ -1,0 +1,13 @@
+((module CounterModule
+    (class Counter (initial) 
+        (method increment (delta) 
+            (def current (this --> initial)) 
+            (def next (current + delta)) 
+            (this --> initial = next) 
+            next)))
+(import CounterModule)
+(def zero 0.0) 
+(def myCounter (new Counter (zero))) 
+(def one 1.0) 
+(def tmp (myCounter --> increment (one))) 
+(myCounter --> increment (one)))

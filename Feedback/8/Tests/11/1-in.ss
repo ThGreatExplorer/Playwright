@@ -1,0 +1,1 @@
+((module SameName (class ClassA ())) (module SameName (class classB ())) 2.0)

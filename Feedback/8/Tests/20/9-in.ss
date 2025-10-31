@@ -1,0 +1,8 @@
+((module A (class C () (method v () 10.0)))
+(module B (class C () (method v () 20.0)))
+(module M (import A) (import B)
+(class D ()
+(method run () (def t (new C ())) (t --> v ()))))
+(import M)
+(def d (new D ()))
+(d --> run ()))

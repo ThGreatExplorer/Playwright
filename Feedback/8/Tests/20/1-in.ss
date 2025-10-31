@@ -1,0 +1,8 @@
+((module K (class C () (method v () 9.0)))
+(module M (import K)
+(class C ()
+(method v () 5.0)
+(method run () (def t (new C ())) (t --> v ()))))
+(import M)
+(def m (new C ()))
+(m --> run ()))
