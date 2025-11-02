@@ -3,6 +3,7 @@ package static
 import ast._
 import scala.collection.mutable.Map as MutableMap
 import main.main
+import scala.annotation.tailrec
 
 final case class ModuleDependency(
   mname: String,
@@ -35,22 +36,23 @@ final case class ModuleDependency(
     * @return Some(ModuleDependency) if exists otherwise None
     */
   def getModule(mnameToFind: String): Option[ModuleDependency] =
-    getModuleHelper(mnameToFind, Set.empty)
-  
-  private def getModuleHelper(mnameToFind: String, visited: Set[String]): Option[ModuleDependency] =
-    if visited.contains(mname) then
-      None
-    else
-      val updatedVisited = visited + mname
-      
-      if mname == mnameToFind then
-        Some(this)
-      else
-        dependencies.find { dep =>
-          dep.getModuleHelper(mnameToFind, updatedVisited) match
-            case Some(module) => true
-            case None => false
-        }
+
+    @tailrec
+    def searchSubTreeForDependency(dependencies: List[ModuleDependency], visited: Set[String]): Option[ModuleDependency] = {
+      dependencies match {
+        case Nil => None
+        case head :: tail =>
+          if visited.contains(head.mname) then 
+            searchSubTreeForDependency(tail, visited)
+          else if (head.mname == mnameToFind) 
+            Some(head)
+          else 
+            val updatedVisited = visited + head.mname
+            searchSubTreeForDependency(tail ++ head.dependencies, updatedVisited)
+      }
+    }
+
+    searchSubTreeForDependency(List(this), Set.empty)
 
   /**
     * Generates the Rename Map for the module in this scope by traversing

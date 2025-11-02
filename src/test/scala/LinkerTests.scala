@@ -31,8 +31,8 @@ class LinkerTests extends FunSuite {
           case None => throw new Exception("Passed invalid test case for Linker")
           case Some(cleanSystem) =>
             val (baseModule, renamedSys) = SystemToClassLinker.renameClassesUsingDependencyGraph(cleanSystem)
-            assertEquals(expectedDepGraph.strip(), baseModule.toString().strip())
-            assertEquals(removeWhiteSpace(expectedAST.toString()), removeWhiteSpace(renamedSys.toString()))
+            assertEquals(baseModule.toString().strip(), expectedDepGraph.strip())
+            assertEquals(removeWhiteSpace(renamedSys.toString()), removeWhiteSpace(expectedAST.toString()))
       }
   } 
 }
@@ -84,14 +84,14 @@ object LinkerTests {
 │   └── ModuleA
 └── ModuleA (already shown)
   """,
-  "System(List(Module(ModuleA,List(),Class(ModuleB.ClassA,List(),List())),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassA,List(),List()))),List(ModuleB,ModuleA),ProgBlock(List(),List(),Num(0.0)))"
+  "System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List())),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassA,List(),List()))),List(ModuleB,ModuleA),ProgBlock(List(),List(),Num(0.0)))"
   ),
   ("""#Base@
 ├── ModuleAOne
 └── ModuleBAOne
     ├── ModuleATwo
     └── ModuleAOne (already shown)""",
-  "System(List(Module(ModuleAOne,List(),Class(ModuleAOne.A,List(),List())),Module(ModuleATwo,List(),Class(ModuleAOne.A,List(),List())),Module(ModuleBAOne,List(ModuleATwo,ModuleAOne),Class(ModuleBAOne.B,List(),List(Method(newA,List(),ProgBlock(List(),List(),NewInstance(ModuleAOne.A,List()))))))),List(ModuleAOne,ModuleBAOne),ProgBlock(List(Decl(b,NewInstance(ModuleBAOne.B,List())),Decl(aOne,CallMethod(b,newA,List())),Decl(aOneO,NewInstance(ModuleAOne.A,List()))),List(),BinOpExpr(aOneO,Equals,aOne)))")
+  "System(List(Module(ModuleAOne,List(),Class(ModuleAOne.A,List(),List())),Module(ModuleATwo,List(),Class(ModuleATwo.A,List(),List())),Module(ModuleBAOne,List(ModuleATwo,ModuleAOne),Class(ModuleBAOne.B,List(),List(Method(newA,List(),ProgBlock(List(),List(),NewInstance(ModuleAOne.A,List()))))))),List(ModuleAOne,ModuleBAOne),ProgBlock(List(Decl(b,NewInstance(ModuleBAOne.B,List())),Decl(aOne,CallMethod(b,newA,List())),Decl(aOneO,NewInstance(ModuleAOne.A,List()))),List(),BinOpExpr(aOneO,Equals,aOne)))")
 )
 
   val validCases = List(
