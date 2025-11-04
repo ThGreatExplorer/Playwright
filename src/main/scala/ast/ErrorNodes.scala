@@ -1,6 +1,9 @@
 package ast
 
 enum ParseErrNodes:
+    case ShapeMalformed
+    case FieldTypeMalformed
+    case MethodTypeMalformed
     // System
     case SystemNotAList
     case SystemEmptyList
@@ -47,3 +50,6 @@ enum ValidityErrNodes:
     case ModuleNotDeclared
     // Class ref to an undeclared class
     case ClassNotDeclared
+
+enum TypeErrorNodes:
+    case DUMMY // TODO

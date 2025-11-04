@@ -1,7 +1,10 @@
 /******************************************************************************
-  This file defines data represetnation for Class and Module ASTs. The two AST
+  This file defines data represetnation for Type, Class, and Module ASTs. The three AST
   definitons rely on the shared set of sub-tree constructors, so we define them
   in the same file. 
+
+  Module is a modification of the class AST and Types is modification on top of modules,
+  adding type information through introducing typed modules.
 
   We use parametrized type definitons to help us create two versions for each
   AST node type:
@@ -18,7 +21,68 @@ package ast
 type Clean[A] = A
 enum WE[A]:
     case Node(n : A)
-    case Err(e : ParseErrNodes | ValidityErrNodes)
+    case Err(e : ParseErrNodes | ValidityErrNodes | TypeErrorNodes)
+
+/******************************************************************************
+  Type AST 
+ *****************************************************************************/
+/*  Type       ::= Number | Shape */
+type ASType[Node[_]] = "Number" | Node[Shape[Node]]
+type ASTypeWE = WE[ASType[WE]]
+type CleanASType = Clean[ASType[Clean]]
+
+/* TypedSystem ::= (TypedModule^*
+                   Import^*
+                   Declaration^*
+                   Statement^*
+                   Expression) */
+final case class TypedSystem[Node[_]](
+    modules: List[Node[TypedModule[Node]]],
+    imports: List[Node[ImportedMod]],
+    progb:   Node[ProgBlock[Node]]
+)
+
+type TypedSystemWE = WE[TypedSystem[WE]]
+type CleanTypedSystem = Clean[TypedSystem[Clean]]
+
+/* TypedModule ::= (tmodule ModuleName Import^* Class Shape) */
+final case class TypedModule[Node[_]](
+    mname: Node[Name],
+    imports: List[Node[ImportedMod]],
+    clas:    Node[Class[Node]],
+    shape: Node[Shape[Node]]
+)
+
+type TypedModuleWE = WE[TypedModule[WE]]
+type CleanTypedModule = Clean[TypedModule[Clean]]
+
+/*Shape      ::= ((FieldType^*) (MethodType^*)) */
+final case class Shape[Node[_]](
+    fieldTypes: List[Node[FieldType[Node]]],
+    methodType: List[Node[MethodType[Node]]]
+)
+
+type ShapeWE = WE[Shape[WE]]
+type CleanShape = Clean[Shape[Clean]]
+
+/*MethodType ::= (MethodName (Type^*) Type) */
+final case class MethodType[Node[_]](
+    mname: Node[Name],
+    paramTypes: List[Node[ASType[Node]]],
+    returnType: Node[ASType[Node]]
+)
+
+type MethodTypeWE = WE[MethodType[WE]]
+type CleanMethodType = Clean[MethodType[Clean]]
+
+/* FieldType  ::= (FieldName Type) */
+final case class FieldType[Node[_]](
+    fname: Node[Name],
+    fieldType: Node[ASType[Node]]
+)
+
+type FieldTypeWE = WE[FieldType[WE]]
+type CleanFieldType = Clean[FieldType[Clean]]
 
 /******************************************************************************
   Module AST

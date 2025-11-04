@@ -17,7 +17,8 @@ enum ExampleKeyword(val value: String):
   case IsA      extends ExampleKeyword("isa")
   case New      extends ExampleKeyword("new")
   case Accessor extends ExampleKeyword("-->")
-  case Module   extends ExampleKeyword("module")
+  // case Module   extends ExampleKeyword("module")
+  case TModule extends ExampleKeyword("tmodule")
   case Import   extends ExampleKeyword("import")
 
 object ExampleKeyword:
