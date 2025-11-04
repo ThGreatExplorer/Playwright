@@ -10,6 +10,76 @@ import main._
 
 class RunnerTests extends FunSuite {
 
+  val casesA8 = List(
+    (
+      """
+      ((module) 413.0)
+      """,
+      Result.ParseError,
+      "\"parser error\""
+    ),
+    (
+      """
+      ((module UWU (class OWO ())) (module UWU (class OWO ())) 413.0)
+      """,
+      Result.DupModuleDefs,
+      "\"duplicate module name\""
+    ),
+    (
+      """
+      ((module UWU (class OWO (a a))) 413.0)
+      """,
+      Result.DupMethodFieldParams,
+      "\"duplicate method, field, or parameter name\""
+    ),
+    (
+      """
+      ((module UWU (class OWO (a) (method wow (hai) a))) 413.0)
+      """,
+      Result.UndefinedVarError,
+      "\"undeclared variable error\""
+    ),
+    (
+      """
+      ((module OWO 
+       (class UWU (a) 
+         (method wow (x) (new UWU (x)))
+       ))
+       (import OWO)
+        (def x 413.0) 
+        (def o (new UWU (x))) 
+        (o --> wow (x)))
+      """,
+      Result.SuccObj,
+      "\"object\""
+    ), 
+    (
+      """
+      ((module OWO 
+       (class UWU (a)))
+       (import OWO)
+        (def x 413.0) 
+        (def o (new UWU (x))) 
+        (o --> a))
+      """,
+      Result.SuccNum(413.0),
+      "413.0"
+    ), 
+    (
+      """
+      ((module OWO 
+       (class UWU (a)))
+       (import OWO)
+        (def x 413.0) 
+        (def o (new UWU (x))) 
+        (x --> a = 612.0)
+        x)
+      """,
+      Result.RuntimeError,
+      "\"run-time error\""
+    )
+  )
+
   val casesA7 = List(
     (
       """
@@ -230,6 +300,7 @@ class RunnerTests extends FunSuite {
   ))
 
   val runnerTestsByAssignment = List(
+    (8, ceskModule(_), casesA8),
     (7, ceskClass(_), casesA7),
     (6, classParseAndValidity(_), casesA6),
     (5, ceskCore(_), casesA5), 
