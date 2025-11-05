@@ -3,6 +3,7 @@ package cesk
 import ast._
 import util.UnreachablePatternMatch
 import scala.collection.mutable.Map as MutableMap
+import util.{getMNames, getCNames}
 
 final case class MethodDef(
 	params: List[Name],

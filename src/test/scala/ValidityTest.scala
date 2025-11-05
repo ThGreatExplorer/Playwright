@@ -443,7 +443,8 @@ object ValidityTests {
                 Module(
                     "OWO",
                     List(),
-                    Class("A", List(), List())
+                    Class("A", List(), List()),
+                    None
                 ),
                 Module(
                     "UWU",
@@ -466,6 +467,8 @@ object ValidityTests {
                             )
                         )
                     )
+                    ,
+                    None
                 )
             ),
             imports = List("UWU", "UWU"),
@@ -500,7 +503,8 @@ object ValidityTests {
                 Module(
                     "OWO",
                     List(),
-                    Class("A", List(), List())
+                    Class("A", List(), List()),
+                    None
                 ),
                 Module(
                     "UWU",
@@ -529,6 +533,8 @@ object ValidityTests {
                             )
                         )
                     )
+                    ,
+                    None
                 )
             ),
             imports = List("UWU", "UWU"),
@@ -574,11 +580,14 @@ object ValidityTests {
                             )
                         )
                     )
+                    ,
+                    None
                 ),
                 Module(
                     "WOAW",
                     List(),
-                    Class("B", List(), List())
+                    Class("B", List(), List()),
+                    None
                 )
             ),
             imports = List("WAOW", "WOAW"),
@@ -608,8 +617,8 @@ object ValidityTests {
         """,
         WE.Node(System(
             modules = List(
-                WE.Node(Module(WE.Node("A"), List(), WE.Node(Class(WE.Node("C"), List(), List())))),
-                WE.Node(Module(WE.Err(DuplicateModuleName), List(), WE.Node(Class(WE.Node("D"), List(), List()))))
+                WE.Node(Module(WE.Node("A"), List(), WE.Node(Class(WE.Node("C"), List(), List())),None)),
+                WE.Node(Module(WE.Err(DuplicateModuleName), List(), WE.Node(Class(WE.Node("D"), List(), List())),None))
             ),
             imports = List(),
             progb = WE.Node(ProgBlock(
@@ -628,7 +637,7 @@ object ValidityTests {
         """,
         WE.Node(System(
             modules = List(
-                WE.Node(Module(WE.Node("A"), List(), WE.Node(Class(WE.Node("C"), List(), List()))))
+                WE.Node(Module(WE.Node("A"), List(), WE.Node(Class(WE.Node("C"), List(), List())),None))
             ),
             imports = List(WE.Err(ModuleNotDeclared)),
             progb = WE.Node(ProgBlock(
@@ -668,6 +677,8 @@ object ValidityTests {
                                     WE.Node(Expr.Var(WE.Node("A")))))
                             ))
                         )))
+                    ,
+                    None
                 )),
                 WE.Node(Module(
                     WE.Node("B"), 
@@ -694,6 +705,8 @@ object ValidityTests {
                             )))
                         )
                     ))
+                    ,
+                    None
                 )),
             ),
             imports = List(),
@@ -733,6 +746,8 @@ object ValidityTests {
                                     WE.Node(Expr.Var(WE.Node("A")))))
                             ))
                         )))
+                    ,
+                    None
                 )),
                 WE.Node(Module(
                     WE.Node("Bmod"), 
@@ -741,7 +756,8 @@ object ValidityTests {
                         WE.Node("B"), 
                         List(WE.Node("B")), 
                         List()))
-                    ))
+                    ,
+                    None))
             ),
             imports = List(WE.Node("Bmod")),
             progb = WE.Node(ProgBlock(

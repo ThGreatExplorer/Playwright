@@ -739,6 +739,8 @@ object ParserTests:
                   )
                 )
               )
+              ,
+              shape = None
             ))
           ),
           imports = List(WE.Node("A")),
@@ -803,7 +805,8 @@ object ParserTests:
                   fields = List(WE.Node("x"), WE.Node("y")),
                   methods = List()
                 )
-              )
+              ),
+              shape = None
             )),
             WE.Node(Module(
               mname = WE.Node("B"),
@@ -814,7 +817,8 @@ object ParserTests:
                   fields = List(WE.Node("x"), WE.Node("y")),
                   methods = List()
                 )
-              )
+              ),
+              shape = None
             )),
           ),
           imports = List(WE.Node("B")),
@@ -862,7 +866,8 @@ object ParserTests:
                   fields = List(WE.Node("x"), WE.Node("y")),
                   methods = List()
                 )
-              )
+              ),
+              shape = None
             )),
             WE.Err(ModuleMalformed)
           ),

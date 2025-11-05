@@ -35,8 +35,8 @@ object SystemToClassRenamerAST:
 
   def renameModule(m: CleanModule, renameMap: Map[String, String]): CleanModule =
     m match
-      case Module(mname, imports, clas) =>
-        Module(mname, imports, renameClass(clas, renameMap))
+      case Module(mname, imports, clas, shape) =>
+        Module(mname, imports, renameClass(clas, renameMap), shape)
     
   def renameClass(c: CleanClass, renameMap: Map[String, String]): CleanClass =
     c match
