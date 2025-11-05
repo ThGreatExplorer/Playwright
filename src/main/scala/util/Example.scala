@@ -3,6 +3,9 @@ package util
 import sexprs.SExprs._
 import scala.annotation.tailrec
 
+// Not a keyword, but it is special syntax
+val NumTypeLit = "Number"
+
 enum ExampleKeyword(val value: String):
   case Def      extends ExampleKeyword("def")
   case Assign   extends ExampleKeyword("=")
@@ -17,9 +20,9 @@ enum ExampleKeyword(val value: String):
   case IsA      extends ExampleKeyword("isa")
   case New      extends ExampleKeyword("new")
   case Accessor extends ExampleKeyword("-->")
-  // case Module   extends ExampleKeyword("module")
-  case TModule extends ExampleKeyword("tmodule")
+  case Module   extends ExampleKeyword("module")
   case Import   extends ExampleKeyword("import")
+  case TModule  extends ExampleKeyword("tmodule")
 
 object ExampleKeyword:
   def isKeyword(s: String): Boolean =

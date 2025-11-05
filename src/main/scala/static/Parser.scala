@@ -7,24 +7,38 @@ import ast.ParseErrNodes._
 import sexprs.SExprs._
 import util.ExampleKeyword as Keyword
 import util.ExampleKeyword.isKeyword
-import util.takeWhileKWPrefix
+import util.{NumTypeLit, takeWhileKWPrefix}
 
 object Parser:
 
-    /** Parses the given sexpr into a TypedSystem AST to the best of its ability.
+    /** Parses the given sexpr into a System AST to the best of its ability.
       * If grammar is invalid, an error node is inserted instead.
       *
       * @param sexpr SExpr read in from input
       * @return AST with possible error nodes if grammar rules are violated
       */
-    def parseTypedSys(sexpr: SExpr): TypedSystemWE = sexpr match
+    def parseSys(sexpr: SExpr): SystemWE = sexpr match
         //  System ::= (Module^* Import^* Declaration^* Statement^* Expression)
         case SList(Nil) => WE.Err(SystemEmptyList) 
         case SList(elems) => 
-            val (modules, rest0) = elems.takeWhileKWPrefix(Keyword.TModule)
+            val (modules, rest0) = elems.takeWhileKWPrefix(Keyword.Module)
             val (imports, rest1) = rest0.takeWhileKWPrefix(Keyword.Import)
-            WE.Node(TypedSystem(
-                modules.map(parseTModule),
+            WE.Node(System(
+                modules.map(parseModule),
+                imports.map(parseImport),
+                parseProgBlock(rest1)
+            ))
+        case _ => WE.Err(SystemNotAList)
+
+    // Special variant for A9. Only considers typed modules as well-formed
+    def parseTypedSys(sexpr: SExpr): SystemWE = sexpr match
+        //  TypedSystem ::= (TypedModule^* Import^* Declaration^* Statement^* Expression)
+        case SList(Nil) => WE.Err(SystemEmptyList) 
+        case SList(elems) => 
+            val (tmodules, rest0) = elems.takeWhileKWPrefix(Keyword.TModule)
+            val (imports, rest1) = rest0.takeWhileKWPrefix(Keyword.Import)
+            WE.Node(System(
+                tmodules.map(parseModule).map(errIfUntypedMod),
                 imports.map(parseImport),
                 parseProgBlock(rest1)
             ))
@@ -49,22 +63,35 @@ object Parser:
 
         case _ => WE.Err(ProgNotAList)
 
-    // TModule helpers
+    // Module helpers
 
-    def parseTModule(sexp: SExpr): TypedModuleWE = sexp match
-        // TModule ::= (tmodule ModuleName Import^* Class Shape)
-        case SList(SSymbol(Keyword.TModule.value) :: moduleName :: rest0) =>
+    def parseModule(sexp: SExpr): ModuleWE = sexp match
+        case SList(SSymbol(Keyword.Module.value) :: moduleName :: rest0) =>
             val (imports, rest1) = rest0.takeWhileKWPrefix(Keyword.Import)
             rest1 match
-                case clss :: shape :: Nil => 
-                    WE.Node(TypedModule(
+                // Module  ::= (module ModuleName Import^* Class)
+                case clss :: Nil => 
+                    WE.Node(Module(
                         parseName(moduleName),
                         imports.map(parseImport),
                         parseClass(clss),
-                        parseShape(shape)
+                        None
+                    ))
+                // TModule ::= (tmodule ModuleName Import^* Class Shape)
+                case clss :: shape :: Nil => 
+                    WE.Node(Module(
+                        parseName(moduleName),
+                        imports.map(parseImport),
+                        parseClass(clss),
+                        Some(parseShape(shape))
                     ))
                 case _ => WE.Err(ModuleMalformed) 
         case _ => WE.Err(ModuleMalformed)
+
+    // Special helper for A9. Only considers typed modules as well-formed
+    def errIfUntypedMod(mod: ModuleWE) : ModuleWE = mod match
+        case WE.Node(Module(_, _, _, Some(_))) => WE.Err(ModuleMalformed) 
+        case any => any
 
     def parseImport(sexp: SExpr): ImportedModWE = sexp match
         //  Import ::= (import ModuleName)
@@ -73,10 +100,15 @@ object Parser:
         case _ =>
             WE.Err(ImportMalformed)
 
-    // Shape helpers
-    def parseShape(sexp: SExpr): ShapeWE = sexp match
+    // Type helpers
+
+    def parseType(sexp: SExpr): TypeWE = sexp match
+        case SSymbol(NumTypeLit) => WE.Node(Type.Number())
+        case _                   => parseShape(sexp)
+
+    def parseShape(sexp: SExpr): ShapeTypeWE = sexp match
         case SList(SList(fieldTypes) :: SList(methodTypes) :: Nil) =>
-            WE.Node(Shape(
+            WE.Node(Type.Shape(
                 fieldTypes.map(parseFieldType),
                 methodTypes.map(parseMethodType),
             ))
@@ -98,13 +130,6 @@ object Parser:
                 parseType(returnType)
             ))
         case _ => WE.Err(MethodTypeMalformed)
-    
-    def parseType(sexp: SExpr): ASTypeWE = sexp match
-        // TODO: Should this be a keyword? It's not marked as one in the assignment
-        case SSymbol("Number") => 
-            WE.Node("Number")
-        case _ =>
-            WE.Node(parseShape(sexp))
 
     // Class helpers
 

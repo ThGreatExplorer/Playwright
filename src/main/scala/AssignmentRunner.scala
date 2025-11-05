@@ -1,12 +1,14 @@
 package main
 
 import sexprs.SExprs._
+import util.UnreachablePatternMatch
 import ast.ConverterToClean.{progToClean, systemToClean}
 import ast.{NumVal, ProgramWE, CleanProgram, CleanSystem, SystemWE}
-import static.Parser.{parseProg, parseSys}
+import static.Parser.{parseProg, parseSys, parseTypedSys}
 import static.VCheckTLDups.{classDupsProg, moduleDupsSys}
 import static.VCheckMFPNameDups.{mfpDupsProg, mfpDupsSys}
 import static.VCheckUndefined.{closedProg, closedSystem}
+import static.Typechecker.{typecheckSys}
 import static.SystemToClassLinker.{renameClassesUsingDependencyGraph,convertModulesToClasses}
 import cesk.{CESKMachine, RuntimeError, ObjectVal}
 
@@ -18,6 +20,7 @@ enum Result:
   case DupModuleDefs
   case DupMethodFieldParams
   case UndefinedVarError
+  case TypeError
   case ValidityBelongs
   case SuccObj
   case SuccNum(n : Number)
@@ -32,6 +35,7 @@ enum Result:
     case DupModuleDefs => "\"duplicate module name\""
     case DupMethodFieldParams => "\"duplicate method, field, or parameter name\""
     case UndefinedVarError => "\"undeclared variable error\""
+    case TypeError => "\"type error\""
     case ValidityBelongs => "\"belongs\""
 
     case SuccObj => "\"object\""
@@ -40,25 +44,37 @@ enum Result:
 
 object AssignmentRunner: 
 
-  def resOrCleanSys(errRes : Result, sys : SystemWE) : Either[Result, CleanSystem] =
-    systemToClean(sys) match   
-      case None            => 
-        // println("AST of SystemWE: \n" + sys)
-        Left [Result, CleanSystem](errRes)
-      case Some(cleanSys) => Right[Result, CleanSystem](cleanSys)
+  /**
+    * Result printer for Assignment 9 — Static Types
+    * 
+    * @param input SExpr read from stdin
+    */
+  def typedSystem(input: SExpr): Result =
 
-  def resOrCleanProg(errRes : Result, prog : ProgramWE) : Either[Result, CleanProgram] =
-    progToClean(prog) match   
-      case None            => 
-        // System.err.println("AST of ProgWE: \n" + prog
-        Left [Result, CleanProgram](errRes)
-      case Some(cleanProg) => Right[Result, CleanProgram](cleanProg)
-
-  def unpackResult(realRes : Either[Result, CleanProgram], resOnSucc : Result) : Result =
-    realRes match 
-      case Left(errRes)    => errRes
-      case Right(_)        => resOnSucc
-
+    val pipeRes = 
+      for 
+        parsedSys      <- resOrCleanSys(Result.ParseError,           parseTypedSys(input))
+        sysNoDupMods   <- resOrCleanSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
+        sysNoDupMFPs   <- resOrCleanSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
+        validSys       <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysNoDupMFPs))
+        typecheckedSys <- resOrCleanSys(Result.TypeError,            typecheckSys(validSys))
+      yield
+        typecheckedSys
+    
+    pipeRes match 
+      case Left(errRes)     => errRes
+      case Right(validProg) => 
+        // run the linker
+        val (baseModule, renamedProg) = renameClassesUsingDependencyGraph(validProg)
+        val classProg = convertModulesToClasses(renamedProg)
+        CESKMachine(classProg).run match
+          case n: NumVal       => Result.SuccNum(n)
+          case e: RuntimeError => Result.RuntimeError
+          case o: ObjectVal    => 
+            throw new UnreachablePatternMatch(
+              "Should never happen: typed system returns object"
+            )   
+          
   /**
     * Result printer for Assignment 8 — Modules
     * 
@@ -69,7 +85,7 @@ object AssignmentRunner:
     val pipeRes = 
       for 
         parsedSys     <- resOrCleanSys(Result.ParseError,           parseSys(input))
-        sysNoDupMods  <- resOrCleanSys(Result.DupModuleDefs,         moduleDupsSys(parsedSys))
+        sysNoDupMods  <- resOrCleanSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
         sysNoDupMFPs  <- resOrCleanSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
         validSys      <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysNoDupMFPs))
       yield
@@ -77,7 +93,7 @@ object AssignmentRunner:
     
     pipeRes match 
       case Left(errRes)     => errRes
-      case Right(validProg) => Result.ValidityBelongs
+      case Right(validProg) => 
         // run the linker
         val (baseModule, renamedProg) = renameClassesUsingDependencyGraph(validProg)
         val classProg = convertModulesToClasses(renamedProg)
@@ -126,7 +142,9 @@ object AssignmentRunner:
       yield
         validProg
     
-    unpackResult(pipeRes, Result.ValidityBelongs)
+    pipeRes match 
+      case Left(errRes)    => errRes
+      case Right(_)        => Result.ValidityBelongs
 
   /**
     * Result printer for Assignment 5 — Core: CESK
@@ -198,7 +216,6 @@ object AssignmentRunner:
       case Some(_) => 
         Result.ParseBelongs
       
-
   /**
     * Result printer for Assignment 1 — Start Me Up
     *
@@ -206,3 +223,19 @@ object AssignmentRunner:
     */
   def startUp(input: SExpr): Result =     
     Result.Count(counter(input))
+
+  /******************************************************************************
+    Helpers for building the pipeline
+  *****************************************************************************/
+
+  def resOrCleanSys(errRes : Result, sys : SystemWE) : Either[Result, CleanSystem] =
+    systemToClean(sys) match   
+      case None            => 
+        Left [Result, CleanSystem](errRes)
+      case Some(cleanSys) => Right[Result, CleanSystem](cleanSys)
+
+  def resOrCleanProg(errRes : Result, prog : ProgramWE) : Either[Result, CleanProgram] =
+    progToClean(prog) match   
+      case None            => 
+        Left [Result, CleanProgram](errRes)
+      case Some(cleanProg) => Right[Result, CleanProgram](cleanProg)
