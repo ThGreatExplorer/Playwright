@@ -2,7 +2,7 @@ package static
 
 import ast._
 import ast.ValidityErrNodes._
-import util.identifyNameDupsWErr
+import util.{identifyNameDupsWErr, getFTypeNames, getMTypeNames, getMNames}
 
 // MFP stands for Method, Field, Paramter
 object VCheckMFPNameDups:
@@ -17,13 +17,55 @@ object VCheckMFPNameDups:
                 ConverterToWE.progBlockToWE(progb)
             ))
 
-    def moduleDupsMFP(m: CleanModule): ModuleWE = m match
-        case Module(mname, imports, clas) =>
-            WE.Node(Module(
+    def moduleDupsMFP(m: CleanModule): ModuleWE = WE.Node(m match
+        case Module(mname, imports, clas, shape) =>
+            Module(
                 WE.Node(mname), 
                 imports.map(WE.Node(_)), 
-                classDupsMFP(clas)
+                classDupsMFP(clas),
+                shape.map(shapeDupsMFP)
+            )
+    )
+
+    // Type Validity
+
+    def typeDupsMFP(t: CleanType) : TypeWE = t match
+        case Type.Number() => 
+            WE.Node(Type.Number())
+        case s @ Type.Shape(ftypes, mtypes) => 
+            shapeDupsMFP(s)
+
+    def shapeDupsMFP(s: CleanShapeType) : ShapeTypeWE = s match
+        case Type.Shape(ftypes, mtypes) =>
+            WE.Node(Type.Shape(
+                ftypesDupsMFP(ftypes), 
+                mtypesDupsMFP(mtypes)
             ))
+            
+    def ftypesDupsMFP(ftypes: List[CleanFieldType]) : List[FieldTypeWE] = 
+        val fieldNamesWE = ftypes.getFTypeNames.identifyNameDupsWErr(DuplicateFieldName)
+        val ftypesAndNamesWE = ftypes.zip(fieldNamesWE) 
+
+        ftypesAndNamesWE.map{ 
+            case (FieldType(_, fieldType), fnameWE) => 
+                WE.Node(FieldType(
+                    fnameWE,
+                    typeDupsMFP(fieldType)
+                ))
+        }
+
+    def mtypesDupsMFP(mtypes: List[CleanMethodType]) : List[MethodTypeWE] = 
+        val methodNamesWE = mtypes.getMTypeNames.identifyNameDupsWErr(DuplicateMethod)
+        val mtypesAndNamesWE = mtypes.zip(methodNamesWE) 
+
+        mtypesAndNamesWE.map{ 
+            case (MethodType(_, paramTypes, retType), mnameWE) => 
+                WE.Node(MethodType(
+                    mnameWE,
+                    paramTypes.map(typeDupsMFP),
+                    typeDupsMFP(retType)
+                ))
+        }
 
     // Class Valididty
 

@@ -2,6 +2,8 @@ package static
 
 import ast._
 import ast.ValidityErrNodes._
+import ast.ConverterToWE.shapeToWE
+import util.{getCNames}
 
 object VCheckUndefined:
 
@@ -54,13 +56,14 @@ object VCheckUndefined:
 
             case Nil => (modsSoFar.reverse, modToCNameMapSoFar)
 
-            case Module(mname, imports, clas) :: tail => 
+            case Module(mname, imports, clas, shape) :: tail => 
                 val updModToCNameMap = modToCNameMapSoFar.updated(mname, clas.cname)
                 val (validatedImports, clssInScope) = closedImports(imports, modToCNameMapSoFar)
                 val processedModule = WE.Node(Module(
                     WE.Node(mname),
                     validatedImports,
-                    closedClass(clas, clssInScope)
+                    closedClass(clas, clssInScope), 
+                    shape.map(shapeToWE)
                 ))
 
                 closedModulesLoop(tail, processedModule :: modsSoFar, updModToCNameMap)

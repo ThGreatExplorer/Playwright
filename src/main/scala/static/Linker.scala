@@ -4,6 +4,7 @@ import ast._
 import scala.collection.mutable.Map as MutableMap
 import main.main
 import scala.annotation.tailrec
+import util.{getClasses}
 
 final case class ModuleDependency(
   mname: String,
@@ -130,7 +131,7 @@ object ModuleDependency:
         // Build dependencies first, then memoize to handle potential cycles
         val dependencies = imports.map { imp =>
           importToModule(modulesInScopeMap(mname), imp) match
-            case Module(importedMname, importedImports, importedClas) => 
+            case Module(importedMname, importedImports, importedClas, _) => 
               buildDAG(importedMname, importedClas, modulesInScopeMap, importedImports, memoization)
         }
         
@@ -194,6 +195,6 @@ object SystemToClassLinker:
     s match
       case System(modules, imports, progb) =>
         Program(
-          modules.map(module => module.clas),
+          modules.getClasses,
           progb
         )

@@ -2,7 +2,8 @@ package static
 
 import ast._
 import ast.ValidityErrNodes._
-import util.identifyNameDupsWErr
+import ast.ConverterToWE.{shapeToWE, progBlockToWE, classToWE, methodToWE}
+import util.{identifyNameDupsWErr, getMDNames, getCNames}
 
 object VCheckTLDups:
 
@@ -13,7 +14,7 @@ object VCheckTLDups:
             WE.Node(System(
                 moduleDupsModules(modules),
                 imports.map(WE.Node(_)),
-                ConverterToWE.progBlockToWE(progb)
+                progBlockToWE(progb)
             ))
 
     def moduleDupsModules(modules: List[CleanModule]): List[ModuleWE] =  
@@ -22,11 +23,12 @@ object VCheckTLDups:
         val modulesAndNamesWE = modules.zip(moduleNamesWE) 
 
         modulesAndNamesWE.map{ 
-            case (Module(_, imports, clas), mnameWE) => 
+            case (Module(_, imports, clas, shape), mnameWE) => 
                 WE.Node(Module(
                     mnameWE,
                     imports.map(WE.Node(_)),
-                    ConverterToWE.classToWE(clas)
+                    classToWE(clas),
+                    shape.map(shapeToWE)
                 ))
         }
 
@@ -36,7 +38,7 @@ object VCheckTLDups:
         case Program(classes, progb) => 
             WE.Node(Program(
                 classDupsClasses(classes),
-                ConverterToWE.progBlockToWE(progb)
+                progBlockToWE(progb)
             ))
 
     def classDupsClasses(clss: List[CleanClass]): List[ClassWE] =  
@@ -49,6 +51,6 @@ object VCheckTLDups:
                 WE.Node(Class(
                     cnameWE,
                     fields.map(WE.Node(_)),
-                    methods.map(ConverterToWE.methodToWE)
+                    methods.map(methodToWE)
                 ))
         }
