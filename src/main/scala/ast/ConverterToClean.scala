@@ -27,18 +27,71 @@ object ConverterToClean:
             yield 
                 Program[Clean](clss, progb)
 
-    // Module helpers 
+    // Module (with types) helpers 
 
     private def moduleWEToClean(m: ModuleWE): Option[CleanModule] = m match 
         case WE.Err(_) => None
 
-        case WE.Node(Module(mname, imports, clas)) =>
+        case WE.Node(Module(mname, imports, clas, Some(shape))) =>
             for 
-                mname <- stringWEToClean(mname)
+                mname   <- stringWEToClean(mname)
                 imports <- imports.traverse(stringWEToClean)
-                clas  <- classWEToClean(clas)
+                clas    <- classWEToClean(clas)
+                shape   <- shapeWEToClean(shape)
             yield 
-                Module[Clean](mname, imports, clas)
+                Module[Clean](mname, imports, clas, Some(shape))
+
+        // Separate pattern match because we don't want to conflate None representing
+        // untyped module and None representing an error node during the toClean 
+        // conversion.
+        // Can be fixed with a better type, but this issue is unlikely to surface
+        // elsewhere so we keep it this way for now.
+        case WE.Node(Module(mname, imports, clas, None)) =>
+            for 
+                mname   <- stringWEToClean(mname)
+                imports <- imports.traverse(stringWEToClean)
+                clas    <- classWEToClean(clas)
+            yield 
+                Module[Clean](mname, imports, clas, None)
+
+    private def typeWEToClean(typ: TypeWE): Option[CleanType] = typ match
+        case WE.Err(_) => None
+
+        case WE.Node(Type.Number()) => Some(Type.Number())
+
+        case WE.Node(Type.Shape(ftypes, mtypes)) => 
+            shapeWEToClean(WE.Node(Type.Shape(ftypes, mtypes)))
+
+    private def shapeWEToClean(s: ShapeTypeWE): Option[CleanShapeType] = s match 
+        case WE.Err(_) => None
+
+        case WE.Node(Type.Shape(ftypes, mtypes)) =>
+            for 
+                ftypes <- ftypes.traverse(ftypeWEToClean)
+                mtypes <- mtypes.traverse(mtypeWEToClean)
+            yield 
+                Type.Shape[Clean](ftypes, mtypes)
+
+    private def ftypeWEToClean(f: FieldTypeWE): Option[CleanFieldType] = f match 
+        case WE.Err(_) => None
+
+        case WE.Node(FieldType(fname, ftype)) =>
+            for 
+                fname <- stringWEToClean(fname)
+                ftype <- typeWEToClean(ftype)
+            yield 
+                FieldType[Clean](fname, ftype)
+
+    private def mtypeWEToClean(m: MethodTypeWE): Option[CleanMethodType] = m match 
+        case WE.Err(_) => None
+
+        case WE.Node(MethodType(mname, paramTypes, retType)) =>
+            for 
+                mname      <- stringWEToClean(mname)
+                paramTypes <- paramTypes.traverse(typeWEToClean)
+                retType    <- typeWEToClean(retType)
+            yield 
+                MethodType[Clean](mname, paramTypes, retType)
 
     // Class helpers 
         

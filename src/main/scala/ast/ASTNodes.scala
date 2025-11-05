@@ -1,10 +1,7 @@
 /******************************************************************************
-  This file defines data represetnation for Type, Class, and Module ASTs. The three AST
-  definitons rely on the shared set of sub-tree constructors, so we define them
-  in the same file. 
-
-  Module is a modification of the class AST and Types is modification on top of modules,
-  adding type information through introducing typed modules.
+  This file defines data represetnation for Class, and Module (with optional 
+  type annotations) ASTs. The two AST definitons rely on the shared set of 
+  sub-tree constructors, so we define them in the same file. 
 
   We use parametrized type definitons to help us create two versions for each
   AST node type:
@@ -18,74 +15,13 @@
 
 package ast
 
-type Clean[A] = A
-enum WE[A]:
+type Clean[+A] = A
+enum WE[+A]:
     case Node(n : A)
     case Err(e : ParseErrNodes | ValidityErrNodes | TypeErrorNodes)
 
 /******************************************************************************
-  Type AST 
- *****************************************************************************/
-/*  Type       ::= Number | Shape */
-type ASType[Node[_]] = "Number" | Node[Shape[Node]]
-type ASTypeWE = WE[ASType[WE]]
-type CleanASType = Clean[ASType[Clean]]
-
-/* TypedSystem ::= (TypedModule^*
-                   Import^*
-                   Declaration^*
-                   Statement^*
-                   Expression) */
-final case class TypedSystem[Node[_]](
-    modules: List[Node[TypedModule[Node]]],
-    imports: List[Node[ImportedMod]],
-    progb:   Node[ProgBlock[Node]]
-)
-
-type TypedSystemWE = WE[TypedSystem[WE]]
-type CleanTypedSystem = Clean[TypedSystem[Clean]]
-
-/* TypedModule ::= (tmodule ModuleName Import^* Class Shape) */
-final case class TypedModule[Node[_]](
-    mname: Node[Name],
-    imports: List[Node[ImportedMod]],
-    clas:    Node[Class[Node]],
-    shape: Node[Shape[Node]]
-)
-
-type TypedModuleWE = WE[TypedModule[WE]]
-type CleanTypedModule = Clean[TypedModule[Clean]]
-
-/*Shape      ::= ((FieldType^*) (MethodType^*)) */
-final case class Shape[Node[_]](
-    fieldTypes: List[Node[FieldType[Node]]],
-    methodType: List[Node[MethodType[Node]]]
-)
-
-type ShapeWE = WE[Shape[WE]]
-type CleanShape = Clean[Shape[Clean]]
-
-/*MethodType ::= (MethodName (Type^*) Type) */
-final case class MethodType[Node[_]](
-    mname: Node[Name],
-    paramTypes: List[Node[ASType[Node]]],
-    returnType: Node[ASType[Node]]
-)
-
-type MethodTypeWE = WE[MethodType[WE]]
-type CleanMethodType = Clean[MethodType[Clean]]
-
-/* FieldType  ::= (FieldName Type) */
-final case class FieldType[Node[_]](
-    fname: Node[Name],
-    fieldType: Node[ASType[Node]]
-)
-
-type FieldTypeWE = WE[FieldType[WE]]
-type CleanFieldType = Clean[FieldType[Clean]]
-
-/******************************************************************************
-  Module AST
+  Module AST (with Types)
  *****************************************************************************/
 
 //  System ::= (Module^* Import^* Declaration^* Statement^* Expression)
@@ -98,18 +34,17 @@ final case class System[Node[_]](
 type CleanSystem = Clean[System[Clean]]
 type SystemWE    = WE[System[WE]]
 
-//  Module ::= (module ModuleName Import^* Class)
+//  Module      ::= (module ModuleName Import^* Class)
+//  TypedModule ::= (tmodule ModuleName Import^* Class Shape) 
 final case class Module[Node[_]](
-    mname: Node[Name],
+    mname:   Node[Name],
     imports: List[Node[ImportedMod]],
-    clas:    Node[Class[Node]]
+    clas:    Node[Class[Node]],
+    shape:   Option[Node[Type.Shape[Node]]]
 )
 
 type CleanModule = Clean[Module[Clean]]
 type ModuleWE    = WE[Module[WE]]
-
-extension (clss : List[Module[Clean]])
-    def getMDNames : List[String] = clss.map{ case Module(mname, _, _) => mname }
 
 //  Import ::= (import ModuleName)
 type ImportedMod = String
@@ -139,9 +74,6 @@ final case class Class[Node[_]](
 type CleanClass = Clean[Class[Clean]]
 type ClassWE    = WE[Class[WE]]
 
-extension (clss : List[Class[Clean]])
-    def getCNames : List[String] = clss.map{ case Class(cname, _, _) => cname }
-
 // Method      ::= (method MethodName (Parameter^*)
 //                      Declaration^* Statement^* Expression)
 final case class Method[Node[_]](
@@ -152,9 +84,6 @@ final case class Method[Node[_]](
 
 type CleanMethod = Clean[Method[Clean]]
 type MethodWE    = WE[Method[WE]]
-
-extension (methods : List[Method[Clean]])
-    def getMNames : List[String] = methods.map{ case Method(mname, _, _) => mname }
 
 /******************************************************************************
   Core AST 

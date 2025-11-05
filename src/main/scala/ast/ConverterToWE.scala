@@ -23,14 +23,43 @@ object ConverterToWE:
     
     // Module helpers
 
-    def moduleToWE(m : CleanModule): ModuleWE = WE.Node(m match
-        case Module[Clean](mname, imports, clas) =>
-            Module[WE](
+    def moduleToWE(m : CleanModule): ModuleWE = m match
+        case Module[Clean](mname, imports, clas, shape) =>
+            WE.Node(Module[WE](
                 stringToWE(mname), 
                 imports.map(stringToWE),
-                classToWE(clas)
+                classToWE(clas),
+                shape.map(shapeToWE)
+            ))
+        
+    def typeToWE(typ : CleanType) : TypeWE = typ match
+        case Type.Number() =>  WE.Node(Type.Number())
+        case s @ Type.Shape[Clean](ftypes, mtypes) => shapeToWE(s)
+
+    def shapeToWE(s : CleanShapeType) : ShapeTypeWE = WE.Node(s match
+        case Type.Shape[Clean](ftypes, mtypes) =>
+            Type.Shape[WE](
+                ftypes.map(ftypeToWE),
+                mtypes.map(mtypeToWE),
             )
-        )
+    )
+
+    def ftypeToWE(f : CleanFieldType) : FieldTypeWE = WE.Node(f match
+        case FieldType[Clean](fname, ftype) =>
+            FieldType[WE](
+                stringToWE(fname),
+                typeToWE(ftype)
+            )
+    )
+
+    def mtypeToWE(m : CleanMethodType) : MethodTypeWE = WE.Node(m match
+        case MethodType[Clean](mname, paramTypes, retType) =>
+            MethodType[WE](
+                stringToWE(mname),
+                paramTypes.map(typeToWE),
+                typeToWE(retType)
+            )
+    )
 
     // Class helpers 
 
