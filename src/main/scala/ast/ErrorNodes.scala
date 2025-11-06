@@ -52,4 +52,4 @@ enum ValidityErrNodes:
     case ClassNotDeclared
 
 enum TypeErrorNodes:
-    case DUMMY // TODO
+    case BinOpWithNonNumberType
