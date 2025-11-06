@@ -24,26 +24,25 @@ object SystemToClassLinker:
           progb
         )
     
-  def generateBaseModule(mods: List[CleanModule], imports: List[CleanImportedMod]): ModuleDependency = 
+  def generateTopLevelModule(mods: List[CleanModule], imports: List[CleanImportedMod]): ModuleDependency = 
     val modulesInScopeMap = modulesToModulesInScope(mods)
-    val baseModName = "#Base@"
-    // all modules are in scope for the base module to import
-    ModuleDependency(baseModName, Class(baseModName, List.empty, List.empty), None, modulesInScopeMap.updated(baseModName, mods.toSet), imports)
+    val topLevelModName = "#topLevelModName@"
+    // all modules are in scope for the top level module to import
+    ModuleDependency(topLevelModName, Class(topLevelModName, List.empty, List.empty), None, modulesInScopeMap.updated(topLevelModName, mods.toSet), imports)
 
   /**
     * Renames all occurrences of classes in a given Clean System into 
     * ModuleName.ClassName as the first step of linking modules into classes.
     *
     * @param s the clean System to convert
-    * @return base Module representing the module dependency graph and 
-    * the renamed System
+    * @return the renamed System
     */
-  def renameClassesUsingDependencyGraph(s: CleanSystem): (ModuleDependency, CleanSystem) =
+  def renameClassesUsingDependencyGraph(s: CleanSystem): CleanSystem =
     s match
       case System(modules, imports, progb) =>
-        val baseModule = generateBaseModule(modules, imports)
-        val trimmedSys = trimUnreachableStates(s, baseModule.findReachableModules())
-        (baseModule, SystemToClassRenamerAST.renameSystem(trimmedSys, baseModule))
+        val topLevelModule = generateTopLevelModule(modules, imports)
+        val trimmedSys = trimUnreachableStates(s, topLevelModule.findReachableModules())
+        SystemToClassRenamerAST.renameSystem(trimmedSys, topLevelModule)
 
   /**
     * Drops the import and module statements as part of the second step of

@@ -65,7 +65,7 @@ object AssignmentRunner:
       case Left(errRes)     => errRes
       case Right(validProg) => 
         // run the linker
-        val (baseModule, renamedProg) = renameClassesUsingDependencyGraph(validProg)
+        val renamedProg = renameClassesUsingDependencyGraph(validProg)
         val classProg = convertModulesToClasses(renamedProg)
         CESKMachine(classProg).run match
           case n: NumVal       => Result.SuccNum(n)

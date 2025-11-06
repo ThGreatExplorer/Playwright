@@ -29,13 +29,13 @@ final case class ModuleDependency(
         )
   
   /**
-    * Gets the module dependency if is reachable in this DAG, 
+    * Gets the module dependency if is reachable from the current node in this DAG, 
     * returning it as an Option.
     *
     * @param mnameToFind the module name to find
     * @return Some(ModuleDependency) if exists otherwise None
     */
-  def getModule(mnameToFind: String): Option[ModuleDependency] =
+  def findModuleInDAG(mnameToFind: String): Option[ModuleDependency] =
 
     @tailrec
     def searchSubTreeForDependency(dependencies: List[ModuleDependency], visited: Set[String]): Option[ModuleDependency] = {
@@ -64,10 +64,14 @@ final case class ModuleDependency(
     val renameMap = this.dependencies.foldLeft(Map.empty[String,String])((acc, dependency) =>
       dependency match
         case ModuleDependency(depMname, depClss, _, _) =>
-          acc.updated(depClss.cname, f"$depMname.${depClss.cname}")
+          val (cname, qualifiedName) = generatedQualifiedName(depMname, depClss)
+          acc.updated(cname, qualifiedName)
     )
-    val cname = clss.cname
-    renameMap.updated(cname, f"$mname.$cname")
+    val (cname, qualifiedName) = generatedQualifiedName(mname, clss)
+    renameMap.updated(cname, qualifiedName)
+
+  private def generatedQualifiedName(mname: String, clss: CleanClass): (String, String) =
+    (clss.cname, f"$mname.${clss.cname}")
 
   /**
     * Generates the SClasses Map with (this, thisShape) for the module by traversing its 

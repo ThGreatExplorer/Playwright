@@ -8,7 +8,7 @@ import util.{getCNames}
 
 // object Typechecker:
 
-object VCheckUndefined:
+object TypeChecker:
 
     // Top Level entry points
 
@@ -152,6 +152,10 @@ object VCheckUndefined:
     
     def typeCheckExpr(expr: CleanExpr, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]): (Option[CleanType], ExprWE) = 
         expr match
+            case Expr.Num(n) => 
+                (Some(Type.Number()), WE.Node(Expr.Num(n)))
+            case Expr.Var(varRef) =>
+                (Some(tVars(varRef)), WE.Node(Expr.Var(ConverterToWE.stringToWE(varRef))))
             case Expr.BinOpExpr(lhs, op, rhs) =>
                 val lhsType = tVars(lhs)
                 val rhsType = tVars(rhs)
@@ -172,7 +176,7 @@ object VCheckUndefined:
                                 )))
                             case (_, _) =>
                                 (None, WE.Err(TypeErrorNodes.BinOpWithNonNumberType))
-            case Expr.
+            case Expr.GetField()
         
 
     def closedMethod(mth : CleanMethod, clssInScope: Set[String]) : MethodWE = WE.Node( mth match

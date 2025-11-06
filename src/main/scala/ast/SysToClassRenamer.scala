@@ -10,27 +10,27 @@ object SystemToClassRenamerAST:
     * corresponding base node representing the Module Dependency Graph.
     *
     * @param s clean system
-    * @param baseModule base node of the Module Dependency graph associated 
+    * @param topLevelModule root node of the Module Dependency graph associated 
     * with the system
     * @return the renamed System
     */
-  def renameSystem(s: CleanSystem, baseModule: ModuleDependency): CleanSystem =
+  def renameSystem(s: CleanSystem, topLevelModule: ModuleDependency): CleanSystem =
     s match
       case System(modules, imports, progb) =>
         System(
-          renameModules(modules, baseModule), 
+          renameModules(modules, topLevelModule), 
           imports,
-          renameProgb(progb, baseModule.generateRenameMap())
+          renameProgb(progb, topLevelModule.generateRenameMap())
         )
   
-  def renameModules(modules: List[CleanModule], baseModule: ModuleDependency): List[CleanModule] =
+  def renameModules(modules: List[CleanModule], topLevelModule: ModuleDependency): List[CleanModule] =
     modules.map(
       module =>
-        baseModule.getModule(module.mname) match
+        topLevelModule.findModuleInDAG(module.mname) match
           case Some(topLevelModuleDep) => 
             renameModule(module, topLevelModuleDep.generateRenameMap())
           case None => 
-            throw new Exception(f"Should never happen: the base module is constructed from the given system module, so the base module should always have the next module as dependency\nBase Module: ${baseModule.dependencies}\nSystem Module:${module.mname}")              
+            throw new Exception(f"Should never happen: the top level module is constructed from a trimmed system module with only reachable modules, so the top level module should always be able to reach this module\nBase Module: ${topLevelModule.dependencies}\nSystem Module:${module.mname}")              
     )
 
   def renameModule(m: CleanModule, renameMap: Map[String, String]): CleanModule =
