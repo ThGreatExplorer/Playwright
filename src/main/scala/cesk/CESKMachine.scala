@@ -198,9 +198,9 @@ final class CESKMachine(prog: CleanProgram):
                   store   = state.store,
                   kont    = state.kont 
                 )
-              // case _ => CESKState.constructErrorState(
-              //     RuntimeError.InvalidVarType("Binop attempted on a non-numeric value.")
-              //   )
+              case _ => CESKState.constructErrorState(
+                  RuntimeError.InvalidVarType("Binop attempted on a non-numeric value.")
+                )
           }
           case (val1 : ObjectVal, val2 : NumVal) => {
             op match
@@ -211,9 +211,9 @@ final class CESKMachine(prog: CleanProgram):
                   store   = state.store,
                   kont    = state.kont 
                 )
-              // case _ => CESKState.constructErrorState(
-              //     RuntimeError.InvalidVarType("Binop attempted on a non-numeric value.")
-              //   )
+              case _ => CESKState.constructErrorState(
+                  RuntimeError.InvalidVarType("Binop attempted on a non-numeric value.")
+                )
           }
           case (val1 : NumVal, val2 : ObjectVal) => {
             op match
@@ -224,9 +224,9 @@ final class CESKMachine(prog: CleanProgram):
                   store   = state.store,
                   kont    = state.kont 
                 )
-              // case _ => CESKState.constructErrorState(
-              //     RuntimeError.InvalidVarType("Binop attempted on a non-numeric value.")
-              //   )
+              case _ => CESKState.constructErrorState(
+                  RuntimeError.InvalidVarType("Binop attempted on a non-numeric value.")
+                )
           }
       // Object Expressions
       case (Control.Expr(Expr.NewInstance(cname, args)), _) =>

@@ -63,3 +63,10 @@ enum TypeErrorNodes:
     case CallMethodDoesNotExist
     case CallMethodWrongNumberOfParams
     case CallMethodParamWrongType
+    case ProgBlockReturnWrongType
+    case ShapeTypeMethodNameMismatch
+    case ShapeTypeMethodWrongNumberOfParams
+    case ShapeTypeWrongNumberOfFields
+    case ShapeTypeWrongNumberOfMethods
+    case ShapeTypeFieldTypeMismatch
+    case ShapeTypeMethodTypeMismatch
