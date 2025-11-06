@@ -53,3 +53,4 @@ enum ValidityErrNodes:
 
 enum TypeErrorNodes:
     case BinOpWithNonNumberType
+    case StrongTypingViolation

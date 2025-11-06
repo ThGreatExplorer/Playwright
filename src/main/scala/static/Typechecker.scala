@@ -27,19 +27,6 @@ object TypeChecker:
             )
         )
 
-    def closedProg(p: CleanProgram): ProgramWE = WE.Node(p match
-        case Program[Clean](clss, progb) =>
-            // The scope of a ClassName is the entire program
-            val clssInScope = clss.getCNames.toSet
-            // Variables obey lexical scope, so we begin with an empty environment
-            val varsInScope : Set[String] = Set()
-
-            Program(
-                clss.map(closedClass(_, clssInScope)),
-                closedProgBlock(progb, clssInScope, varsInScope)
-            )
-        )
-
     // Module helpers
 
     /**
@@ -204,150 +191,89 @@ object TypeChecker:
             )
     )
 
-    /**
-    * Accumulator that accumulates the Decls and Variables processed so far,
-    * evaluating the first declaration, updating the variables, and 
-    * appending the declarations processed before recursing.
-    *
-    * @param decls LIst of CleanDecl to be processed
-    * @param clssInScope Set of classes declared in the program
-    * @param varsInScope Set of variables declared so far
-    * @return Tuple of List[DeclWE], Set[String]
-    */
-    def closedDecls(decls: List[CleanDecl], clssInScope: Set[String], varsInScope: Set[String]) : (List[DeclWE], Set[String]) = 
 
-        def closedDeclsLoop(declsRem: List[CleanDecl], declsSoFar: List[DeclWE], dvarsSoFar: Set[String]) 
-        : (List[DeclWE], Set[String]) = declsRem match
-
-            case Nil => (declsSoFar.reverse, dvarsSoFar)
-
-            case Decl(name, rhs) :: tail => 
-                val processedDecl = WE.Node(Decl(
-                    WE.Node(name),
-                    closedExpr(rhs, clssInScope, dvarsSoFar)
-                ))
-
-                closedDeclsLoop(tail, processedDecl :: declsSoFar, dvarsSoFar.incl(name))
-
-        closedDeclsLoop(decls, Nil, varsInScope)
-
-    def closedStmt(stmt: CleanStmt, clssInScope : Set[String], varsInScope: Set[String]): StmtWE = WE.Node( stmt match
+    def typecheckStmt(stmt: CleanStmt, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]): StmtWE = stmt match
         case Stmt.Assign(id, rhs) => 
-            Stmt.Assign(
-                closedVarRef(id, varsInScope), 
-                closedExpr(rhs, clssInScope, varsInScope)
-            )
+            val (optType, exprWE) = typeCheckExpr(rhs, sClassesMap, tVars)
+            optType match
+                case None => 
+                    WE.Node(Stmt.Assign(
+                        WE.Node(id), 
+                        exprWE
+                    ))
+                case Some(exprType) => 
+                    if exprType == tVars(id) then
+                        WE.Node(Stmt.Assign(
+                            WE.Node(id), 
+                            exprWE
+                        ))
+                    else 
+                        WE.Err(StrongTypingViolation)
 
         case Stmt.Ifelse(guard, tbranch, ebranch) =>
-            Stmt.Ifelse(
-                closedExpr(guard, clssInScope, varsInScope), 
-                closedSBlock(tbranch, clssInScope, varsInScope), 
-                closedSBlock(ebranch, clssInScope, varsInScope) 
-            )
-
+            val (_, exprWE) = typeCheckExpr(guard, sClassesMap, tVars)
+            WE.Node(Stmt.Ifelse(
+                exprWE, 
+                typecheckSBlock(tbranch, sClassesMap, tVars), 
+                typecheckSBlock(ebranch, sClassesMap, tVars) 
+            ))                   
+            
         case Stmt.While(guard, body) =>
-            Stmt.While(
-                closedExpr(guard, clssInScope, varsInScope),
-                closedSBlock(body, clssInScope, varsInScope)
-            )
+            val (_, exprWE) = typeCheckExpr(guard, sClassesMap, tVars)
+            WE.Node(Stmt.While(
+                exprWE, 
+                typecheckSBlock(body, sClassesMap, tVars)
+            )) 
 
         case Stmt.FieldAssign(instance, fname, rhs) =>
-            Stmt.FieldAssign(
-                closedVarRef(instance, varsInScope), 
-                WE.Node(fname),
-                closedExpr(rhs, clssInScope, varsInScope)
-            )
-        )
+            val (optType, exprWE) = typeCheckExpr(rhs, sClassesMap, tVars)
+            optType match
+                case None => 
+                    WE.Node(Stmt.FieldAssign(
+                        WE.Node(instance),
+                        WE.Node(fname),
+                        exprWE
+                    ))
+                case Some(exprType) => 
+                    val instShape = tVars(instance)
+                    val (optExpectedFtype, fnameWE) = getFieldType(instShape, fname)
+
+                    optExpectedFtype match
+                        case None => 
+                            WE.Node(Stmt.FieldAssign(
+                                WE.Node(instance),
+                                fnameWE,
+                                exprWE
+                            ))
+                        case Some(expectedFtype) => 
+                            if exprType == expectedFtype then
+                                WE.Node(Stmt.FieldAssign(
+                                    WE.Node(instance),
+                                    fnameWE,
+                                    exprWE
+                                ))
+                            else 
+                                WE.Err(StrongTypingViolation)
         
-    def closedSBlock(b: CleanStmtBlock, clssInScope : Set[String], varsInScope: Set[String]): StmtBlockWE = WE.Node( b match
+    def typecheckSBlock(b: CleanStmtBlock, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]) : StmtBlockWE = b match
         case StmtBlock.One(stmt) => 
-            StmtBlock.One(closedStmt(stmt, clssInScope, varsInScope))
+            WE.Node(StmtBlock.One(
+                typecheckStmt(stmt, sClassesMap, tVars)
+            ))
 
         case StmtBlock.Many(decls, stmts) => 
-            val (processedDecls, extVarsInScope) = closedDecls(decls, clssInScope, varsInScope)
-            StmtBlock.Many(
-                processedDecls, 
-                stmts.map(closedStmt(_, clssInScope, extVarsInScope))
-            )
-        )
-            
-    def closedExpr(e: CleanExpr, clssInScope : Set[String], varsInScope: Set[String]): ExprWE = WE.Node(e match
-        case Expr.Num(n) => Expr.Num(n)
+            val (updatedTVarsdecls, declsWE) = decls.foldLeft((tVars, List[DeclWE]())){
+                    case ((tVarAcc, declList), decl) =>
+                        val (optTVar, declWE) = typeCheckDecl(decl, sClassesMap, tVarAcc)
+                        optTVar match
+                            case None => (tVarAcc, declList :+ declWE)
+                            case Some((varDecl, vType)) => (tVarAcc.updated(varDecl, vType), declList :+ declWE)
+                }
 
-        case Expr.Var(x) => 
-            Expr.Var(closedVarRef(x, varsInScope))
-
-        case Expr.BinOpExpr(lhs, op, rhs) => 
-            Expr.BinOpExpr(
-                closedVarRef(lhs, varsInScope), 
-                op,
-                closedVarRef(rhs, varsInScope)
-            )
-        
-        case Expr.NewInstance(cname, args) =>
-            Expr.NewInstance(
-                closedClassNameRef(cname, clssInScope),
-                args.map(closedVarRef(_, varsInScope))
-            )
-
-        case Expr.IsInstanceOf(instance, cname) =>
-            Expr.IsInstanceOf(
-                closedVarRef(instance, varsInScope),
-                closedClassNameRef(cname, clssInScope)
-            )
-
-        case Expr.GetField(instance, fname) =>
-            Expr.GetField(
-                closedVarRef(instance, varsInScope),
-                WE.Node(fname)
-            )
-        
-        case Expr.CallMethod(instance, mname, args) =>
-            Expr.CallMethod(
-                closedVarRef(instance, varsInScope),
-                WE.Node(mname),
-                args.map(closedVarRef(_, varsInScope))
-            )
-        
-    )
-
-    def closedVarRef(v: CleanVarRef, varsInScope: Set[String]): VarRefWE  = 
-        if varsInScope.contains(v) then
-            WE.Node(v)
-        else
-            WE.Err(VarNotDeclared) 
-    
-    def closedClassNameRef(c: CleanName, clssInScope: Set[String]): NameWE =
-        if clssInScope.contains(c) then
-            WE.Node(c)
-        else
-            WE.Err(ClassNotDeclared) 
-
-    // def generateClassesToShapeMap(): Map[String, ShapeTypeWE] = s match
-    //     case System(modules, imports, progb) => 
-            
-    /* Using Module Dependency DAG */
-    // def typeCheckSys(s: CleanSystem): SystemWE = s match
-    //     case System(modules, imports, progb) => 
-    //         val baseModule = SystemToClassLinker.generateBaseModule(modules, imports) 
-    //         val sClassesMap = baseModule.generateSClassesMap()
-    //         WE.Node(System(
-    //             typeCheckModules(modules, baseModule),
-    //             imports.map(ConverterToWE.stringToWE),
-    //             typeCheckProgb(progb, sClassesMap)
-    //         ))
-
-    // def typeCheckModules(modules: List[CleanModule], baseModule: ModuleDependency): List[ModuleWE] = modules.map(
-    //     module => module match
-    //         case Module(mname, imports, clas, shape)
-        
-    // )
-
-
-    // def typeCheckProgb(p: CleanProgBlock, sClassesMap: Map[String, CleanShapeType]): ProgBlockWE = p match
-    //     case ProgBlock(decls, stmts, expr) => 
-
-
+            WE.Node(StmtBlock.Many(
+                declsWE, 
+                stmts.map(typecheckStmt(_, sClassesMap, updatedTVarsdecls))
+            ))           
     
 object ShapeUtils:
     
@@ -356,4 +282,23 @@ object ShapeUtils:
             WE.Node(Shape(
                 fields.map(generateFieldTypeFromField),
             ))
-    
+
+    def getFieldType(s : CleanShapeType, targetFName: String) : (Option[CleanType], NameWE) = s match
+        case Type.Shape(fieldTypes, methodTypes) =>
+            val optTargetFtype = fieldTypes.find(ftype => ftype.fname == targetFName)
+
+            optTargetFtype match
+                case Some(FieldType(fname, typ)) => 
+                    (Some(typ), WE.Node(fname))
+                case None =>
+                    (None, WE.Err(TypeErrorNodes.FieldDoesNotExist))
+
+    def getMethodType(s : CleanShapeType, targetMName: String) : (Option[(List[CleanType], CleanType)], NameWE) = s match
+        case Type.Shape(fieldTypes, methodTypes) =>
+            val optTargetMtype = methodTypes.find(mtype => mtype.mname == targetMName)
+
+            optTargetMtype match
+                case Some(MethodType(mname, paramTypes, retType)) => 
+                    (Some((paramTypes, retType)), WE.Node(mname))
+                case None =>
+                    (None, WE.Err(TypeErrorNodes.CallMethodDoesNotExist))
