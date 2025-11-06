@@ -8,7 +8,7 @@ import static.Parser.{parseProg, parseSys, parseTypedSys}
 import static.VCheckTLDups.{classDupsProg, moduleDupsSys}
 import static.VCheckMFPNameDups.{mfpDupsProg, mfpDupsSys}
 import static.VCheckUndefined.{closedProg, closedSystem}
-import static.TypeChecker.{typeCheckSystem}
+import static.Typechecker.{typecheckSystem}
 import static.SystemToClassLinker.{renameClassesUsingDependencyGraph,convertModulesToClasses}
 import cesk.{CESKMachine, RuntimeError, ObjectVal}
 
@@ -57,7 +57,7 @@ object AssignmentRunner:
         sysNoDupMods   <- resOrCleanSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
         sysNoDupMFPs   <- resOrCleanSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
         validSys       <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysNoDupMFPs))
-        typecheckedSys <- resOrCleanSys(Result.TypeError,            typeCheckSystem(validSys))
+        typecheckedSys <- resOrCleanSys(Result.TypeError,            typecheckSystem(validSys))
       yield
         typecheckedSys
     

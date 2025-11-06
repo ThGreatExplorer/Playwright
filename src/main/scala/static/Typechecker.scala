@@ -9,31 +9,34 @@ import util.getMTypeNames
 
 // object Typechecker:
 
-object TypeChecker:
+object Typechecker:
 
-    // Top Level entry points
+    // Top Level entry point
 
-    def typeCheckSystem(s: CleanSystem): SystemWE = s match
+    def typecheckSystem(s: CleanSystem): SystemWE = s match
         case System[Clean](modules, imports, progb) =>
-            val (validatedModules, modToCNameAndShapeMapSoFar) = typeCheckModules(modules)
+            val (typecheckedModules, modToCNameAndShapeMap) = typecheckModules(modules)
             // Classes in scope constructed based on the sequence of modules 
-            val sClassesMap = typeCheckImports(imports, modToCNameAndShapeMapSoFar)
+            val sClasses = typecheckImports(imports, modToCNameAndShapeMap)
             // Variables obey lexical scope, so we begin with an empty Map from variables to Types
             val tVars = Map[String, CleanType]()
-            val (optEType, progWE) = typeCheckProgb(progb, sClassesMap, tVars)
+
+
+            val (optEType, progWE) = typecheckProgb(progb, Type.Number(), sClasses, tVars)
+
             optEType match
                 case None => 
                     WE.Node(System(
-                        validatedModules,
-                        imports.map(ConverterToWE.stringToWE(_)),
+                        typecheckedModules,
+                        imports.map(WE.Node(_)),
                         progWE
                     ))
                 case Some(returnType) =>
                     returnType match
                         case Type.Number() => 
                             WE.Node(System(
-                                validatedModules,
-                                imports.map(ConverterToWE.stringToWE(_)),
+                                typecheckedModules,
+                                imports.map(WE.Node(_)),
                                 progWE
                             ))
                         case Shape(fieldTypes, methodTypes) =>
@@ -49,30 +52,30 @@ object TypeChecker:
     * @param mods List of CleanModule to be processed
     * @return Tuple of validated Module nodes and Map[ModuleName, ClassName] 
     */
-    def typeCheckModules(mods: List[CleanModule]) : (List[ModuleWE], Map[String, (String, CleanShapeType)]) = 
+    def typecheckModules(mods: List[CleanModule]) : (List[ModuleWE], Map[String, (String, CleanShapeType)]) = 
 
-        def typeCheckModulesLoop(
+        def typecheckModulesLoop(
             modsRem: List[CleanModule], modsSoFar: List[ModuleWE], modToCNameAndShapeMapSoFar : Map[String, (String, CleanShapeType)]
         ) : (List[ModuleWE], Map[String, (String, CleanShapeType)]) = modsRem match
 
             case Nil => (modsSoFar.reverse, modToCNameAndShapeMapSoFar)
 
             case Module(mname, imports, clas, shape) :: tail => 
-                val sClassesMap = typeCheckImports(imports, modToCNameAndShapeMapSoFar)
-                val (updatedSClassesMap, updModToCNameAndShapeMapSoFar) = shape match
-                    case None => (sClassesMap, modToCNameAndShapeMapSoFar)
-                    case Some(actualShape) => (sClassesMap.updated(clas.cname, actualShape), modToCNameAndShapeMapSoFar.updated(mname, (clas.cname, actualShape)))
-                val (optShapeType, clssWE) = typeCheckClass(clas, updatedSClassesMap)
+                val sClasses = typecheckImports(imports, modToCNameAndShapeMapSoFar)
+                val (updatedSClasses, updModToCNameAndShapeMapSoFar) = shape match
+                    case None => (sClasses, modToCNameAndShapeMapSoFar)
+                    case Some(actualShape) => (sClasses.updated(clas.cname, actualShape), modToCNameAndShapeMapSoFar.updated(mname, (clas.cname, actualShape)))
+                val (optShapeType, clssWE) = typecheckClass(clas, updatedSClasses)
                 val processedModule = WE.Node(Module(
                     WE.Node(mname),
                     imports.map(ConverterToWE.stringToWE(_)),
                     clssWE,
-                    shape.map(ConverterToWE.shapeToWE) // TODO what does this really mean to convert to shapeWE? Should typeCheckClass produce a ShapeWE instead of Option[CleanShape]
+                    shape.map(ConverterToWE.shapeToWE) // TODO what does this really mean to convert to shapeWE? Should typecheckClass produce a ShapeWE instead of Option[CleanShape]
                 ))
 
-                typeCheckModulesLoop(tail, processedModule :: modsSoFar, updModToCNameAndShapeMapSoFar)
+                typecheckModulesLoop(tail, processedModule :: modsSoFar, updModToCNameAndShapeMapSoFar)
 
-        typeCheckModulesLoop(mods, Nil, Map[String, (String, CleanShapeType)]())
+        typecheckModulesLoop(mods, Nil, Map[String, (String, CleanShapeType)]())
 
     /**
      * Constructs the sClasses Map from class name to Shape of all the classes that are in scope for
@@ -83,23 +86,23 @@ object TypeChecker:
      * before this sequence of imports
      * @return Map from Class Names to their Shapes 
      */ 
-    def typeCheckImports(
+    def typecheckImports(
         imports: List[CleanImportedMod], modToCNameAndShapeMap : Map[String, (String, CleanShapeType)]
     ) : Map[String, CleanShapeType] =
         val modsInScope      = modToCNameAndShapeMap.keySet
-        val sClassesMap      = imports.foldLeft(Map[String, (String, CleanShapeType)]()){
+        val sClasses      = imports.foldLeft(Map[String, (String, CleanShapeType)]()){
                 case (acc, importedMod) =>
                     val (cname, shape) = modToCNameAndShapeMap(importedMod) 
                     acc.updated(importedMod, (cname, shape))
             }.values.toMap
 
-        sClassesMap
+        sClasses
 
    
     // Class helpers
 
-    def typeCheckClass(cls : CleanClass, sClassesMap: Map[String, CleanShapeType]) : (Option[CleanShapeType] , ClassWE) = 
-        val expectedShape = sClassesMap(cls.cname)
+    def typecheckClass(cls : CleanClass, sClasses: Map[String, CleanShapeType]) : (Option[CleanShapeType] , ClassWE) = 
+        val expectedShape = sClasses(cls.cname)
         cls match
             case Class(cname, fields, methods) => 
                 expectedShape match
@@ -120,7 +123,7 @@ object TypeChecker:
                             yield 
                                 val methodsWE = methods.sortBy(_.mname).zip(methodTypes.sortBy(_.mname)).map{
                                             case (method, methodType) =>
-                                                val (_, methodWE) = typeCheckMethodWithMethodType(method, methodType, sClassesMap)
+                                                val (_, methodWE) = typecheckMethodWithMethodType(method, methodType, sClasses)
                                                 methodWE
                                         }
                                 WE.Node(Class(
@@ -133,11 +136,11 @@ object TypeChecker:
                             case Left(errorNode) => (None, errorNode)
                             case Right(validClass) => (Some(expectedShape), validClass)
         
-    def typeCheckMethodWithMethodType(m: CleanMethod, mtype: CleanMethodType, sClassesMap: Map[String, CleanShapeType]): (Option[CleanType], MethodWE) = m match
+    def typecheckMethodWithMethodType(m: CleanMethod, mtype: CleanMethodType, sClasses: Map[String, CleanShapeType]): (Option[CleanType], MethodWE) = m match
         case Method(mname, params, progb) =>
             mtype match
                 case MethodType(mtname, paramTypes, returnType) =>
-                    // TODO should these comparisons be here or in the typeCheckClasses
+                    // TODO should these comparisons be here or in the typecheckClasses
                     if mname != mtname then
                         (None, WE.Err(TypeErrorNodes.ShapeTypeMethodNameMismatch))
                     else 
@@ -145,7 +148,7 @@ object TypeChecker:
                             (None, WE.Err(TypeErrorNodes.ShapeTypeMethodWrongNumberOfParams))
                         else
                             val tVars: Map[String, CleanType] = params.zip(paramTypes).toMap
-                            val (optProgRType, progBWE) = typeCheckProgb(progb, sClassesMap, tVars)
+                            val (optProgRType, progBWE) = typecheckProgb(progb, returnType, sClasses, tVars)
                             optProgRType match
                                 case None => 
                                     (None, WE.Node(Method(
@@ -165,31 +168,32 @@ object TypeChecker:
                                             )))
                             
 
-    def typeCheckProgb(progb: CleanProgBlock, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]): (Option[CleanType], ProgBlockWE) =
-        progb match
-            case ProgBlock(decls, stmts, expr) => 
-                val (updatedTVarsdecls, declsWE) = decls.foldLeft((tVars, List[DeclWE]())){
-                    case ((tVarAcc, declList), decl) =>
-                        val (optTVar, declWE) = typeCheckDecl(decl, sClassesMap, tVarAcc)
-                        optTVar match
-                            case None => (tVarAcc, declList :+ declWE)
-                            case Some((varDecl, vType)) => (tVarAcc.updated(varDecl, vType), declList :+ declWE)
-                }
+    def typecheckProgb(
+        progb: CleanProgBlock, expRetType : CleanType, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
+    ): (Option[CleanType], ProgBlockWE) = progb match
+        case ProgBlock(decls, stmts, expr) =>
+             
+            val (updatedTVarsdecls, declsWE) = decls.foldLeft((tVars, List[DeclWE]())){
+                case ((tVarAcc, declList), decl) =>
+                    val (optTVar, declWE) = typecheckDecl(decl, sClasses, tVarAcc)
+                    optTVar match
+                        case None => (tVarAcc, declList :+ declWE)
+                        case Some((varDecl, vType)) => (tVarAcc.updated(varDecl, vType), declList :+ declWE)
+            }
 
-                val (optEType, exprWE) = typeCheckExpr(expr, sClassesMap, updatedTVarsdecls)
-                
-                (optEType, WE.Node(ProgBlock(
-                    declsWE,
-                    stmts.map(typecheckStmt(_, sClassesMap, updatedTVarsdecls)),
-                    exprWE
-                )))
-                
+            val (optEType, exprWE) = typecheckExpr(expr, sClasses, updatedTVarsdecls)
+            
+            (optEType, WE.Node(ProgBlock(
+                declsWE,
+                stmts.map(typecheckStmt(_, sClasses, updatedTVarsdecls)),
+                exprWE
+            )))
+            
 
-
-    def typeCheckDecl(decl: CleanDecl, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]): (Option[(String,CleanType)], DeclWE) =
+    def typecheckDecl(decl: CleanDecl, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]): (Option[(String,CleanType)], DeclWE) =
         decl match
             case Decl(varDecl, rhs) =>
-                val (optType, exprWE) = typeCheckExpr(rhs, sClassesMap, tVars)
+                val (optType, exprWE) = typecheckExpr(rhs, sClasses, tVars)
                 optType match
                     case None => 
                         (None, WE.Node(Decl(
@@ -202,7 +206,7 @@ object TypeChecker:
                             exprWE
                         )))
     
-    def typeCheckExpr(expr: CleanExpr, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]): (Option[CleanType], ExprWE) = 
+    def typecheckExpr(expr: CleanExpr, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]): (Option[CleanType], ExprWE) = 
         expr match
             case Expr.Num(n) => 
                 (Some(Type.Number()), WE.Node(Expr.Num(n)))
@@ -246,7 +250,7 @@ object TypeChecker:
                     case Type.Number() => 
                         (None, WE.Err(TypeErrorNodes.IsACalledWithNonNumberType))
                     case expectedShape @ Shape(fieldTypes, methodTypes) =>
-                        expectedShape == sClassesMap(cname) match
+                        expectedShape == sClasses(cname) match
                             case false =>
                                 (None, WE.Err(TypeErrorNodes.IsAShapeMismatch))
                             case true =>
@@ -255,7 +259,7 @@ object TypeChecker:
                                     ConverterToWE.stringToWE(cname)
                                 )))
             case Expr.NewInstance(cname, args) =>
-                val expectedShape = sClassesMap(cname)
+                val expectedShape = sClasses(cname)
                 args.lengthIs == expectedShape.fieldTypes.length match
                     case false => 
                         (None, WE.Err(TypeErrorNodes.NewInstanceWrongNumberOfFields))
@@ -305,9 +309,9 @@ object TypeChecker:
                                                 )))
                                         
 
-    def typecheckStmt(stmt: CleanStmt, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]): StmtWE = stmt match
+    def typecheckStmt(stmt: CleanStmt, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]): StmtWE = stmt match
         case Stmt.Assign(id, rhs) => 
-            val (optType, exprWE) = typeCheckExpr(rhs, sClassesMap, tVars)
+            val (optType, exprWE) = typecheckExpr(rhs, sClasses, tVars)
             optType match
                 case None => 
                     WE.Node(Stmt.Assign(
@@ -324,22 +328,22 @@ object TypeChecker:
                         WE.Err(StrongTypingViolation)
 
         case Stmt.Ifelse(guard, tbranch, ebranch) =>
-            val (_, exprWE) = typeCheckExpr(guard, sClassesMap, tVars)
+            val (_, exprWE) = typecheckExpr(guard, sClasses, tVars)
             WE.Node(Stmt.Ifelse(
                 exprWE, 
-                typecheckSBlock(tbranch, sClassesMap, tVars), 
-                typecheckSBlock(ebranch, sClassesMap, tVars) 
+                typecheckSBlock(tbranch, sClasses, tVars), 
+                typecheckSBlock(ebranch, sClasses, tVars) 
             ))                   
             
         case Stmt.While(guard, body) =>
-            val (_, exprWE) = typeCheckExpr(guard, sClassesMap, tVars)
+            val (_, exprWE) = typecheckExpr(guard, sClasses, tVars)
             WE.Node(Stmt.While(
                 exprWE, 
-                typecheckSBlock(body, sClassesMap, tVars)
+                typecheckSBlock(body, sClasses, tVars)
             )) 
 
         case Stmt.FieldAssign(instance, fname, rhs) =>
-            val (optType, exprWE) = typeCheckExpr(rhs, sClassesMap, tVars)
+            val (optType, exprWE) = typecheckExpr(rhs, sClasses, tVars)
             optType match
                 case None => 
                     WE.Node(Stmt.FieldAssign(
@@ -370,16 +374,16 @@ object TypeChecker:
                                         else 
                                             WE.Err(StrongTypingViolation)
                     
-    def typecheckSBlock(b: CleanStmtBlock, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]) : StmtBlockWE = b match
+    def typecheckSBlock(b: CleanStmtBlock, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]) : StmtBlockWE = b match
         case StmtBlock.One(stmt) => 
             WE.Node(StmtBlock.One(
-                typecheckStmt(stmt, sClassesMap, tVars)
+                typecheckStmt(stmt, sClasses, tVars)
             ))
 
         case StmtBlock.Many(decls, stmts) => 
             val (updatedTVarsdecls, declsWE) = decls.foldLeft((tVars, List[DeclWE]())){
                     case ((tVarAcc, declList), decl) =>
-                        val (optTVar, declWE) = typeCheckDecl(decl, sClassesMap, tVarAcc)
+                        val (optTVar, declWE) = typecheckDecl(decl, sClasses, tVarAcc)
                         optTVar match
                             case None => (tVarAcc, declList :+ declWE)
                             case Some((varDecl, vType)) => (tVarAcc.updated(varDecl, vType), declList :+ declWE)
@@ -387,7 +391,7 @@ object TypeChecker:
 
             WE.Node(StmtBlock.Many(
                 declsWE, 
-                stmts.map(typecheckStmt(_, sClassesMap, updatedTVarsdecls))
+                stmts.map(typecheckStmt(_, sClasses, updatedTVarsdecls))
             ))           
     
 object ShapeUtils:
