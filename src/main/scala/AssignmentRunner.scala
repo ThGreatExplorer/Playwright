@@ -8,7 +8,7 @@ import static.Parser.{parseProg, parseSys, parseTypedSys}
 import static.VCheckTLDups.{classDupsProg, moduleDupsSys}
 import static.VCheckMFPNameDups.{mfpDupsProg, mfpDupsSys}
 import static.VCheckUndefined.{closedProg, closedSystem}
-import static.Typechecker.{typecheckSys}
+import static.TypeChecker.{typeCheckSystem}
 import static.SystemToClassLinker.{renameClassesUsingDependencyGraph,convertModulesToClasses}
 import cesk.{CESKMachine, RuntimeError, ObjectVal}
 
@@ -57,7 +57,7 @@ object AssignmentRunner:
         sysNoDupMods   <- resOrCleanSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
         sysNoDupMFPs   <- resOrCleanSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
         validSys       <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysNoDupMFPs))
-        typecheckedSys <- resOrCleanSys(Result.TypeError,            typecheckSys(validSys))
+        typecheckedSys <- resOrCleanSys(Result.TypeError,            typeCheckSystem(validSys))
       yield
         typecheckedSys
     
@@ -95,7 +95,7 @@ object AssignmentRunner:
       case Left(errRes)     => errRes
       case Right(validProg) => 
         // run the linker
-        val (baseModule, renamedProg) = renameClassesUsingDependencyGraph(validProg)
+        val renamedProg = renameClassesUsingDependencyGraph(validProg)
         val classProg = convertModulesToClasses(renamedProg)
         CESKMachine(classProg).run match
           case n: NumVal    => Result.SuccNum(n)

@@ -88,7 +88,6 @@ object TypeChecker:
     ) : Map[String, CleanShapeType] =
         val modsInScope      = modToCNameAndShapeMap.keySet
         val sClassesMap      = imports.foldLeft(Map[String, (String, CleanShapeType)]()){
-                case (acc, WE.Err(_)) => acc
                 case (acc, importedMod) =>
                     val (cname, shape) = modToCNameAndShapeMap(importedMod) 
                     acc.updated(importedMod, (cname, shape))
