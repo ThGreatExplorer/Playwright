@@ -53,7 +53,9 @@ enum ValidityErrNodes:
 
 enum TypeErrorNodes:
     case BinOpWithNonNumberType
+    case StrongTypingViolation
     case GetFieldCalledOnNonShapeType
+    case InstanceIsNotAShape
     case FieldDoesNotExist
     case IsACalledWithNonNumberType
     case IsAShapeMismatch
@@ -70,3 +72,4 @@ enum TypeErrorNodes:
     case ShapeTypeWrongNumberOfMethods
     case ShapeTypeFieldTypeMismatch
     case ShapeTypeMethodTypeMismatch
+    case TopLevelReturnNotANumber
