@@ -54,3 +54,13 @@ enum ValidityErrNodes:
 enum TypeErrorNodes:
     case BinOpWithNonNumberType
     case StrongTypingViolation
+    case GetFieldCalledOnNonShapeType
+    case FieldDoesNotExist
+    case IsACalledWithNonNumberType
+    case IsAShapeMismatch
+    case NewInstanceWrongNumberOfFields
+    case NewInstanceFieldWrongType
+    case CallMethodWithNonNumberType
+    case CallMethodDoesNotExist
+    case CallMethodWrongNumberOfParams
+    case CallMethodParamWrongType
