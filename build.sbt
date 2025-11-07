@@ -20,7 +20,8 @@ lazy val root = project
     // wartremover
     // wartremoverWarnings ++= Warts.allBut(Wart.Throw),
     Compile / compile / wartremoverWarnings ++= Warts.allBut(Wart.Throw, Wart.Recursion, 
-    Wart.StringPlusAny, Wart.Any, Wart.Equals, Wart.IterableOps, Wart.MutableDataStructures),
+    Wart.StringPlusAny, Wart.Any, Wart.Equals, Wart.IterableOps, Wart.MutableDataStructures,
+    Wart.Nothing),
     wartremoverExcluded += baseDirectory.value / "src" / "main" / "scala" / "sexprs",
     libraryDependencies += "org.scalameta" %% "munit" % "1.0.0" % Test,
 

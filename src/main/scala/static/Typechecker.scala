@@ -3,41 +3,32 @@ package static
 import ast._
 import ast.TypeErrorNodes._
 import ast.Type.Shape
-import util.{getCNames}
-import util.getFTypeNames
-import util.getMTypeNames
+import util.{getCNames, getFTypeNames, getMTypeNames}
+import util.UnreachablePatternMatch
 
 // object Typechecker:
 
-object TypeChecker:
+object Typechecker:
 
-    // Top Level entry points
+    // Top Level entry point
 
-    def typeCheckSystem(s: CleanSystem): SystemWE = s match
+    def typecheckSystem(s: CleanSystem): SystemWE = WE.Node( s match
         case System[Clean](modules, imports, progb) =>
-            val (validatedModules, modToCNameAndShapeMapSoFar) = typeCheckModules(modules)
+
+            val (typecheckedModules, modToCNameAndShapeMap) = typecheckModules(modules)
             // Classes in scope constructed based on the sequence of modules 
-            val sClassesMap = typeCheckImports(imports, modToCNameAndShapeMapSoFar)
+            val (typecheckedImports, sClasses) = typecheckImports(imports, modToCNameAndShapeMap)
             // Variables obey lexical scope, so we begin with an empty Map from variables to Types
             val tVars = Map[String, CleanType]()
-            val (optEType, progWE) = typeCheckProgb(progb, sClassesMap, tVars)
-            optEType match
-                case None => 
-                    WE.Node(System(
-                        validatedModules,
-                        imports.map(ConverterToWE.stringToWE(_)),
-                        progWE
-                    ))
-                case Some(returnType) =>
-                    returnType match
-                        case Type.Number() => 
-                            WE.Node(System(
-                                validatedModules,
-                                imports.map(ConverterToWE.stringToWE(_)),
-                                progWE
-                            ))
-                        case Shape(fieldTypes, methodTypes) =>
-                            WE.Err(TypeErrorNodes.TopLevelReturnNotANumber)
+
+            val topLevelExpectedReturnType : CleanType = Type.Number()
+
+            System(
+                typecheckedModules,
+                typecheckedImports,
+                typecheckProgBWithExpType(progb, topLevelExpectedReturnType, sClasses, tVars)
+            )
+    )
 
     // Module helpers
 
@@ -49,30 +40,41 @@ object TypeChecker:
     * @param mods List of CleanModule to be processed
     * @return Tuple of validated Module nodes and Map[ModuleName, ClassName] 
     */
-    def typeCheckModules(mods: List[CleanModule]) : (List[ModuleWE], Map[String, (String, CleanShapeType)]) = 
+    def typecheckModules(mods: List[CleanModule]) : (List[ModuleWE], Map[String, (String, CleanShapeType)]) = 
 
-        def typeCheckModulesLoop(
+        def typecheckModulesLoop(
             modsRem: List[CleanModule], modsSoFar: List[ModuleWE], modToCNameAndShapeMapSoFar : Map[String, (String, CleanShapeType)]
         ) : (List[ModuleWE], Map[String, (String, CleanShapeType)]) = modsRem match
 
             case Nil => (modsSoFar.reverse, modToCNameAndShapeMapSoFar)
 
             case Module(mname, imports, clas, shape) :: tail => 
-                val sClassesMap = typeCheckImports(imports, modToCNameAndShapeMapSoFar)
-                val (updatedSClassesMap, updModToCNameAndShapeMapSoFar) = shape match
-                    case None => (sClassesMap, modToCNameAndShapeMapSoFar)
-                    case Some(actualShape) => (sClassesMap.updated(clas.cname, actualShape), modToCNameAndShapeMapSoFar.updated(mname, (clas.cname, actualShape)))
-                val (optShapeType, clssWE) = typeCheckClass(clas, updatedSClassesMap)
+                val (typecheckedImports, sClasses) = typecheckImports(imports, modToCNameAndShapeMapSoFar)
+
+                val (updatedSClasses, updModToCNameAndShapeMapSoFar) = shape match
+                    case None => 
+                        // Probably use this for next assignment:
+                        // (sClasses, modToCNameAndShapeMapSoFar)
+                        throw new UnreachablePatternMatch(
+                            "Should not happen in A9: module " + mname + " is untyped"
+                        )
+
+                    case Some(actualShape) => 
+                        (
+                            sClasses.updated(clas.cname, actualShape), 
+                            modToCNameAndShapeMapSoFar.updated(mname, (clas.cname, actualShape))
+                        )
+                
                 val processedModule = WE.Node(Module(
                     WE.Node(mname),
-                    imports.map(ConverterToWE.stringToWE(_)),
-                    clssWE,
-                    shape.map(ConverterToWE.shapeToWE) // TODO what does this really mean to convert to shapeWE? Should typeCheckClass produce a ShapeWE instead of Option[CleanShape]
+                    typecheckedImports,
+                    typecheckClass(clas, updatedSClasses),
+                    shape.map(ConverterToWE.shapeToWE) // TODO refine data representation so that we don't do this
                 ))
 
-                typeCheckModulesLoop(tail, processedModule :: modsSoFar, updModToCNameAndShapeMapSoFar)
+                typecheckModulesLoop(tail, processedModule :: modsSoFar, updModToCNameAndShapeMapSoFar)
 
-        typeCheckModulesLoop(mods, Nil, Map[String, (String, CleanShapeType)]())
+        typecheckModulesLoop(mods, Nil, Map[String, (String, CleanShapeType)]())
 
     /**
      * Constructs the sClasses Map from class name to Shape of all the classes that are in scope for
@@ -81,334 +83,318 @@ object TypeChecker:
      * @param imports List of imports 
      * @param modToCNameAndShapeMap Map from ModuleNames to (ClassNames, ClassShapes) that were define
      * before this sequence of imports
-     * @return Map from Class Names to their Shapes 
+     * @return Tuple of ImportWE and Map from Class Names to their Shapes 
      */ 
-    def typeCheckImports(
+    def typecheckImports(
         imports: List[CleanImportedMod], modToCNameAndShapeMap : Map[String, (String, CleanShapeType)]
-    ) : Map[String, CleanShapeType] =
-        val modsInScope      = modToCNameAndShapeMap.keySet
-        val sClassesMap      = imports.foldLeft(Map[String, (String, CleanShapeType)]()){
+    ) : (List[ImportedModWE], Map[String, CleanShapeType])  =
+
+        val sClasses      = imports.foldLeft(Map[String, (String, CleanShapeType)]()){
                 case (acc, importedMod) =>
                     val (cname, shape) = modToCNameAndShapeMap(importedMod) 
                     acc.updated(importedMod, (cname, shape))
             }.values.toMap
 
-        sClassesMap
+        val importsWE = imports.map(WE.Node(_))
+        (importsWE, sClasses)
 
    
     // Class helpers
 
-    def typeCheckClass(cls : CleanClass, sClassesMap: Map[String, CleanShapeType]) : (Option[CleanShapeType] , ClassWE) = 
-        val expectedShape = sClassesMap(cls.cname)
-        cls match
-            case Class(cname, fields, methods) => 
-                expectedShape match
-                    case Shape(fieldTypes, methodTypes) =>
-                        val result = 
-                            for
-                                _ <- Either.cond(fields.lengthIs == fieldTypes.length, (), 
-                                    WE.Err(TypeErrorNodes.ShapeTypeWrongNumberOfFields))
-                                _ <- Either.cond(methods.lengthIs == methodTypes.length, (),
-                                    WE.Err(TypeErrorNodes.ShapeTypeWrongNumberOfMethods))
-                                _ <- Either.cond(
-                                        fields.sorted.zip(fieldTypes.sortBy(_.fname)).forall { 
-                                            case (field, fieldType) =>
-                                                field == fieldType.fname
-                                        }, 
-                                        (), 
-                                        WE.Err(TypeErrorNodes.ShapeTypeFieldTypeMismatch))
-                            yield 
-                                val methodsWE = methods.sortBy(_.mname).zip(methodTypes.sortBy(_.mname)).map{
-                                            case (method, methodType) =>
-                                                val tVars: Map[String, CleanType] = Map("this" -> expectedShape)
-                                                val (_, methodWE) = typeCheckMethodWithMethodType(method, methodType, sClassesMap ,tVars)
-                                                methodWE
-                                        }
-                                WE.Node(Class(
-                                    ConverterToWE.stringToWE(cname),
-                                    fields.map(ConverterToWE.stringToWE(_)),
-                                    methodsWE
-                                ))
-                        
-                        result match
-                            case Left(errorNode) => (None, errorNode)
-                            case Right(validClass) => (Some(expectedShape), validClass)
-        
-    def typeCheckMethodWithMethodType(m: CleanMethod, mtype: CleanMethodType, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]): (Option[CleanType], MethodWE) = m match
-        case Method(mname, params, progb) =>
-            mtype match
-                case MethodType(mtname, paramTypes, returnType) =>
-                    // TODO should these comparisons be here or in the typeCheckClasses
-                    if mname != mtname then
-                        (None, WE.Err(TypeErrorNodes.ShapeTypeMethodNameMismatch))
-                    else 
-                        if params.lengthIs != paramTypes.length then
-                            (None, WE.Err(TypeErrorNodes.ShapeTypeMethodWrongNumberOfParams))
-                        else
-                            val updatedTVars: Map[String, CleanType] = tVars ++ params.zip(paramTypes).toMap
-                            val (optProgRType, progBWE) = typeCheckProgb(progb, sClassesMap, updatedTVars)
-                            optProgRType match
-                                case None => 
-                                    (None, WE.Node(Method(
-                                        ConverterToWE.stringToWE(mname),
-                                        params.map(ConverterToWE.stringToWE(_)),
-                                        progBWE
-                                    )))
-                                case Some(progReturnType) =>
-                                    progReturnType == returnType match
-                                        case false => 
-                                            (None, WE.Err(TypeErrorNodes.ProgBlockReturnWrongType))
-                                        case true =>
-                                            (Some(returnType), WE.Node(Method(
-                                                ConverterToWE.stringToWE(mname),
-                                                params.map(ConverterToWE.stringToWE(_)),
-                                                progBWE
-                                            )))
+    def typecheckClass(cls : CleanClass, sClasses: Map[String, CleanShapeType]) : ClassWE = 
+        val thisShape = sClasses(cls.cname)
+        (cls, thisShape) match
+            case (Class(_, fields, _), Shape(fieldTypes, _)) if fields.lengthIs != fieldTypes.length => 
+                WE.Err(ShapeTypeWrongNumberOfFields)
+
+            case (Class(_, _, methods), Shape(_, methodTypes)) if methods.lengthIs != methodTypes.length => 
+                WE.Err(ShapeTypeWrongNumberOfMethods) 
+
+            case (Class(cname, fields, methods), Shape(fieldTypes, methodTypes)) => 
+                // According to simplification, we expect fields to appear in the same order
+                val fieldsWE = fields.zip(fieldTypes).map{
+                        case (fnameInDef, FieldType(fnameInTyp, _)) if fnameInDef != fnameInTyp => 
+                            WE.Err(ShapeTypeFieldTypeMismatch)
+                        case (fname, _) => 
+                            WE.Node(fname)
+                    }
+
+                // Since the simplification only applies to fields and not methods,
+                // we need to enforce order before comparison
+                val orderedMethodDefs = methods.sortBy(_.mname)
+                val orderedMethodTypes = methodTypes.sortBy(_.mname)
+                val methodsWE = orderedMethodDefs.zip(orderedMethodTypes).map{
+                        case (method, methodType) =>
+                            typecheckMethodWithMethodType(method, methodType, sClasses, thisShape)
+                    }
+                
+                WE.Node(Class(
+                    WE.Node(cname),
+                    fieldsWE,
+                    methodsWE
+                ))
+
+    def typecheckMethodWithMethodType(
+        m: CleanMethod, expectedMtype: CleanMethodType, sClasses: Map[String, CleanShapeType], tVarThis : CleanType
+    ): MethodWE = (m, expectedMtype) match
+        case (Method(mname, _, _), MethodType(mtname, _, _)) if mname != mtname =>
+            WE.Err(ShapeTypeMethodNameMismatch)
+
+        case (Method(_, params, _), MethodType(_, paramTypes, _)) if params.lengthIs != paramTypes.length =>
+            WE.Err(ShapeTypeMethodWrongNumberOfParams)
+
+        case (Method(mname, params, progb), MethodType(_, paramTypes, retType)) =>
+            val paramTVars: Map[String, CleanType] = params.zip(paramTypes).toMap
+            val initTVars = paramTVars.updated("this", tVarThis)
+
+            WE.Node(Method(
+                WE.Node(mname),
+                params.map(WE.Node(_)),
+                typecheckProgBWithExpType(progb, retType, sClasses, initTVars)
+            ))
                             
+    // Core helpers
 
-    def typeCheckProgb(progb: CleanProgBlock, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]): (Option[CleanType], ProgBlockWE) =
-        progb match
-            case ProgBlock(decls, stmts, expr) => 
-                val (updatedTVarsdecls, declsWE) = decls.foldLeft((tVars, List[DeclWE]())){
-                    case ((tVarAcc, declList), decl) =>
-                        val (optTVar, declWE) = typeCheckDecl(decl, sClassesMap, tVarAcc)
-                        optTVar match
-                            case None => (tVarAcc, declList :+ declWE)
-                            case Some((varDecl, vType)) => (tVarAcc.updated(varDecl, vType), declList :+ declWE)
-                }
+    def typecheckProgBWithExpType(
+        progb: CleanProgBlock, expRetType : CleanType, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
+    ): ProgBlockWE = WE.Node(progb match
+        case ProgBlock(decls, stmts, expr) =>
 
-                val (optEType, exprWE) = typeCheckExpr(expr, sClassesMap, updatedTVarsdecls)
-                
-                (optEType, WE.Node(ProgBlock(
-                    declsWE,
-                    stmts.map(typecheckStmt(_, sClassesMap, updatedTVarsdecls)),
-                    exprWE
-                )))
-                
+            val (typecheckedDecls, extTVars) = typecheckDeclsAndExtendTVars(decls, sClasses, tVars)
+           
+            ProgBlock(
+                typecheckedDecls,
+                stmts.map(typecheckStmt(_, sClasses, extTVars)),
+                typecheckExprWithExpType(expr, expRetType, sClasses, extTVars)
+            )
+    )
+            
+    def typecheckDeclsAndExtendTVars(
+        decls: List[CleanDecl], sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
+    ): (List[DeclWE], Map[String, CleanType]) =
 
+        val (revDeclsWE, extTVars) = 
+            decls.foldLeft((List[DeclWE](), tVars)){
 
-    def typeCheckDecl(decl: CleanDecl, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]): (Option[(String,CleanType)], DeclWE) =
-        decl match
-            case Decl(varDecl, rhs) =>
-                val (optType, exprWE) = typeCheckExpr(rhs, sClassesMap, tVars)
-                optType match
-                    case None => 
-                        (None, WE.Node(Decl(
-                            ConverterToWE.stringToWE(varDecl), 
-                            exprWE
-                        )))
-                    case Some(eType) => 
-                        (Some(varDecl, eType), WE.Node(Decl(
-                            ConverterToWE.stringToWE(varDecl), 
-                            exprWE
-                        )))
-    
-    def typeCheckExpr(expr: CleanExpr, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]): (Option[CleanType], ExprWE) = 
-        expr match
-            case Expr.Num(n) => 
-                (Some(Type.Number()), WE.Node(Expr.Num(n)))
-            case Expr.Var(varRef) =>
-                (Some(tVars(varRef)), WE.Node(Expr.Var(ConverterToWE.stringToWE(varRef))))
-            case Expr.BinOpExpr(lhs, op, rhs) =>
-                val lhsType = tVars(lhs)
-                val rhsType = tVars(rhs)
-                op match
-                    case BinOp.Equals => 
-                        (Some(Type.Number()), WE.Node(Expr.BinOpExpr(
-                            ConverterToWE.stringToWE(lhs),
-                            op,
-                            ConverterToWE.stringToWE(rhs)
-                        )))
-                    case _ =>
-                        (lhsType, rhsType) match
-                            case (Type.Number(), Type.Number()) =>
-                                (Some(Type.Number()), WE.Node(Expr.BinOpExpr(
-                                    ConverterToWE.stringToWE(lhs),
-                                    op,
-                                    ConverterToWE.stringToWE(rhs)
-                                )))
-                            case (_, _) =>
-                                (None, WE.Err(TypeErrorNodes.BinOpWithNonNumberType))
-            case Expr.GetField(instance, fname) =>
-                tVars(instance) match
-                    case Type.Number() => 
-                        (None, WE.Err(TypeErrorNodes.GetFieldCalledOnNonShapeType))
-                    case Shape(fieldTypes, methodTypes) => 
-                        fieldTypes.zip(fieldTypes.getFTypeNames).find((_, targetFName) => targetFName == fname) match
-                            case Some(fieldType, _) => 
-                                (Some(fieldType.fieldType), WE.Node(Expr.GetField(
-                                    ConverterToWE.stringToWE(instance),
-                                    ConverterToWE.stringToWE(fname)
-                                ))) 
-                            case None =>
-                                (None, WE.Err(TypeErrorNodes.FieldDoesNotExist))                        
-            case Expr.IsInstanceOf(instance, cname) =>
-                tVars(instance) match
-                    case Type.Number() => 
-                        (None, WE.Err(TypeErrorNodes.IsACalledWithNonNumberType))
-                    case expectedShape @ Shape(fieldTypes, methodTypes) =>
-                        expectedShape == sClassesMap(cname) match
-                            case false =>
-                                (None, WE.Err(TypeErrorNodes.IsAShapeMismatch))
-                            case true =>
-                                (Some(expectedShape), WE.Node(Expr.IsInstanceOf(
-                                    ConverterToWE.stringToWE(instance),
-                                    ConverterToWE.stringToWE(cname)
-                                )))
-            case Expr.NewInstance(cname, args) =>
-                val expectedShape = sClassesMap(cname)
-                args.lengthIs == expectedShape.fieldTypes.length match
-                    case false => 
-                        (None, WE.Err(TypeErrorNodes.NewInstanceWrongNumberOfFields))
-                    case true =>
-                        // TODO, this same logic is used in matchingClass function
-                        val matchingFields = args.zip(expectedShape.fieldTypes).forall((arg, fieldType) => 
-                            val givenFType = tVars(arg)
-                            givenFType == fieldType.fieldType
-                        )
-                        matchingFields match
-                            case false =>
-                                (None, WE.Err(TypeErrorNodes.NewInstanceFieldWrongType))
-                            case true =>
-                                (Some(expectedShape), WE.Node(Expr.NewInstance(
-                                    ConverterToWE.stringToWE(cname),
-                                    args.map(ConverterToWE.stringToWE(_))
-                                )))
-            case Expr.CallMethod(instance, method, args) =>
-                tVars(instance) match
-                    case Type.Number() => 
-                        (None, WE.Err(TypeErrorNodes.CallMethodWithNonNumberType))
-                    case Shape(fieldTypes, methodTypes) =>
-                        // TODO, similar to finding the fieldName
-                        methodTypes.zip(methodTypes.getMTypeNames).find((methodType, mname) =>
-                        mname == method) match
-                            case None =>
-                                (None, WE.Err(TypeErrorNodes.CallMethodDoesNotExist))
-                            case Some((methodType, _)) =>
-                                args.lengthIs == methodType.paramTypes.length match
-                                    case false =>
-                                        (None, WE.Err(TypeErrorNodes.CallMethodWrongNumberOfParams))
-                                    case true =>
-                                        // TODO, similar logic as in matchingClass function
-                                        val matchingParams = args.zip(methodType.paramTypes).forall(
-                                            (arg, paramType) =>
-                                                val givenParamType = tVars(arg)
-                                                givenParamType == paramType
-                                        )
-                                        matchingParams match
-                                            case false => 
-                                                (None, WE.Err(TypeErrorNodes.CallMethodParamWrongType))
-                                            case true =>
-                                                (Some(methodType.returnType), WE.Node(Expr.CallMethod(
-                                                    ConverterToWE.stringToWE(instance),
-                                                    ConverterToWE.stringToWE(method),
-                                                    args.map(ConverterToWE.stringToWE(_))
-                                                )))
-                                        
+                case ((declList, tVarsAcc), curDecl) =>
+                    val (declWE, updTVars) = typecheckOneDecl(curDecl, sClasses, tVarsAcc)
+                    (declWE :: declList, updTVars)
 
-    def typecheckStmt(stmt: CleanStmt, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]): StmtWE = stmt match
+            }
+        
+        (revDeclsWE.reverse, extTVars)
+
+    def typecheckOneDecl(
+        decl: CleanDecl, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
+    ): (DeclWE, Map[String, CleanType]) = decl match
+        case Decl(varDecl, rhs) =>
+            inferExprType(rhs, sClasses, tVars) match
+                case Right(inferredType) => 
+                    (
+                        ConverterToWE.declToWE(decl), 
+                        tVars.updated(varDecl, inferredType)
+                    )
+
+                case Left(exprWE) => 
+                    (
+                        WE.Node(Decl( WE.Node(varDecl), exprWE )),  
+                        tVars
+                    )
+                        
+    def typecheckStmt(
+        stmt: CleanStmt, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
+    ): StmtWE = WE.Node(stmt match
         case Stmt.Assign(id, rhs) => 
-            val (optType, exprWE) = typeCheckExpr(rhs, sClassesMap, tVars)
-            optType match
-                case None => 
-                    WE.Node(Stmt.Assign(
-                        WE.Node(id), 
-                        exprWE
-                    ))
-                case Some(exprType) => 
-                    if exprType == tVars(id) then
-                        WE.Node(Stmt.Assign(
-                            WE.Node(id), 
-                            exprWE
-                        ))
-                    else 
-                        WE.Err(StrongTypingViolation)
+            val expectecExprType = tVars(id)
+            Stmt.Assign(
+                WE.Node(id), 
+                typecheckExprWithExpType(rhs, expectecExprType, sClasses, tVars)
+            )
 
         case Stmt.Ifelse(guard, tbranch, ebranch) =>
-            val (_, exprWE) = typeCheckExpr(guard, sClassesMap, tVars)
-            WE.Node(Stmt.Ifelse(
-                exprWE, 
-                typecheckSBlock(tbranch, sClassesMap, tVars), 
-                typecheckSBlock(ebranch, sClassesMap, tVars) 
-            ))                   
+            Stmt.Ifelse(
+                typecheckExpr(guard, sClasses, tVars), 
+                typecheckSBlock(tbranch, sClasses, tVars), 
+                typecheckSBlock(ebranch, sClasses, tVars) 
+            )                 
             
         case Stmt.While(guard, body) =>
-            val (_, exprWE) = typeCheckExpr(guard, sClassesMap, tVars)
-            WE.Node(Stmt.While(
-                exprWE, 
-                typecheckSBlock(body, sClassesMap, tVars)
-            )) 
+            Stmt.While(
+                typecheckExpr(guard, sClasses, tVars), 
+                typecheckSBlock(body, sClasses, tVars)
+            )
 
         case Stmt.FieldAssign(instance, fname, rhs) =>
-            val (optType, exprWE) = typeCheckExpr(rhs, sClassesMap, tVars)
-            optType match
-                case None => 
-                    WE.Node(Stmt.FieldAssign(
-                        WE.Node(instance),
+            tVars(instance) match
+                case Type.Number() => 
+                    Stmt.FieldAssign(
+                        WE.Err(InstanceIsNotAShape),
                         WE.Node(fname),
-                        exprWE
-                    ))
-                case Some(exprType) => 
-                    tVars(instance) match
-                        case Type.Number() => 
-                            WE.Err(TypeErrorNodes.InstanceIsNotAShape)
-                        case instShape @ Shape(fieldTypes, methodTypes) =>
-                            val (optExpectedFtype, fnameWE) = ShapeUtils.getFieldType(instShape, fname)
-                                optExpectedFtype match
-                                    case None => 
-                                        WE.Node(Stmt.FieldAssign(
-                                            WE.Node(instance),
-                                            fnameWE,
-                                            exprWE
-                                        ))
-                                    case Some(expectedFtype) => 
-                                        if exprType == expectedFtype then
-                                            WE.Node(Stmt.FieldAssign(
-                                                WE.Node(instance),
-                                                fnameWE,
-                                                exprWE
-                                            ))
-                                        else 
-                                            WE.Err(StrongTypingViolation)
-                    
-    def typecheckSBlock(b: CleanStmtBlock, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]) : StmtBlockWE = b match
+                        typecheckExpr(rhs, sClasses, tVars)
+                    )
+                case instShape @ Shape(_, _) =>
+                    ShapeUtils.getFieldType(instShape, fname) match
+                        case Left(nameWE) => 
+                            Stmt.FieldAssign(
+                                WE.Node(instance),
+                                nameWE,
+                                typecheckExpr(rhs, sClasses, tVars)
+                            )
+                        case Right(expectedFieldType) => 
+                            Stmt.FieldAssign(
+                                WE.Node(instance),
+                                WE.Node(fname),
+                                typecheckExprWithExpType(rhs, expectedFieldType, sClasses, tVars)
+                            )
+    )
+                                 
+    def typecheckSBlock(
+        b: CleanStmtBlock, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
+    ) : StmtBlockWE =  WE.Node( b match
         case StmtBlock.One(stmt) => 
-            WE.Node(StmtBlock.One(
-                typecheckStmt(stmt, sClassesMap, tVars)
-            ))
+            StmtBlock.One(
+                typecheckStmt(stmt, sClasses, tVars)
+            )
 
         case StmtBlock.Many(decls, stmts) => 
-            val (updatedTVarsdecls, declsWE) = decls.foldLeft((tVars, List[DeclWE]())){
-                    case ((tVarAcc, declList), decl) =>
-                        val (optTVar, declWE) = typeCheckDecl(decl, sClassesMap, tVarAcc)
-                        optTVar match
-                            case None => (tVarAcc, declList :+ declWE)
-                            case Some((varDecl, vType)) => (tVarAcc.updated(varDecl, vType), declList :+ declWE)
-                }
+            val (typecheckedDecls, extTVars) = typecheckDeclsAndExtendTVars(decls, sClasses, tVars)
 
-            WE.Node(StmtBlock.Many(
-                declsWE, 
-                stmts.map(typecheckStmt(_, sClassesMap, updatedTVarsdecls))
-            ))           
+            StmtBlock.Many(
+                typecheckedDecls, 
+                stmts.map(typecheckStmt(_, sClasses, extTVars))
+            )
+    )           
+    
+
+    def typecheckExpr(
+        expr: CleanExpr, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
+    ): ExprWE = 
+        inferExprType(expr, sClasses, tVars) match
+            case Right(inferredType) => 
+                ConverterToWE.exprToWE(expr)
+
+            case Left(exprWE) => exprWE
+
+    def typecheckExprWithExpType(
+        expr: CleanExpr, expType : CleanType, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
+    ): ExprWE = 
+        inferExprType(expr, sClasses, tVars) match
+            case Right(inferredType) => 
+                if expType == inferredType then
+                    ConverterToWE.exprToWE(expr)
+                else
+                    WE.Err(ExpectedExprTypeMismatch)
+
+            case Left(exprWE) => exprWE
+
+    def inferExprType(
+        expr: CleanExpr, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
+    ): Either[ExprWE, CleanType] = expr match
+        case Expr.Num(n) => 
+            Right(Type.Number())
+
+        case Expr.Var(varRef) => 
+            Right(tVars(varRef))
+
+        case Expr.BinOpExpr(lhs, op, rhs) =>
+            op match
+                case BinOp.Equals => 
+                    Right(Type.Number())
+
+                case _ =>
+                    (tVars(lhs), tVars(rhs)) match
+                        case (Type.Number(), Type.Number()) =>
+                            Right(Type.Number())
+                        case (_, _) =>
+                            Left(WE.Err(BinOpWithNonNumberType))    
+
+        case Expr.NewInstance(cname, args) =>
+            sClasses(cname) match
+                case Shape(fieldTypes, _) if args.lengthIs != fieldTypes.length => 
+                    Left(WE.Err(NewInstanceWrongNumberOfFields))
+                    
+                case instantiatedShape @ Shape(fieldTypes, _) => 
+                    // TODO, this same logic is used in matchingClass function
+                    val argsTypematchFields = args.zip(fieldTypes).forall{
+                        case (argVarRef, FieldType(_, fieldType)) => 
+                            fieldType == tVars(argVarRef)
+                    }
+
+                    if argsTypematchFields then
+                        Right(instantiatedShape)
+                    else 
+                        Left(WE.Err(NewInstanceFieldWrongType))
+
+        case Expr.IsInstanceOf(instance, cname) =>
+            tVars(instance) match
+                case Type.Number() =>
+                    Left(WE.Err(IsACalledWithNonNumberType)) 
+
+                case Shape(_, _) =>
+                    // sClasses(cname) will always succeed because we know class is in scope
+                    Right(Type.Number())
+
+        case Expr.GetField(instance, fname) =>
+            tVars(instance) match
+                case Type.Number() => 
+                    Left(WE.Err(GetFieldCalledOnNonShapeType))
+
+                case s @ Shape(_, _) => 
+                    ShapeUtils.getFieldType(s, fname) match
+                        case Right(typ) => 
+                            Right(typ)
+                        case Left(nameWE) => 
+                            Left(WE.Node(Expr.GetField(
+                                WE.Node(instance),
+                                nameWE
+                            )))
+
+        case Expr.CallMethod(instance, mname, args) =>
+            tVars(instance) match
+                case Type.Number() => 
+                    Left(WE.Err(CallMethodOnNumberType))
+                case s @ Shape(_, _) =>
+                    ShapeUtils.getMethodType(s, mname) match
+                        case Left(nameWE) => 
+                            Left(WE.Node(Expr.CallMethod(
+                                WE.Node(instance),
+                                nameWE,
+                                args.map(WE.Node(_))
+                            )))
+
+                        case Right((paramTypes, _)) if args.lengthIs != paramTypes.length => 
+                            Left(WE.Err(CallMethodWrongNumberOfParams))
+
+                        case Right((paramTypes, retType)) => 
+                            // TODO, this same logic is used in matchingClass function
+                            val argsTypematchParams = args.zip(paramTypes).forall{
+                                case (argVarRef, paramType) => 
+                                    paramType == tVars(argVarRef)
+                            }
+
+                            if argsTypematchParams then
+                                Right(retType)
+                            else 
+                                Left(WE.Err(CallMethodParamWrongType))                                   
     
 object ShapeUtils:
 
-    def getFieldType(s : CleanShapeType, targetFName: String) : (Option[CleanType], NameWE) = s match
+    def getFieldType(s : CleanShapeType, targetFName: String) : Either[NameWE, CleanType] = s match
         case Type.Shape(fieldTypes, methodTypes) =>
             val optTargetFtype = fieldTypes.find(ftype => ftype.fname == targetFName)
 
             optTargetFtype match
                 case Some(FieldType(fname, typ)) => 
-                    (Some(typ), WE.Node(fname))
+                    Right(typ)
                 case None =>
-                    (None, WE.Err(TypeErrorNodes.FieldDoesNotExist))
+                    Left(WE.Err(FieldDoesNotExist))
 
-    def getMethodType(s : CleanShapeType, targetMName: String) : (Option[(List[CleanType], CleanType)], NameWE) = s match
+    def getMethodType(s : CleanShapeType, targetMName: String) : Either[NameWE, (List[CleanType], CleanType)] = s match
         case Type.Shape(fieldTypes, methodTypes) =>
             val optTargetMtype = methodTypes.find(mtype => mtype.mname == targetMName)
 
             optTargetMtype match
-                case Some(MethodType(mname, paramTypes, retType)) => 
-                    (Some((paramTypes, retType)), WE.Node(mname))
+                case Some(MethodType(mname, paramTypes, retType)) =>
+                    Right((paramTypes, retType))
                 case None =>
-                    (None, WE.Err(TypeErrorNodes.CallMethodDoesNotExist))
+                    Left(WE.Err(CallMethodDoesNotExist))

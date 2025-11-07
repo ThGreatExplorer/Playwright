@@ -61,15 +61,15 @@ enum TypeErrorNodes:
     case IsAShapeMismatch
     case NewInstanceWrongNumberOfFields
     case NewInstanceFieldWrongType
-    case CallMethodWithNonNumberType
+    case CallMethodOnNumberType
     case CallMethodDoesNotExist
     case CallMethodWrongNumberOfParams
     case CallMethodParamWrongType
-    case ProgBlockReturnWrongType
     case ShapeTypeMethodNameMismatch
     case ShapeTypeMethodWrongNumberOfParams
     case ShapeTypeWrongNumberOfFields
     case ShapeTypeWrongNumberOfMethods
     case ShapeTypeFieldTypeMismatch
     case ShapeTypeMethodTypeMismatch
-    case TopLevelReturnNotANumber
+
+    case ExpectedExprTypeMismatch
