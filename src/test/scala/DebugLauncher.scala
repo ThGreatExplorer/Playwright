@@ -15,16 +15,23 @@ class RunnerTests extends FunSuite {
     val runnerFun = typedSystem(_)
     val input = 
         """
-      ((tmodule
-        Point
-        (class Point (x y) (method delta (x) (def y (this --> y)) (x = 1.0) (x + y)))
-        (((x Number) (y Number)) ((delta (Number) Number))))
-        (import Point)
-        (def x 1.0)
-        (def point (new Point (x x)))
-        (point --> x = x)
-        (x = (point --> delta (x)))
-        x)
+      (
+    (module ModuleAOne (class A () (method onlyAOne () 0.0)) (() ((onlyAOne () Number))))
+    (module ModuleATwo (class A ()) (() ()))
+
+    (module ModuleBAOne (import ModuleAOne) (import ModuleATwo) 
+        (class B () (method newA () (new A ())))
+        (() ((newA () (() ())))))
+
+    (import ModuleAOne)
+    (import ModuleBAOne)
+
+    (def b (new B ()))
+    (def someA (b --> newA ()))
+
+    (someA --> onlyAOne())
+) 
+
       """
 
     test("Debug launch") {

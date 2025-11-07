@@ -1,10 +1,41 @@
-((tmodule
-  Point
-  (class Point (x y) (method delta (x) (def y (this --> y)) (x = 1.0) (x + y)))
-  (((x Number) (y Number)) ((delta (Number) Number))))
- (import Point)
- (def x 1.0)
- (def point (new Point (x x)))
- (point --> x = x)
- (x = (point --> delta (x)))
- x)
+( 
+  (tmodule Mult (class Multiplier ()
+    (method times (m n)
+      (def negOne -1.0)
+      (def result 0.0) 
+      (def keepRunning 0.0)
+
+      (while0 keepRunning
+        (block 
+          (result = (result + m))
+          (n = (n + negOne))
+          (if0 n
+            (keepRunning = 1.0)
+            (keepRunning = 0.0))
+          ))
+      result))
+    (() ((times (Number Number) Number))))
+
+  (tmodule Fact (import Mult) 
+    (class Fact ()
+      (method calcN (n)
+        (def result 1.0)
+        (if0 n
+          (result = 1.0)
+          (block
+            (def negOne -1.0)
+            (def nMinOne (n + negOne))
+            (def calcNminOne (this --> calcN (nMinOne)))
+
+            (def multiplier (new Multiplier ()))
+            (result = (multiplier --> times (n calcNminOne)))
+          ))
+        result))
+      (() ((calcN (Number) Number))))
+
+  (import Fact)
+  
+  (def factorial (new Fact ()))
+  (def n 5.0)
+  (factorial --> calcN (n))
+)
