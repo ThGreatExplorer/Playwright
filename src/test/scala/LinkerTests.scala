@@ -48,18 +48,18 @@ object LinkerTests {
   """#topLevelModName@
 └── ModuleB
     └── ModuleA""", 
-  """System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List())),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassB,List(),List()))),List(ModuleB),ProgBlock(List(),List(),Num(0.0)))"""
+  """System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List()),None),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassB,List(),List()),None)),List(ModuleB),ProgBlock(List(),List(),Num(0.0)))"""
   ),
   ("""#topLevelModName@
 └── ModuleA""", 
-  """System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List()))),List(ModuleA),ProgBlock(List(),List(),Num(0.0)))"""
+  """System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List()),None)),List(ModuleA),ProgBlock(List(),List(),Num(0.0)))"""
   ),
   ("""#topLevelModName@
 └── ModuleC
     ├── ModuleA
     └── ModuleB
         └── ModuleA (already shown)""", 
-    """System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List())),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassB,List(),List())),Module(ModuleC,List(ModuleA,ModuleB),Class(ModuleC.ClassC,List(),List()))),List(ModuleC),ProgBlock(List(),List(),Num(0.0)))"""
+    """System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List()),None),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassB,List(),List()),None),Module(ModuleC,List(ModuleA,ModuleB),Class(ModuleC.ClassC,List(),List()),None)),List(ModuleC),ProgBlock(List(),List(),Num(0.0)))"""
   ),
   ("#topLevelModName@", 
   "System(List(),List(),ProgBlock(List(),List(),Num(0.0)))"
@@ -73,26 +73,26 @@ object LinkerTests {
 │   └── ModuleC
 │       └── ModuleB (already shown)
 └── ModuleC (already shown)""", 
-"""System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List())),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassB,List(),List())),Module(ModuleC,List(ModuleB),Class(ModuleC.ClassC,List(),List())),Module(ModuleD,List(ModuleC),Class(ModuleD.ClassD,List(),List()))),List(ModuleB,ModuleD,ModuleC),ProgBlock(List(),List(),Num(0.0)))"""
+"""System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List()),None),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassB,List(),List()),None),Module(ModuleC,List(ModuleB),Class(ModuleC.ClassC,List(),List()),None),Module(ModuleD,List(ModuleC),Class(ModuleD.ClassD,List(),List()),None)),List(ModuleB,ModuleD,ModuleC),ProgBlock(List(),List(),Num(0.0)))"""
   ),
   ("""#topLevelModName@
 ├── ModuleA
 └── ModuleB""", 
-"""System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List())),Module(ModuleB,List(),Class(ModuleB.ClassA,List(),List()))),List(ModuleA,ModuleB),ProgBlock(List(),List(),Num(0.0)))"""
+"""System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List()),None),Module(ModuleB,List(),Class(ModuleB.ClassA,List(),List()),None)),List(ModuleA,ModuleB),ProgBlock(List(),List(),Num(0.0)))"""
   ),
   ("""#topLevelModName@
 ├── ModuleB
 │   └── ModuleA
 └── ModuleA (already shown)
   """,
-  "System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List())),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassA,List(),List()))),List(ModuleB,ModuleA),ProgBlock(List(),List(),Num(0.0)))"
+  "System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List()),None),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassA,List(),List()),None)),List(ModuleB,ModuleA),ProgBlock(List(),List(),Num(0.0)))"
   ),
   ("""#topLevelModName@
 ├── ModuleAOne
 └── ModuleBAOne
     ├── ModuleATwo
     └── ModuleAOne (already shown)""",
-  "System(List(Module(ModuleAOne,List(),Class(ModuleAOne.A,List(),List())),Module(ModuleATwo,List(),Class(ModuleATwo.A,List(),List())),Module(ModuleBAOne,List(ModuleATwo,ModuleAOne),Class(ModuleBAOne.B,List(),List(Method(newA,List(),ProgBlock(List(),List(),NewInstance(ModuleAOne.A,List()))))))),List(ModuleAOne,ModuleBAOne),ProgBlock(List(Decl(b,NewInstance(ModuleBAOne.B,List())),Decl(aOne,CallMethod(b,newA,List())),Decl(aOneO,NewInstance(ModuleAOne.A,List()))),List(),BinOpExpr(aOneO,Equals,aOne)))")
+  "System(List(Module(ModuleAOne,List(),Class(ModuleAOne.A,List(),List()),None),Module(ModuleATwo,List(),Class(ModuleATwo.A,List(),List()),None),Module(ModuleBAOne,List(ModuleATwo,ModuleAOne),Class(ModuleBAOne.B,List(),List(Method(newA,List(),ProgBlock(List(),List(),NewInstance(ModuleAOne.A,List()))))),None)),List(ModuleAOne,ModuleBAOne),ProgBlock(List(Decl(b,NewInstance(ModuleBAOne.B,List())),Decl(aOne,CallMethod(b,newA,List())),Decl(aOneO,NewInstance(ModuleAOne.A,List()))),List(),BinOpExpr(aOneO,Equals,aOne)))")
 )
 
   val validCases = List(
