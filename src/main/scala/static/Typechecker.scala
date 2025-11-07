@@ -201,7 +201,71 @@ object Typechecker:
                         tVars
                     )
                         
+    def typecheckStmt(
+        stmt: CleanStmt, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
+    ): StmtWE = WE.Node(stmt match
+        case Stmt.Assign(id, rhs) => 
+            val expectecExprType = tVars(id)
+            Stmt.Assign(
+                WE.Node(id), 
+                typecheckExprWithExpType(rhs, expectecExprType, sClasses, tVars)
+            )
+
+        case Stmt.Ifelse(guard, tbranch, ebranch) =>
+            Stmt.Ifelse(
+                typecheckExpr(guard, sClasses, tVars), 
+                typecheckSBlock(tbranch, sClasses, tVars), 
+                typecheckSBlock(ebranch, sClasses, tVars) 
+            )                 
+            
+        case Stmt.While(guard, body) =>
+            Stmt.While(
+                typecheckExpr(guard, sClasses, tVars), 
+                typecheckSBlock(body, sClasses, tVars)
+            )
+
+        case Stmt.FieldAssign(instance, fname, rhs) =>
+            tVars(instance) match
+                case Type.Number() => 
+                    Stmt.FieldAssign(
+                        WE.Err(InstanceIsNotAShape),
+                        WE.Node(fname),
+                        typecheckExpr(rhs, sClasses, tVars)
+                    )
+                case instShape @ Shape(_, _) =>
+                    ShapeUtils.getFieldType(instShape, fname) match
+                        case Left(nameWE) => 
+                            Stmt.FieldAssign(
+                                WE.Node(instance),
+                                nameWE,
+                                typecheckExpr(rhs, sClasses, tVars)
+                            )
+                        case Right(expectedFieldType) => 
+                            Stmt.FieldAssign(
+                                WE.Node(instance),
+                                WE.Node(fname),
+                                typecheckExprWithExpType(rhs, expectedFieldType, sClasses, tVars)
+                            )
+    )
+                                 
+    def typecheckSBlock(
+        b: CleanStmtBlock, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
+    ) : StmtBlockWE =  WE.Node( b match
+        case StmtBlock.One(stmt) => 
+            StmtBlock.One(
+                typecheckStmt(stmt, sClasses, tVars)
+            )
+
+        case StmtBlock.Many(decls, stmts) => 
+            val (typecheckedDecls, extTVars) = typecheckDeclsAndExtendTVars(decls, sClasses, tVars)
+
+            StmtBlock.Many(
+                typecheckedDecls, 
+                stmts.map(typecheckStmt(_, sClasses, extTVars))
+            )
+    )           
     
+
     def typecheckExpr(
         expr: CleanExpr, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
     ): ExprWE = 
@@ -312,70 +376,6 @@ object Typechecker:
                                 Right(retType)
                             else 
                                 Left(WE.Err(CallMethodParamWrongType))                                   
-    
-    def typecheckStmt(
-        stmt: CleanStmt, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
-    ): StmtWE = WE.Node(stmt match
-        case Stmt.Assign(id, rhs) => 
-            val expectecExprType = tVars(id)
-            Stmt.Assign(
-                WE.Node(id), 
-                typecheckExprWithExpType(rhs, expectecExprType, sClasses, tVars)
-            )
-
-        case Stmt.Ifelse(guard, tbranch, ebranch) =>
-            Stmt.Ifelse(
-                typecheckExpr(guard, sClasses, tVars), 
-                typecheckSBlock(tbranch, sClasses, tVars), 
-                typecheckSBlock(ebranch, sClasses, tVars) 
-            )                 
-            
-        case Stmt.While(guard, body) =>
-            Stmt.While(
-                typecheckExpr(guard, sClasses, tVars), 
-                typecheckSBlock(body, sClasses, tVars)
-            )
-
-        case Stmt.FieldAssign(instance, fname, rhs) =>
-            tVars(instance) match
-                case Type.Number() => 
-                    Stmt.FieldAssign(
-                        WE.Err(InstanceIsNotAShape),
-                        WE.Node(fname),
-                        typecheckExpr(rhs, sClasses, tVars)
-                    )
-                case instShape @ Shape(_, _) =>
-                    ShapeUtils.getFieldType(instShape, fname) match
-                        case Left(nameWE) => 
-                            Stmt.FieldAssign(
-                                WE.Node(instance),
-                                nameWE,
-                                typecheckExpr(rhs, sClasses, tVars)
-                            )
-                        case Right(expectedFieldType) => 
-                            Stmt.FieldAssign(
-                                WE.Node(instance),
-                                WE.Node(fname),
-                                typecheckExprWithExpType(rhs, expectedFieldType, sClasses, tVars)
-                            )
-    )
-                                 
-    def typecheckSBlock(
-        b: CleanStmtBlock, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
-    ) : StmtBlockWE =  WE.Node( b match
-        case StmtBlock.One(stmt) => 
-            StmtBlock.One(
-                typecheckStmt(stmt, sClasses, tVars)
-            )
-
-        case StmtBlock.Many(decls, stmts) => 
-            val (typecheckedDecls, extTVars) = typecheckDeclsAndExtendTVars(decls, sClasses, tVars)
-
-            StmtBlock.Many(
-                typecheckedDecls, 
-                stmts.map(typecheckStmt(_, sClasses, extTVars))
-            )
-    )           
     
 object ShapeUtils:
 
