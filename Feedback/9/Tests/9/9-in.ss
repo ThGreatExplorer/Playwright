@@ -1,0 +1,5 @@
+((tmodule M (class C ()) (() ()))
+ (import M)
+ (def o (new C ()))
+ (def n 1.0)
+ (o + n))

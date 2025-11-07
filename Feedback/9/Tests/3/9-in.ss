@@ -1,0 +1,1 @@
+((tmodule Ex (class Ex (a) (method m () 0.0)) (((a Number))  ((m () Number)))) (import Ex) (def one 1.0) (def zero 0.0) (def result 5.0) (def obj (new Ex (zero))) (if0 obj (result = zero) (result = one)) result)

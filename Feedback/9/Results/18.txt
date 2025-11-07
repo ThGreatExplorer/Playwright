@@ -1,0 +1,158 @@
+(testing /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./9/xtypes)
+(testing /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/0-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/0-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/1-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/1-out.ss)
+Exception in thread "main" java.util.NoSuchElementException: key not found: carOne
+	at scala.collection.immutable.Map$Map2.apply(Map.scala:316)
+	at static.Typechecker$.inferExprType(Typechecker.scala:353)
+	at static.Typechecker$.typecheckExprWithExpType(Typechecker.scala:281)
+	at static.Typechecker$.typecheckProgBWithExpType(Typechecker.scala:168)
+	at static.Typechecker$.typecheckSystem(Typechecker.scala:29)
+	at main.AssignmentRunner$.$anonfun$1$$anonfun$1$$anonfun$1$$anonfun$1(AssignmentRunner.scala:60)
+	at scala.util.Either.flatMap(Either.scala:360)
+	at main.AssignmentRunner$.$anonfun$1$$anonfun$1$$anonfun$1(AssignmentRunner.scala:59)
+	at scala.util.Either.flatMap(Either.scala:360)
+	at main.AssignmentRunner$.$anonfun$1$$anonfun$1(AssignmentRunner.scala:58)
+	at scala.util.Either.flatMap(Either.scala:360)
+	at main.AssignmentRunner$.$anonfun$1(AssignmentRunner.scala:57)
+	at scala.util.Either.flatMap(Either.scala:360)
+	at main.AssignmentRunner$.typedSystem(AssignmentRunner.scala:56)
+	at main.Main$package$.main(Main.scala:16)
+	at main.main.main(Main.scala:11)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((tmodule
+    Vehicle
+    (class Car (year) (method getYear () (this --> year)))
+    (((year Number)) ((getYear () Number))))
+   (import Vehicle)
+   (def fifty 50.0)
+   (def zero 0.0)
+   (def carOne (new Car (fifty zero)))
+   (carOne --> getYear ())))
+(*** expected)
+'("type error")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ()))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/2-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/2-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/3-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/3-out.ss)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((tmodule
+    Vehicle
+    (class Car (module tankAmount) (method getModule () (this --> module)))
+    (((module Number) (tankAmount Number) (module Number))
+     ((getYear () Number))))
+   (import Vehicle)
+   (def fifty 50.0)
+   (def zero 0.0)
+   (def carOne (new Car (fifty zero)))
+   (carOne --> getYear ())))
+(*** expected)
+'("duplicate method, field, or parameter name")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ("parser error")))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/4-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/4-out.ss)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((tmodule
+    Vehicle
+    (class Car (module tankAmount) (method getModule () (this --> module)))
+    (((module Number) (tankAmount Number)) ((getModule () Number))))
+   (import Vehicle)
+   (def fifty 50.0)
+   (def zero 0.0)
+   (def carOne (new Car (fifty zero)))
+   (carOne --> getModule ())))
+(*** expected)
+'(50.0)
+(*** but received)
+'(((plain fast with-newline plain-unicode) ("parser error")))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/5-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/5-out.ss)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((tmodule
+    Vehicle
+    (class Car (module tankAmount) (method getModule () (this --> module)))
+    (((module Number) (tankAmount Number)) ((getModule () Number))))
+   (import Vehicle)
+   (def fifty 50.0)
+   (def zero 0.0)
+   (def carOne (new Car (fifty zero)))
+   (def carTwo (new Car (zero zero)))
+   (if0
+    zero
+    (carOne --> tankAmount = zero)
+    (block (def zero carTwo) (zero = -1.0) (carOne --> tankAmount = zero)))
+   (carOne --> getModule ())))
+(*** expected)
+'("type error")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ("parser error")))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/6-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/6-out.ss)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((tmodule
+    Vehicle
+    (class Car (module tankAmount) (method getModule () (this --> module)))
+    (((module Number) (tankAmount Number)) ((getModule () Number))))
+   (tmodule
+    Vehicle
+    (class boat (module tankAmount) (method getModule () (this --> module)))
+    (((module Number) (tankAmount Number)) ((getModule () Number))))
+   (import Vehicle)
+   (def fifty 50.0)
+   (def zero 0.0)
+   (def carOne (new Car (fifty zero)))
+   (carOne --> getModule ())))
+(*** expected)
+'("duplicate module name")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ("parser error")))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/7-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/7-out.ss)
+(testing /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/8-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/8-out.ss)
+---------------------------------
+(*** score 0)
+(*** on)
+'(((tmodule
+    Vehicle
+    (class Car (module tankAmount) (method getModule () (this --> module)))
+    (((module Number) (tankAmount Number)) ((getModule () Number))))
+   (import Vehicle)
+   (def fifty 50.0)
+   (def zero 0.0)
+   (def carOne (new Car (fifty zero)))
+   (carOne --> tankAmt ())))
+(*** expected)
+'("type error")
+(*** but received)
+'(((plain fast with-newline plain-unicode) ("parser error")))
+
+
+(testing /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/9-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/9-out.ss)
+(results for test /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/0-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/1-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/2-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/3-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/4-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/5-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/6-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/7-in.ss pass)
+(results for test /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/8-in.ss fail)
+(results for test /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/9-in.ss pass)
+((/course/cs4400f25/ta4400/all-repos/students/9/???/Tests/0-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/0-out.ss) (/course/cs4400f25/ta4400/all-repos/students/9/???/Tests/2-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/2-out.ss) (/course/cs4400f25/ta4400/all-repos/students/9/???/Tests/7-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/7-out.ss) (/course/cs4400f25/ta4400/all-repos/students/9/???/Tests/9-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/9-out.ss))
+((passed 4) (total 10) (partial-score 4))

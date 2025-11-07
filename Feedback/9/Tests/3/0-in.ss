@@ -1,0 +1,6 @@
+((tmodule module (class C () (method mtwo (x) (x = (new C ())) 4.0)) ( ()
+                                      ( (mtwo (Number) Number)  )
+                                                          ))
+          (import module)
+                     (def ten 10.0)
+                                ten)

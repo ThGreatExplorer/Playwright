@@ -1,0 +1,18 @@
+((tmodule M (class A (x)
+                (method m (o)
+                    (def x (this --> x))
+                    (o --> m (x))))
+    (((x Number)) ((m ((() ((m (Number) Number)))) Number))))
+
+(tmodule N (class this ()
+                (method m (o)
+                (def x 1.0)
+                (x + o)))
+    (() ((m (Number) Number))))
+
+(import M)
+(import N)
+(def w 1.0)
+(def x (new A (w)))
+(def y (new this ()))
+(x --> m (y)))

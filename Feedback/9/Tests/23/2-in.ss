@@ -1,0 +1,1 @@
+((tmodule a (class A () (method f (x) 4.0)) (() ((f (Number) Number)))) (tmodule b (class B () (method f (y) 4.0)) (() ((f (Number) Number)))) (import a) (import b) (def a (new A ())) (a = (new B ())) 0.1)

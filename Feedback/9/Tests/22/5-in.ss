@@ -1,0 +1,26 @@
+((tmodule
+   Cartesian
+   (class CartesianPoint (x y)
+     (method getX () (this --> x))
+     (method getY () (this --> y)))
+   (((x Number) (y Number))
+    ((getX () Number) (getY () Number))))
+ (tmodule
+   Polar
+   (class PolarPoint (x y)
+     (method getX () (this --> x))
+     (method getY () (this --> y)))
+   (((x Number) (y Number))
+    ((getX () Number) (getY () Number))))
+ (import Cartesian)
+ (import Polar)
+ (def three 3.0)
+ (def four 4.0)
+ (def polar (new PolarPoint (three four)))
+ (def one 1.0)
+ (def zero 0.0)
+ (def result zero)
+ (if0 (polar isa CartesianPoint)
+   (result = zero)
+   (result = one))
+ result)

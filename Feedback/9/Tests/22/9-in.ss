@@ -1,0 +1,28 @@
+((tmodule
+   Storage
+   (class Storage (data)
+     (method getData () (this --> data))
+     (method setData (newData)
+       (this --> data = newData)
+       newData))
+   (((data Number))
+    ((getData () Number) (setData (Number) Number))))
+ (tmodule
+   Processor
+   (import Storage)
+   (class Processor (divisor)
+     (method process (s)
+       (def currentData (s --> getData ()))
+       (def div (this --> divisor))
+       (def newData (currentData / div))
+       (s --> setData (newData))))
+   (((divisor Number))
+    ((process ((((data Number)) ((getData () Number) (setData (Number) Number)))) Number))))
+ (import Storage)
+ (import Processor)
+ (def ninety 90.0)
+ (def three 3.0)
+ (def s (new Storage (ninety)))
+ (def p (new Processor (three)))
+ (def processResult (p --> process (s)))
+ (s --> getData ()))

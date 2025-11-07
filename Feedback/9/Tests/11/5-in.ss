@@ -1,0 +1,6 @@
+((tmodule Test (class Test (x y)) (((x Number) (y Number)) ()))
+ (tmodule TestTwo (class Test ()) (() ()))
+    (import TestTwo)
+    (def x 1.0)
+    (def test (new Test ()))
+    (test isa Test))
