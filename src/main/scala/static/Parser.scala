@@ -66,17 +66,9 @@ object Parser:
     // Module helpers
 
     def parseModule(sexp: SExpr): ModuleWE = sexp match
-        case SList(SSymbol(Keyword.Module.value) :: moduleName :: rest0) =>
+        case SList(SSymbol(Keyword.TModule.value) :: moduleName :: rest0) =>
             val (imports, rest1) = rest0.takeWhileKWPrefix(Keyword.Import)
             rest1 match
-                // Module  ::= (module ModuleName Import^* Class)
-                case clss :: Nil => 
-                    WE.Node(Module(
-                        parseName(moduleName),
-                        imports.map(parseImport),
-                        parseClass(clss),
-                        None
-                    ))
                 // TModule ::= (tmodule ModuleName Import^* Class Shape)
                 case clss :: shape :: Nil => 
                     WE.Node(Module(
@@ -86,11 +78,23 @@ object Parser:
                         Some(parseShape(shape))
                     ))
                 case _ => WE.Err(ModuleMalformed) 
+        case SList(SSymbol(Keyword.Module.value) :: moduleName :: rest0) =>
+            val (imports, rest1) = rest0.takeWhileKWPrefix(Keyword.Import)
+            rest1 match
+                // Module  ::= (module ModuleName Import^* Class)
+                case clss :: Nil =>
+                    WE.Node(Module(
+                        parseName(moduleName),
+                        imports.map(parseImport),
+                        parseClass(clss),
+                        None
+                    ))
+                case _ => WE.Err(ModuleMalformed)
         case _ => WE.Err(ModuleMalformed)
 
     // Special helper for A9. Only considers typed modules as well-formed
     def errIfUntypedMod(mod: ModuleWE) : ModuleWE = mod match
-        case WE.Node(Module(_, _, _, Some(_))) => WE.Err(ModuleMalformed) 
+        case WE.Node(Module(_, _, _, None)) => WE.Err(ModuleMalformed) 
         case any => any
 
     def parseImport(sexp: SExpr): ImportedModWE = sexp match

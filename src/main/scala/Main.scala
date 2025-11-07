@@ -13,7 +13,7 @@ import util.ExampleChecker.assertExample
   val inputSexp = MainFuncs.readSexp(inputString)
   assertExample(inputSexp)
 
-  val result = AssignmentRunner.ceskModule(inputSexp)
+  val result = AssignmentRunner.typedSystem(inputSexp)
   println(result.outputString)
 
 object MainFuncs:

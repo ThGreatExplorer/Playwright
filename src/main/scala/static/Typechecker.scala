@@ -108,7 +108,7 @@ object TypeChecker:
                             for
                                 _ <- Either.cond(fields.lengthIs == fieldTypes.length, (), 
                                     WE.Err(TypeErrorNodes.ShapeTypeWrongNumberOfFields))
-                                _ <- Either.cond(methods.length == methodTypes.length, (),
+                                _ <- Either.cond(methods.lengthIs == methodTypes.length, (),
                                     WE.Err(TypeErrorNodes.ShapeTypeWrongNumberOfMethods))
                                 _ <- Either.cond(
                                         fields.sorted.zip(fieldTypes.sortBy(_.fname)).forall { 
@@ -120,7 +120,8 @@ object TypeChecker:
                             yield 
                                 val methodsWE = methods.sortBy(_.mname).zip(methodTypes.sortBy(_.mname)).map{
                                             case (method, methodType) =>
-                                                val (_, methodWE) = typeCheckMethodWithMethodType(method, methodType, sClassesMap)
+                                                val tVars: Map[String, CleanType] = Map("this" -> expectedShape)
+                                                val (_, methodWE) = typeCheckMethodWithMethodType(method, methodType, sClassesMap ,tVars)
                                                 methodWE
                                         }
                                 WE.Node(Class(
@@ -133,7 +134,7 @@ object TypeChecker:
                             case Left(errorNode) => (None, errorNode)
                             case Right(validClass) => (Some(expectedShape), validClass)
         
-    def typeCheckMethodWithMethodType(m: CleanMethod, mtype: CleanMethodType, sClassesMap: Map[String, CleanShapeType]): (Option[CleanType], MethodWE) = m match
+    def typeCheckMethodWithMethodType(m: CleanMethod, mtype: CleanMethodType, sClassesMap: Map[String, CleanShapeType], tVars: Map[String, CleanType]): (Option[CleanType], MethodWE) = m match
         case Method(mname, params, progb) =>
             mtype match
                 case MethodType(mtname, paramTypes, returnType) =>
@@ -144,8 +145,8 @@ object TypeChecker:
                         if params.lengthIs != paramTypes.length then
                             (None, WE.Err(TypeErrorNodes.ShapeTypeMethodWrongNumberOfParams))
                         else
-                            val tVars: Map[String, CleanType] = params.zip(paramTypes).toMap
-                            val (optProgRType, progBWE) = typeCheckProgb(progb, sClassesMap, tVars)
+                            val updatedTVars: Map[String, CleanType] = tVars ++ params.zip(paramTypes).toMap
+                            val (optProgRType, progBWE) = typeCheckProgb(progb, sClassesMap, updatedTVars)
                             optProgRType match
                                 case None => 
                                     (None, WE.Node(Method(
@@ -263,7 +264,7 @@ object TypeChecker:
                         // TODO, this same logic is used in matchingClass function
                         val matchingFields = args.zip(expectedShape.fieldTypes).forall((arg, fieldType) => 
                             val givenFType = tVars(arg)
-                            givenFType == fieldType
+                            givenFType == fieldType.fieldType
                         )
                         matchingFields match
                             case false =>
@@ -274,7 +275,7 @@ object TypeChecker:
                                     args.map(ConverterToWE.stringToWE(_))
                                 )))
             case Expr.CallMethod(instance, method, args) =>
-                tVars(method) match
+                tVars(instance) match
                     case Type.Number() => 
                         (None, WE.Err(TypeErrorNodes.CallMethodWithNonNumberType))
                     case Shape(fieldTypes, methodTypes) =>
