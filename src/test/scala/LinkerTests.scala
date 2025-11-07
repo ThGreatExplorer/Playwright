@@ -29,8 +29,9 @@ class LinkerTests extends FunSuite {
 
         pipeRes match
           case None => throw new Exception("Passed invalid test case for Linker")
-          case Some(cleanSystem) =>
-            val (baseModule, renamedSys) = SystemToClassLinker.renameClassesUsingDependencyGraph(cleanSystem)
+          case Some(sys @ ast.System(modules, imports, progb)) =>
+            val baseModule = SystemToClassLinker.generateTopLevelModule(modules, imports)
+            val renamedSys = SystemToClassLinker.renameClassesUsingDependencyGraph(sys)
             assertEquals(baseModule.toString().strip(), expectedDepGraph.strip())
             assertEquals(removeWhiteSpace(renamedSys.toString()), removeWhiteSpace(expectedAST.toString()))
       }
@@ -40,32 +41,32 @@ class LinkerTests extends FunSuite {
 object LinkerTests {
   val expectedValidTestCaseResults = List(
   (
-    "#Base@", 
+    "#topLevelModName@", 
     "System(List(),List(),ProgBlock(List(),List(),Num(0.0)))"
   ),
   (
-  """#Base@
+  """#topLevelModName@
 └── ModuleB
     └── ModuleA""", 
   """System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List())),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassB,List(),List()))),List(ModuleB),ProgBlock(List(),List(),Num(0.0)))"""
   ),
-  ("""#Base@
+  ("""#topLevelModName@
 └── ModuleA""", 
   """System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List()))),List(ModuleA),ProgBlock(List(),List(),Num(0.0)))"""
   ),
-  ("""#Base@
+  ("""#topLevelModName@
 └── ModuleC
     ├── ModuleA
     └── ModuleB
         └── ModuleA (already shown)""", 
     """System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List())),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassB,List(),List())),Module(ModuleC,List(ModuleA,ModuleB),Class(ModuleC.ClassC,List(),List()))),List(ModuleC),ProgBlock(List(),List(),Num(0.0)))"""
   ),
-  ("#Base@", 
+  ("#topLevelModName@", 
   "System(List(),List(),ProgBlock(List(),List(),Num(0.0)))"
   ),
-  ("#Base@", 
+  ("#topLevelModName@", 
   "System(List(),List(),ProgBlock(List(),List(),Num(0.0)))"),
-  ("""#Base@
+  ("""#topLevelModName@
 ├── ModuleB
 │   └── ModuleA
 ├── ModuleD
@@ -74,19 +75,19 @@ object LinkerTests {
 └── ModuleC (already shown)""", 
 """System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List())),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassB,List(),List())),Module(ModuleC,List(ModuleB),Class(ModuleC.ClassC,List(),List())),Module(ModuleD,List(ModuleC),Class(ModuleD.ClassD,List(),List()))),List(ModuleB,ModuleD,ModuleC),ProgBlock(List(),List(),Num(0.0)))"""
   ),
-  ("""#Base@
+  ("""#topLevelModName@
 ├── ModuleA
 └── ModuleB""", 
 """System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List())),Module(ModuleB,List(),Class(ModuleB.ClassA,List(),List()))),List(ModuleA,ModuleB),ProgBlock(List(),List(),Num(0.0)))"""
   ),
-  ("""#Base@
+  ("""#topLevelModName@
 ├── ModuleB
 │   └── ModuleA
 └── ModuleA (already shown)
   """,
   "System(List(Module(ModuleA,List(),Class(ModuleA.ClassA,List(),List())),Module(ModuleB,List(ModuleA),Class(ModuleB.ClassA,List(),List()))),List(ModuleB,ModuleA),ProgBlock(List(),List(),Num(0.0)))"
   ),
-  ("""#Base@
+  ("""#topLevelModName@
 ├── ModuleAOne
 └── ModuleBAOne
     ├── ModuleATwo

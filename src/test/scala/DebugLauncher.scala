@@ -12,35 +12,25 @@ import main._
 
 class RunnerTests extends FunSuite {
     
-    val runnerFun = ceskModule(_)
+    val runnerFun = typedSystem(_)
     val input = 
         """
-      ( 
-        (module OWO (class AClass (fave))) 
-        (module UWU (import OWO)
-            (class AClass () 
-            (method makeWithFave (fave) 
-                (new AClass (fave)))
-            (method updateFave (o fave)
-                (o --> fave = fave)
-                0.0)))
-
-        (import UWU)
-        (import UWU)
-
-        (def fave 413.0)
-        (def anotherFave 612.0)
-        (def oOne (new AClass ()))
-        (def oTwo (oOne --> makeWithFave(fave)))
-        (def status (oOne --> updateFave(oTwo anotherFave)))
-
-        (oTwo --> fave)
-      )
+      ((tmodule
+        Point
+        (class Point (x y) (method delta (x) (def y (this --> y)) (x = 1.0) (x + y)))
+        (((x Number) (y Number)) ((delta (Number) Number))))
+        (import Point)
+        (def x 1.0)
+        (def point (new Point (x x)))
+        (point --> x = x)
+        (x = (point --> delta (x)))
+        x)
       """
 
     test("Debug launch") {
         val inputSexp = MainFuncs.readSexp(input)
         val result    = runnerFun(inputSexp)
         val outString = result.outputString
+        assertEquals(outString, "2.0")
     }
 }
