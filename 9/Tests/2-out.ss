@@ -1,1 +1,1 @@
-"undeclared variable error"
+6.0

@@ -1,12 +1,28 @@
 ((tmodule
-  PointThreeD
-  (class PointThreeD
-    (x y z)
-    (method delta () (def x (this --> x)) (def y (this --> y)) (x + y)))
-  (((x Number) (z Number) (y Number)) ((delta (Number) Number))))
- (import PointThreeD)
+  Point
+  (class Point (x y) 
+    (method delta (x) (def y (this --> y)) (x = 1.0) (x + y)))
+  (((x Number) (y Number)) ((delta (Number) Number))))
+  (tmodule 
+  VectorUtils
+  (class VectorUtils ()
+    (method pointSum (a b)
+      (def aX (a --> x)) 
+      (def aY (a --> y))
+      (def bX (b --> x))
+      (def bY (b --> y))
+      (def tmpX (aX + bX))
+      (def tmpY (aY + bY))
+      (tmpX + tmpY)
+    )
+  )
+  (() ((pointSum ((((x Number) (y Number)) ((delta (Number) Number))) (((x Number) (y Number)) ((delta (Number) Number)))) Number)))
+  )
+ (import VectorUtils)
+ (import Point)
  (def x 1.0)
- (def point (new Point (x x)))
- (point --> x = x)
- (x = (point --> delta (x)))
- x)
+ (def y 2.0)
+ (def pointOne (new Point (y x)))
+ (def pointTwo (new Point (x y)))
+ (def vectUtils (new VectorUtils ()))
+ (vectUtils --> pointSum (pointOne pointTwo)))
