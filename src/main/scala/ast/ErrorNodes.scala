@@ -71,5 +71,9 @@ enum TypeErrorNodes:
     case ShapeTypeWrongNumberOfMethods
     case ShapeTypeFieldTypeMismatch
     case ShapeTypeMethodTypeMismatch
-
     case ExpectedExprTypeMismatch
+    case InstVariableFailedToTypeCheck
+    case AssignVariableFailedToTypeCheck
+    case FieldAssignVariableFailedToTypeCheck
+    case BinOpVariableFailedToTypeCheck
+    case VarRefFailedToTypeCheck

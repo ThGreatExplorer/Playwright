@@ -205,11 +205,17 @@ object Typechecker:
         stmt: CleanStmt, sClasses: Map[String, CleanShapeType], tVars: Map[String, CleanType]
     ): StmtWE = WE.Node(stmt match
         case Stmt.Assign(id, rhs) => 
-            val expectecExprType = tVars(id)
-            Stmt.Assign(
-                WE.Node(id), 
-                typecheckExprWithExpType(rhs, expectecExprType, sClasses, tVars)
-            )
+            tVars.get(id) match
+                case Some(expectedExprType) => 
+                    Stmt.Assign(
+                        WE.Node(id), 
+                        typecheckExprWithExpType(rhs, expectedExprType, sClasses, tVars)
+                    )
+                case None =>
+                    Stmt.Assign(
+                        WE.Err(AssignVariableFailedToTypeCheck),
+                        typecheckExpr(rhs, sClasses, tVars)
+                    )
 
         case Stmt.Ifelse(guard, tbranch, ebranch) =>
             Stmt.Ifelse(
@@ -225,27 +231,35 @@ object Typechecker:
             )
 
         case Stmt.FieldAssign(instance, fname, rhs) =>
-            tVars(instance) match
-                case Type.Number() => 
+            tVars.get(instance) match
+                case None =>
                     Stmt.FieldAssign(
-                        WE.Err(InstanceIsNotAShape),
+                        WE.Err(FieldAssignVariableFailedToTypeCheck),
                         WE.Node(fname),
                         typecheckExpr(rhs, sClasses, tVars)
                     )
-                case instShape @ Shape(_, _) =>
-                    ShapeUtils.getFieldType(instShape, fname) match
-                        case Left(nameWE) => 
+                case Some(instType) =>
+                    instType match
+                        case Type.Number() => 
                             Stmt.FieldAssign(
-                                WE.Node(instance),
-                                nameWE,
+                                WE.Err(InstanceIsNotAShape),
+                                WE.Node(fname),
                                 typecheckExpr(rhs, sClasses, tVars)
                             )
-                        case Right(expectedFieldType) => 
-                            Stmt.FieldAssign(
-                                WE.Node(instance),
-                                WE.Node(fname),
-                                typecheckExprWithExpType(rhs, expectedFieldType, sClasses, tVars)
-                            )
+                        case instShape @ Shape(_, _) =>
+                            ShapeUtils.getFieldType(instShape, fname) match
+                                case Left(nameWE) => 
+                                    Stmt.FieldAssign(
+                                        WE.Node(instance),
+                                        nameWE,
+                                        typecheckExpr(rhs, sClasses, tVars)
+                                    )
+                                case Right(expectedFieldType) => 
+                                    Stmt.FieldAssign(
+                                        WE.Node(instance),
+                                        WE.Node(fname),
+                                        typecheckExprWithExpType(rhs, expectedFieldType, sClasses, tVars)
+                                    )
     )
                                  
     def typecheckSBlock(
@@ -294,19 +308,28 @@ object Typechecker:
             Right(Type.Number())
 
         case Expr.Var(varRef) => 
-            Right(tVars(varRef))
+            tVars.get(varRef) match
+                case Some(varType) => 
+                    Right(varType)
+                case None =>
+                    Left(WE.Err(VarRefFailedToTypeCheck))
 
         case Expr.BinOpExpr(lhs, op, rhs) =>
-            op match
-                case BinOp.Equals => 
-                    Right(Type.Number())
-
-                case _ =>
-                    (tVars(lhs), tVars(rhs)) match
-                        case (Type.Number(), Type.Number()) =>
+            (tVars.get(lhs), tVars.get(rhs)) match
+                case (None, _) =>
+                    Left(WE.Err(BinOpVariableFailedToTypeCheck))     
+                case  (_, None) =>
+                    Left(WE.Err(BinOpVariableFailedToTypeCheck))          
+                case (Some(lhsType), Some(rhsType)) =>
+                    op match
+                        case BinOp.Equals => 
                             Right(Type.Number())
-                        case (_, _) =>
-                            Left(WE.Err(BinOpWithNonNumberType))    
+                        case _ =>
+                            (lhsType, rhsType) match
+                                case (Type.Number(), Type.Number()) =>
+                                    Right(Type.Number())
+                                case (_, _) =>
+                                    Left(WE.Err(BinOpWithNonNumberType))    
 
         case Expr.NewInstance(cname, args) =>
             sClasses(cname) match
@@ -317,7 +340,11 @@ object Typechecker:
                     // TODO, this same logic is used in matchingClass function
                     val argsTypematchFields = args.zip(fieldTypes).forall{
                         case (argVarRef, FieldType(_, fieldType)) => 
-                            fieldType == tVars(argVarRef)
+                            tVars.get(argVarRef) match
+                                case Some(argType) =>
+                                    fieldType == argType
+                                case None =>
+                                    false
                     }
 
                     if argsTypematchFields then
@@ -326,56 +353,72 @@ object Typechecker:
                         Left(WE.Err(NewInstanceFieldWrongType))
 
         case Expr.IsInstanceOf(instance, cname) =>
-            tVars(instance) match
-                case Type.Number() =>
-                    Left(WE.Err(IsACalledWithNonNumberType)) 
+            tVars.get(instance) match
+                case None =>
+                    Left(WE.Err(InstVariableFailedToTypeCheck))
+                case Some(exprType) =>
+                    exprType match
+                        case Type.Number() =>
+                            Left(WE.Err(IsACalledWithNonNumberType)) 
 
-                case Shape(_, _) =>
-                    // sClasses(cname) will always succeed because we know class is in scope
-                    Right(Type.Number())
+                        case Shape(_, _) =>
+                            // sClasses(cname) will always succeed because we know class is in scope
+                            Right(Type.Number())
 
         case Expr.GetField(instance, fname) =>
-            tVars(instance) match
-                case Type.Number() => 
-                    Left(WE.Err(GetFieldCalledOnNonShapeType))
+            tVars.get(instance) match
+                case None =>
+                    Left(WE.Err(InstVariableFailedToTypeCheck))
+                case Some(instType) => 
+                    instType match
+                        case Type.Number() => 
+                            Left(WE.Err(GetFieldCalledOnNonShapeType))
 
-                case s @ Shape(_, _) => 
-                    ShapeUtils.getFieldType(s, fname) match
-                        case Right(typ) => 
-                            Right(typ)
-                        case Left(nameWE) => 
-                            Left(WE.Node(Expr.GetField(
-                                WE.Node(instance),
-                                nameWE
-                            )))
+                        case s @ Shape(_, _) => 
+                            ShapeUtils.getFieldType(s, fname) match
+                                case Right(typ) => 
+                                    Right(typ)
+                                case Left(nameWE) => 
+                                    Left(WE.Node(Expr.GetField(
+                                        WE.Node(instance),
+                                    nameWE
+                                )))
 
         case Expr.CallMethod(instance, mname, args) =>
-            tVars(instance) match
-                case Type.Number() => 
-                    Left(WE.Err(CallMethodOnNumberType))
-                case s @ Shape(_, _) =>
-                    ShapeUtils.getMethodType(s, mname) match
-                        case Left(nameWE) => 
-                            Left(WE.Node(Expr.CallMethod(
-                                WE.Node(instance),
-                                nameWE,
-                                args.map(WE.Node(_))
-                            )))
+            tVars.get(instance) match
+                case None =>
+                    Left(WE.Err(InstVariableFailedToTypeCheck))
+                case Some(instType) => 
+                    instType match
+                    case Type.Number() => 
+                        Left(WE.Err(CallMethodOnNumberType))
+                    case s @ Shape(_, _) =>
+                        ShapeUtils.getMethodType(s, mname) match
+                            case Left(nameWE) => 
+                                Left(WE.Node(Expr.CallMethod(
+                                    WE.Node(instance),
+                                    nameWE,
+                                    args.map(WE.Node(_))
+                                )))
 
-                        case Right((paramTypes, _)) if args.lengthIs != paramTypes.length => 
-                            Left(WE.Err(CallMethodWrongNumberOfParams))
+                            case Right((paramTypes, _)) if args.lengthIs != paramTypes.length => 
+                                Left(WE.Err(CallMethodWrongNumberOfParams))
 
-                        case Right((paramTypes, retType)) => 
-                            // TODO, this same logic is used in matchingClass function
-                            val argsTypematchParams = args.zip(paramTypes).forall{
-                                case (argVarRef, paramType) => 
-                                    paramType == tVars(argVarRef)
-                            }
+                            case Right((paramTypes, retType)) => 
+                                // TODO, this same logic is used in matchingClass function
+                                val argsTypematchParams = args.zip(paramTypes).forall{
+                                    case (argVarRef, paramType) => 
+                                        tVars.get(argVarRef) match
+                                            case Some(argType) => 
+                                                paramType == argType
+                                            case None =>
+                                                false
+                                }
 
-                            if argsTypematchParams then
-                                Right(retType)
-                            else 
-                                Left(WE.Err(CallMethodParamWrongType))                                   
+                                if argsTypematchParams then
+                                    Right(retType)
+                                else 
+                                    Left(WE.Err(CallMethodParamWrongType))                                   
     
 object ShapeUtils:
 
