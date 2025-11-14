@@ -24,7 +24,7 @@ class ParserTests extends FunSuite {
 
   def processSysParse(input : String) : (SystemWE, Boolean) = 
     val inputSexp = MainFuncs.readSexp(input);
-    val system    = Parser.parseSys(inputSexp); 
+    val system    = Parser.parseMixedSys(inputSexp); 
     val hasError  = systemToClean(system).isEmpty;
     (system, hasError)
 
@@ -74,7 +74,7 @@ object ParserTests:
     WE.Node(
         System(
           modules = List(
-            WE.Node(Module(
+            WE.Node(Module.Typed(
               mname = WE.Node("A"),
               imports = List(),
               clas = 
@@ -124,10 +124,10 @@ object ParserTests:
                   )
                 )
               ),
-              shape = Some(WE.Node(Type.Shape(
+              shape = WE.Node(Type.Shape(
                 fieldTypes = List(WE.Node(FieldType(WE.Node("x"), WE.Node(Type.Number()))), WE.Node(FieldType(WE.Node("y"), WE.Node(Type.Number())))),
                 methodTypes = List(WE.Node(MethodType(WE.Node("addCoords"), List(), WE.Node(Type.Number()))))
-              )))
+              ))
             ))
           ),
           imports = List(),
@@ -177,7 +177,7 @@ object ParserTests:
       WE.Node(
         System(
           modules = List(
-            WE.Node(Module(
+            WE.Node(Module.Typed(
               mname = WE.Node("A"),
               imports = List(),
               clas = 
@@ -187,9 +187,9 @@ object ParserTests:
                   methods = List()
                 )
               ),
-              shape = Some(WE.Err(ShapeMalformed))
+              shape = WE.Err(ShapeMalformed)
             )),
-            WE.Node(Module(
+            WE.Node(Module.Typed(
               mname = WE.Node("B"),
               imports = List(),
               clas = 
@@ -239,10 +239,10 @@ object ParserTests:
                   )
                 )
               ),
-              shape = Some(WE.Node(Type.Shape(
+              shape = WE.Node(Type.Shape(
                 fieldTypes = List(WE.Err(FieldTypeMalformed), WE.Node(FieldType(WE.Node("y"), WE.Node(Type.Number())))),
                 methodTypes = List(WE.Err(MethodTypeMalformed))
-              )))
+              ))
             ))
           ),
           imports = List(),
@@ -292,7 +292,7 @@ object ParserTests:
       WE.Node(
         System(
           modules = List(
-            WE.Node(Module(
+            WE.Node(Module.Untyped(
               mname = WE.Node("A"),
               imports = List(),
               clas = 
@@ -342,11 +342,9 @@ object ParserTests:
                   )
                 )
               )
-              ,
-              shape = None
             ))
           ),
-          imports = List(WE.Node("A")),
+          imports = List(WE.Node(Import.Untyped(WE.Node("A")))),
           progb = WE.Node(ProgBlock(
             decls = List(
               WE.Node(
@@ -398,7 +396,7 @@ object ParserTests:
       WE.Node(
         System(
           modules = List(
-            WE.Node(Module(
+            WE.Node(Module.Untyped(
               mname = WE.Node("A"),
               imports = List(),
               clas = 
@@ -407,23 +405,21 @@ object ParserTests:
                   fields = List(WE.Node("x"), WE.Node("y")),
                   methods = List()
                 )
-              ),
-              shape = None
+              )
             )),
-            WE.Node(Module(
+            WE.Node(Module.Untyped(
               mname = WE.Node("B"),
-              imports = List(WE.Node("A")),
+              imports = List(WE.Node(Import.Untyped(WE.Node("A")))),
               clas = 
                 WE.Node(Class(
                   cname = WE.Node("Point"),
                   fields = List(WE.Node("x"), WE.Node("y")),
                   methods = List()
                 )
-              ),
-              shape = None
+              )
             )),
           ),
-          imports = List(WE.Node("B")),
+          imports = List(WE.Node(Import.Untyped(WE.Node("B")))),
           progb = WE.Node(ProgBlock(
             decls = Nil,
             stmts = Nil,
@@ -456,7 +452,7 @@ object ParserTests:
         System(
           modules = List(
             WE.Err(ModuleMalformed),
-            WE.Node(Module(
+            WE.Node(Module.Untyped(
               mname = WE.Node("A"),
               imports = List(),
               clas = 
@@ -465,12 +461,11 @@ object ParserTests:
                   fields = List(WE.Node("x"), WE.Node("y")),
                   methods = List()
                 )
-              ),
-              shape = None
+              )
             )),
             WE.Err(ModuleMalformed)
           ),
-          imports = List(WE.Node("B"), WE.Err(ImportMalformed)),
+          imports = List(WE.Node(Import.Untyped(WE.Node("B"))), WE.Err(ImportMalformed)),
           progb = WE.Node(ProgBlock(
             decls = Nil,
             stmts = Nil,

@@ -3,6 +3,7 @@ package static
 import ast._
 import ast.ValidityErrNodes._
 import util.{identifyNameDupsWErr, getFTypeNames, getMTypeNames, getMNames}
+import ast.ConverterToWE.{importToWE, untypedImportToWE}
 
 // MFP stands for Method, Field, Paramter
 object VCheckMFPNameDups:
@@ -13,17 +14,23 @@ object VCheckMFPNameDups:
         case System(modules, imports, progb) =>
             WE.Node(System(
                 modules.map(moduleDupsMFP),
-                imports.map(WE.Node(_)),
+                imports.map(importToWE),
                 ConverterToWE.progBlockToWE(progb)
             ))
 
     def moduleDupsMFP(m: CleanModule): ModuleWE = WE.Node(m match
-        case Module(mname, imports, clas, shape) =>
-            Module(
+        case Module.Typed(mname, imports, clas, shape) =>
+            Module.Typed(
                 WE.Node(mname), 
-                imports.map(WE.Node(_)), 
+                imports.map(importToWE), 
                 classDupsMFP(clas),
-                shape.map(shapeDupsMFP)
+                shapeDupsMFP(shape)
+            )
+        case Module.Untyped(mname, imports, clas) =>
+            Module.Untyped(
+                WE.Node(mname),
+                imports.map(untypedImportToWE),
+                classDupsMFP(clas)
             )
     )
 

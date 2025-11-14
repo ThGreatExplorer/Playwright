@@ -4,12 +4,13 @@ import sexprs.SExprs._
 import util.UnreachablePatternMatch
 import ast.ConverterToClean.{progToClean, systemToClean}
 import ast.{NumVal, ProgramWE, CleanProgram, CleanSystem, SystemWE}
-import static.Parser.{parseProg, parseSys, parseTypedSys}
+import static.Parser.{parseProg, parseMixedSys, parseTypedSys}
 import static.VCheckTLDups.{classDupsProg, moduleDupsSys}
 import static.VCheckMFPNameDups.{mfpDupsProg, mfpDupsSys}
+import static.VCheckImports.{checkImportsSys}
 import static.VCheckUndefined.{closedProg, closedSystem}
 import static.Typechecker.{typecheckSystem}
-import static.SystemToClassLinker.{renameClassesUsingDependencyGraph,convertModulesToClasses}
+import linker.SystemToClassLinker.{linkProgram}
 import cesk.{CESKMachine, RuntimeError, ObjectVal}
 
 enum Result:
@@ -19,6 +20,7 @@ enum Result:
   case DupClassDefs
   case DupModuleDefs
   case DupMethodFieldParams
+  case BadImport
   case UndefinedVarError
   case TypeError
   case ValidityBelongs
@@ -34,6 +36,7 @@ enum Result:
     case DupClassDefs => "\"duplicate class name\""
     case DupModuleDefs => "\"duplicate module name\""
     case DupMethodFieldParams => "\"duplicate method, field, or parameter name\""
+    case BadImport => "\"bad import\""
     case UndefinedVarError => "\"undeclared variable error\""
     case TypeError => "\"type error\""
     case ValidityBelongs => "\"belongs\""
@@ -43,6 +46,35 @@ enum Result:
     case RuntimeError => "\"run-time error\""
 
 object AssignmentRunner: 
+
+  /**
+    * Result printer for Assignment 10 — A La JS
+    * 
+    * @param input SExpr read from stdin
+    */
+  def mixedSystem(input: SExpr): Result =
+
+    val pipeRes = 
+      for 
+        parsedSys      <- resOrCleanSys(Result.ParseError,           parseMixedSys(input))
+        sysNoDupMods   <- resOrCleanSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
+        sysNoDupMFPs   <- resOrCleanSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
+        sysGoodImps    <- resOrCleanSys(Result.BadImport,            checkImportsSys(sysNoDupMFPs))
+        validSys       <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysGoodImps))
+        typecheckedSys <- resOrCleanSys(Result.TypeError,            typecheckSystem(validSys))
+      yield
+        typecheckedSys
+    
+    pipeRes match 
+      case Left(errRes)     => errRes
+      case Right(validSys) => 
+        val classProg = linkProgram(validSys)
+        CESKMachine(classProg).run match
+          case n: NumVal       => Result.SuccNum(n)
+          case e: RuntimeError => Result.RuntimeError
+          // Our typechecker does not allow this, but after introducing mixed modules, it is 
+          // possible to violate this constraint
+          case o: ObjectVal    => Result.SuccObj 
 
   /**
     * Result printer for Assignment 9 — Static Types
@@ -63,10 +95,8 @@ object AssignmentRunner:
     
     pipeRes match 
       case Left(errRes)     => errRes
-      case Right(validProg) => 
-        // run the linker
-        val renamedProg = renameClassesUsingDependencyGraph(validProg)
-        val classProg = convertModulesToClasses(renamedProg)
+      case Right(validSys) => 
+        val classProg = linkProgram(validSys)
         CESKMachine(classProg).run match
           case n: NumVal       => Result.SuccNum(n)
           case e: RuntimeError => Result.RuntimeError
@@ -84,7 +114,7 @@ object AssignmentRunner:
 
     val pipeRes = 
       for 
-        parsedSys     <- resOrCleanSys(Result.ParseError,           parseSys(input))
+        parsedSys     <- resOrCleanSys(Result.ParseError,           parseMixedSys(input))
         sysNoDupMods  <- resOrCleanSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
         sysNoDupMFPs  <- resOrCleanSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
         validSys      <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysNoDupMFPs))
@@ -93,10 +123,8 @@ object AssignmentRunner:
     
     pipeRes match 
       case Left(errRes)     => errRes
-      case Right(validProg) => 
-        // run the linker
-        val renamedProg = renameClassesUsingDependencyGraph(validProg)
-        val classProg = convertModulesToClasses(renamedProg)
+      case Right(validSys) => 
+        val classProg = linkProgram(validSys)
         CESKMachine(classProg).run match
           case n: NumVal    => Result.SuccNum(n)
           case o: ObjectVal => Result.SuccObj

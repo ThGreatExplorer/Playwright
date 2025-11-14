@@ -44,6 +44,10 @@ enum ValidityErrNodes:
     case DuplicateFieldName
     case DuplicateMethod
     case DuplicateParamName
+    // Import checks
+    case UntypedModImportedWithoutTImport
+    case UntypedModTImportedWithDiffShape
+    case TypedModTImported
     // Var ref to an undeclared variable
     case VarNotDeclared
     // Import ref to an undeclared module
@@ -52,28 +56,23 @@ enum ValidityErrNodes:
     case ClassNotDeclared
 
 enum TypeErrorNodes:
-    case BinOpWithNonNumberType
-    case StrongTypingViolation
-    case GetFieldCalledOnNonShapeType
-    case InstanceIsNotAShape
-    case FieldDoesNotExist
-    case IsACalledWithNonNumberType
-    case IsAShapeMismatch
+    case ExpectedNumberType
+    case ExpectedShapeType
+    case ExpectedExprTypeMismatch
+
     case NewInstanceWrongNumberOfFields
     case NewInstanceFieldWrongType
-    case CallMethodOnNumberType
+    case BinOpWithNonNumberType
+    
+    case FieldDoesNotExist
     case CallMethodDoesNotExist
     case CallMethodWrongNumberOfParams
     case CallMethodParamWrongType
+
     case ShapeTypeMethodNameMismatch
     case ShapeTypeMethodWrongNumberOfParams
     case ShapeTypeWrongNumberOfFields
     case ShapeTypeWrongNumberOfMethods
     case ShapeTypeFieldTypeMismatch
     case ShapeTypeMethodTypeMismatch
-    case ExpectedExprTypeMismatch
-    case InstVariableFailedToTypeCheck
-    case AssignVariableFailedToTypeCheck
-    case FieldAssignVariableFailedToTypeCheck
-    case BinOpVariableFailedToTypeCheck
-    case VarRefFailedToTypeCheck
+    

@@ -21,35 +21,68 @@ enum WE[+A]:
     case Err(e : ParseErrNodes | ValidityErrNodes | TypeErrorNodes)
 
 /******************************************************************************
-  Module AST (with Types)
+  Mixed AST (with Typed and Untyped Modules)
  *****************************************************************************/
 
-//  System ::= (Module^* Import^* Declaration^* Statement^* Expression)
+//  MixedSystem ::= (MixedModule^* MixedImport^* Declaration^* Statement^* Expression)
 final case class System[Node[_]](
     modules: List[Node[Module[Node]]],
-    imports: List[Node[ImportedMod]],
+    imports: List[Node[Import[Node]]],
     progb:   Node[ProgBlock[Node]]
 )
 
 type CleanSystem = Clean[System[Clean]]
 type SystemWE    = WE[System[WE]]
 
-//  Module      ::= (module ModuleName Import^* Class)
-//  TypedModule ::= (tmodule ModuleName Import^* Class Shape) 
-final case class Module[Node[_]](
-    mname:   Node[Name],
-    imports: List[Node[ImportedMod]],
-    clas:    Node[Class[Node]],
-    shape:   Option[Node[Type.Shape[Node]]]
-)
+//  MixedModule      ::= (module  ModuleName Import^* Class)
+//                   |   (tmodule ModuleName MixedImport^* Class Shape) 
+enum Module[Node[_]]:
+    case Untyped(
+        mname: Node[Name], 
+        imports: List[Node[Import.Untyped[Node]]], 
+        clas: Node[Class[Node]])
+    case Typed(
+        mname: Node[Name], 
+        imports: List[Node[Import[Node]]], 
+        clas: Node[Class[Node]], 
+        shape: Node[Type.Shape[Node]]
+    )
+// TODO: Once we get annotation lookup table done, get rid of distinction for typed and untyped here
+// Will make code much more readable without losing any value  
 
+extension (module: Clean[Module[Clean]])
+    def moduleName: String = module match
+        case Module.Typed(mname, _, _, _) => mname
+        case Module.Untyped(mname, _, _) => mname
+    
+    def imports: List[CleanImport] = module match
+        case Module.Untyped(mname, imports, clas) =>  imports
+        case Module.Typed(mname, imports, clas, shape) => imports
+
+    def clas: CleanClass = module match
+        case Module.Untyped[Clean](mname, imports, clas) => clas
+        case Module.Typed[Clean](mname, imports, clas, shape) => clas
+    
+    
 type CleanModule = Clean[Module[Clean]]
 type ModuleWE    = WE[Module[WE]]
 
-//  Import ::= (import ModuleName)
-type ImportedMod = String
-type CleanImportedMod = Clean[ImportedMod]
-type ImportedModWE    = WE[ImportedMod]
+//  MixedImport ::= (import ModuleName)
+//          | (timport ModuleName Shape)
+enum Import[Node[_]]:
+    case Untyped(mname: Node[Name]) 
+    case Typed  (mname: Node[Name], shape: Node[Type.Shape[Node]])
+type CleanImport = Clean[Import[Clean]]
+type ImportWE    = WE[Import[WE]]
+
+type CleanUntypedImport = Clean[Import.Untyped[Clean]]
+type UntypedImportWE    = WE[Import.Untyped[WE]]
+
+// Import utils
+extension (imported: Clean[Import[Clean]])
+    def importedModName: String = imported match
+        case Import.Typed(mname, _) => mname
+        case Import.Untyped(mname) => mname
 
 /******************************************************************************
   Class AST

@@ -8,7 +8,7 @@ object ConverterToWE:
         case System[Clean](modules, imports, progb) => 
             System[WE](
                 modules.map(moduleToWE),
-                imports.map(stringToWE),
+                imports.map(importToWE),
                 progBlockToWE(progb)
             )
         )
@@ -24,14 +24,33 @@ object ConverterToWE:
     // Module helpers
 
     def moduleToWE(m : CleanModule): ModuleWE = m match
-        case Module[Clean](mname, imports, clas, shape) =>
-            WE.Node(Module[WE](
+        case Module.Typed(mname, imports, clas, shape) =>
+            WE.Node(Module.Typed(
                 stringToWE(mname), 
-                imports.map(stringToWE),
+                imports.map(importToWE),
                 classToWE(clas),
-                shape.map(shapeToWE)
+                shapeToWE(shape)
             ))
-        
+        case Module.Untyped(mname, imports, clas) =>
+            WE.Node(Module.Untyped(
+                stringToWE(mname), 
+                imports.map(untypedImportToWE),
+                classToWE(clas)
+            ))
+    
+    def importToWE(i : CleanImport): ImportWE = i match
+        case Import.Typed(mname, shape) =>
+            WE.Node(Import.Typed(
+                stringToWE(mname),
+                shapeToWE(shape)
+            ))
+        case Import.Untyped(mname) =>
+            untypedImportToWE(Import.Untyped(mname))
+    
+    def untypedImportToWE(i : Clean[Import.Untyped[Clean]]): WE[Import.Untyped[WE]] = i match
+        case Import.Untyped(mname) =>
+            WE.Node(Import.Untyped(stringToWE(mname)))
+
     def typeToWE(typ : CleanType) : TypeWE = typ match
         case Type.Number() =>  WE.Node(Type.Number())
         case s @ Type.Shape[Clean](ftypes, mtypes) => shapeToWE(s)

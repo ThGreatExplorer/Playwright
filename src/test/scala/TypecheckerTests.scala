@@ -171,7 +171,7 @@ val testCases = List(
 val expectedTestCaseResults = List(
   WE.Node(System(
     List(
-      WE.Node(Module(
+      WE.Node(Module.Typed(
         WE.Node("Point"),
         List(),
         WE.Node(Class(
@@ -206,7 +206,7 @@ val expectedTestCaseResults = List(
             ))
           )
         )),
-        Some(WE.Node(Type.Shape(
+        WE.Node(Type.Shape(
           List(
             WE.Node(FieldType(
               WE.Node("x"),
@@ -224,10 +224,10 @@ val expectedTestCaseResults = List(
               WE.Node(Type.Number())
             ))
           )
-        )))
+        ))
       ))
     ),
-    List(WE.Node("Point")),
+    List(WE.Node(Import.Untyped(WE.Node("Point")))),
     WE.Node(ProgBlock(
       List(
         WE.Node(Decl(
@@ -260,9 +260,9 @@ val expectedTestCaseResults = List(
       WE.Node(Expr.Var(WE.Node("x")))
     ))
   )),
-  WE.Node(System(
+    WE.Node(System(
     List(
-      WE.Node(Module(
+      WE.Node(Module.Typed(
         WE.Node("Point"),
         List(),
         WE.Node(Class(
@@ -297,7 +297,7 @@ val expectedTestCaseResults = List(
             ))
           )
         )),
-        Some(WE.Node(Type.Shape(
+        WE.Node(Type.Shape(
           List(
             WE.Node(FieldType(
               WE.Node("x"),
@@ -315,13 +315,13 @@ val expectedTestCaseResults = List(
               WE.Node(Type.Number())
             ))
           )
-        )))
+        ))
       )),
-      WE.Node(Module(
+      WE.Node(Module.Typed(
         WE.Node("PointTwo"),
         List(),
         WE.Err(TypeErrorNodes.ShapeTypeWrongNumberOfFields),
-        Some(WE.Node(Type.Shape(
+        WE.Node(Type.Shape(
           List(
             WE.Node(FieldType(
               WE.Node("x"),
@@ -357,10 +357,10 @@ val expectedTestCaseResults = List(
               ))
             ))
           )
-        )))
+        ))
       ))
     ),
-    List(WE.Node("Point")),
+    List(WE.Node(Import.Untyped(WE.Node("Point")))),
     WE.Node(ProgBlock(
       List(
         WE.Node(Decl(
@@ -395,7 +395,7 @@ val expectedTestCaseResults = List(
   )),
   WE.Node(System(
     List(
-      WE.Node(Module(
+      WE.Node(Module.Typed(
         WE.Node("PointThreeD"),
         List(),
         WE.Node(Class(
@@ -409,7 +409,7 @@ val expectedTestCaseResults = List(
             WE.Err(TypeErrorNodes.ShapeTypeMethodWrongNumberOfParams)
           )
         )),
-        Some(WE.Node(Type.Shape(
+        WE.Node(Type.Shape(
           List(
             WE.Node(FieldType(
               WE.Node("x"),
@@ -431,10 +431,10 @@ val expectedTestCaseResults = List(
               WE.Node(Type.Number())
             ))
           )
-        )))
+        ))
       ))
     ),
-    List(WE.Node("PointThreeD")),
+    List(WE.Node(Import.Untyped(WE.Node("PointThreeD")))),
     WE.Node(ProgBlock(
       List(
         WE.Node(Decl(
@@ -470,7 +470,7 @@ val expectedTestCaseResults = List(
   // ...existing code...
 WE.Node(System(
   List(
-    WE.Node(Module(
+    WE.Node(Module.Typed(
       WE.Node("PointThreeD"),
       List(),
       WE.Node(Class(
@@ -507,7 +507,7 @@ WE.Node(System(
           ))
         )
       )),
-      Some(WE.Node(Type.Shape(
+      WE.Node(Type.Shape(
         List(
           WE.Node(FieldType(
             WE.Node("x"),
@@ -529,10 +529,10 @@ WE.Node(System(
             WE.Node(Type.Number())
           ))
         )
-      )))
+      ))
     ))
   ),
-  List(WE.Node("PointThreeD")),
+  List(WE.Node(Import.Untyped(WE.Node("PointThreeD")))),
   WE.Node(ProgBlock(
     List(
       WE.Node(Decl(
@@ -567,7 +567,7 @@ WE.Node(System(
 )),
   WE.Node(System(
   List(
-    WE.Node(Module(
+    WE.Node(Module.Typed(
       WE.Node("PointThreeD"),
       List(),
       WE.Node(Class(
@@ -604,7 +604,7 @@ WE.Node(System(
           ))
         )
       )),
-      Some(WE.Node(Type.Shape(
+      WE.Node(Type.Shape(
         List(
           WE.Node(FieldType(
             WE.Node("x"),
@@ -626,10 +626,10 @@ WE.Node(System(
             WE.Node(Type.Number())
           ))
         )
-      )))
+      ))
     ))
   ),
-  List(WE.Node("PointThreeD")),
+  List(WE.Node(Import.Untyped(WE.Node("PointThreeD")))),
   WE.Node(ProgBlock(
     List(
       WE.Node(Decl(
@@ -664,11 +664,11 @@ WE.Node(System(
 )),
 WE.Node(System(
   List(
-    WE.Node(Module(
+    WE.Node(Module.Typed(
       WE.Node("PointThreeD"),
       List(),
       WE.Err(TypeErrorNodes.ShapeTypeWrongNumberOfMethods),
-      Some(WE.Node(Type.Shape(
+      WE.Node(Type.Shape(
         List(
           WE.Node(FieldType(
             WE.Node("x"),
@@ -695,10 +695,10 @@ WE.Node(System(
             WE.Node(Type.Number())
           ))
         )
-      )))
+      ))
     ))
   ),
-  List(WE.Node("PointThreeD")),
+  List(WE.Node(Import.Untyped(WE.Node("PointThreeD")))),
   WE.Node(ProgBlock(
     List(
       WE.Node(Decl(
@@ -727,11 +727,17 @@ WE.Node(System(
       )),
       WE.Node(Stmt.Assign(
         WE.Node("x"),
-        WE.Err(TypeErrorNodes.GetFieldCalledOnNonShapeType)
+        WE.Node(Expr.GetField(
+                    WE.Err(TypeErrorNodes.ExpectedShapeType), 
+                    WE.Node("x"))
+                )
       )),
       WE.Node(Stmt.Assign(
         WE.Node("x"),
-        WE.Err(TypeErrorNodes.IsACalledWithNonNumberType)
+        WE.Node(Expr.IsInstanceOf(
+            WE.Err(TypeErrorNodes.ExpectedShapeType), 
+            WE.Node("PointThreeD"))
+        )
       ))
     ),
     WE.Node(Expr.Var(WE.Node("x")))
@@ -739,7 +745,7 @@ WE.Node(System(
 )),
 WE.Node(System(
   List(
-    WE.Node(Module(
+    WE.Node(Module.Typed(
       WE.Node("Mult"),
       List(),
       WE.Node(Class(
@@ -810,7 +816,7 @@ WE.Node(System(
           ))
         )
       )),
-      Some(WE.Node(Type.Shape(
+      WE.Node(Type.Shape(
         List(),
         List(
           WE.Node(MethodType(
@@ -819,11 +825,11 @@ WE.Node(System(
             WE.Node(Type.Number())
           ))
         )
-      )))
+      ))
     )),
-    WE.Node(Module(
+    WE.Node(Module.Typed(
       WE.Node("Fact"),
-      List(WE.Node("Mult")),
+      List(WE.Node(Import.Untyped(WE.Node("Mult")))),
       WE.Node(Class(
         WE.Node("Fact"),
         List(),
@@ -895,7 +901,7 @@ WE.Node(System(
           ))
         )
       )),
-      Some(WE.Node(Type.Shape(
+      WE.Node(Type.Shape(
         List(),
         List(
           WE.Node(MethodType(
@@ -904,10 +910,10 @@ WE.Node(System(
             WE.Node(Type.Number())
           ))
         )
-      )))
+      ))
     ))
   ),
-  List(WE.Node("Fact")),
+  List(WE.Node(Import.Untyped(WE.Node("Fact")))),
   WE.Node(ProgBlock(
     List(
       WE.Node(Decl(

@@ -57,7 +57,7 @@ class ValidityTest extends FunSuite {
 
                 val pipeRes = 
                     for 
-                        parsedSys <- sysWEOrClean(Parser.parseSys(inputSexp))
+                        parsedSys <- sysWEOrClean(Parser.parseMixedSys(inputSexp))
                         vCheck1   <- sysWEOrClean(VCheckTLDups.moduleDupsSys(parsedSys))
                         vCheck2   <- sysWEOrClean(VCheckMFPNameDups.mfpDupsSys(vCheck1))
                         validSys  <- sysWEOrClean(VCheckUndefined.closedSystem(vCheck2))
@@ -440,15 +440,14 @@ object ValidityTests {
         """,
         System[Clean](
             modules = List(
-                Module(
+                Module.Untyped(
                     "OWO",
                     List(),
-                    Class("A", List(), List()),
-                    None
+                    Class("A", List(), List())
                 ),
-                Module(
+                Module.Untyped(
                     "UWU",
-                    List("OWO"),
+                    List(Import.Untyped("OWO")),
                     Class(
                         "B", 
                         List("owo"),
@@ -467,11 +466,9 @@ object ValidityTests {
                             )
                         )
                     )
-                    ,
-                    None
                 )
             ),
-            imports = List("UWU", "UWU"),
+            imports = List(Import.Untyped("UWU"), Import.Untyped("UWU")),
             progb = ProgBlock(
                 decls = List(
                     Decl("o", Expr.NewInstance("B", List()))
@@ -500,15 +497,14 @@ object ValidityTests {
         """,
         System[Clean](
             modules = List(
-                Module(
+                Module.Untyped(
                     "OWO",
                     List(),
-                    Class("A", List(), List()),
-                    None
+                    Class("A", List(), List())
                 ),
-                Module(
+                Module.Untyped(
                     "UWU",
-                    List("OWO"),
+                    List(Import.Untyped("OWO")),
                     Class(
                         "B", 
                         List("owo"),
@@ -533,11 +529,9 @@ object ValidityTests {
                             )
                         )
                     )
-                    ,
-                    None
                 )
             ),
-            imports = List("UWU", "UWU"),
+            imports = List(Import.Untyped("UWU"), Import.Untyped("UWU")),
             progb = ProgBlock(
                 decls = List(
                     Decl("o", Expr.NewInstance("B", List()))
@@ -563,7 +557,7 @@ object ValidityTests {
         """,
         System[Clean](
             modules = List(
-                Module(
+                Module.Untyped(
                     "WAOW",
                     List(),
                     Class(
@@ -580,17 +574,14 @@ object ValidityTests {
                             )
                         )
                     )
-                    ,
-                    None
                 ),
-                Module(
+                Module.Untyped(
                     "WOAW",
                     List(),
-                    Class("B", List(), List()),
-                    None
+                    Class("B", List(), List())
                 )
             ),
-            imports = List("WAOW", "WOAW"),
+            imports = List(Import.Untyped("WAOW"), Import.Untyped("WOAW")),
             progb = ProgBlock(
                 decls = List(
                     Decl("num", Expr.Num(413.0)),
@@ -617,8 +608,8 @@ object ValidityTests {
         """,
         WE.Node(System(
             modules = List(
-                WE.Node(Module(WE.Node("A"), List(), WE.Node(Class(WE.Node("C"), List(), List())),None)),
-                WE.Node(Module(WE.Err(DuplicateModuleName), List(), WE.Node(Class(WE.Node("D"), List(), List())),None))
+                WE.Node(Module.Untyped(WE.Node("A"), List(), WE.Node(Class(WE.Node("C"), List(), List())))),
+                WE.Node(Module.Untyped(WE.Err(DuplicateModuleName), List(), WE.Node(Class(WE.Node("D"), List(), List()))))
             ),
             imports = List(),
             progb = WE.Node(ProgBlock(
@@ -637,7 +628,7 @@ object ValidityTests {
         """,
         WE.Node(System(
             modules = List(
-                WE.Node(Module(WE.Node("A"), List(), WE.Node(Class(WE.Node("C"), List(), List())),None))
+                WE.Node(Module.Untyped(WE.Node("A"), List(), WE.Node(Class(WE.Node("C"), List(), List()))))
             ),
             imports = List(WE.Err(ModuleNotDeclared)),
             progb = WE.Node(ProgBlock(
@@ -661,7 +652,7 @@ object ValidityTests {
         """,
         WE.Node(System(
             modules = List(
-                WE.Node(Module(
+                WE.Node(Module.Untyped(
                     WE.Node("A"), 
                     List(), 
                     WE.Node(Class(
@@ -677,10 +668,8 @@ object ValidityTests {
                                     WE.Node(Expr.Var(WE.Node("A")))))
                             ))
                         )))
-                    ,
-                    None
                 )),
-                WE.Node(Module(
+                WE.Node(Module.Untyped(
                     WE.Node("B"), 
                     List(), 
                     WE.Node(Class(
@@ -705,8 +694,6 @@ object ValidityTests {
                             )))
                         )
                     ))
-                    ,
-                    None
                 )),
             ),
             imports = List(),
@@ -730,7 +717,7 @@ object ValidityTests {
         """,
         WE.Node(System(
             modules = List(
-                WE.Node(Module(
+                WE.Node(Module.Untyped(
                     WE.Node("Amod"), 
                     List(WE.Err(ModuleNotDeclared)), 
                     WE.Node(Class(
@@ -746,20 +733,16 @@ object ValidityTests {
                                     WE.Node(Expr.Var(WE.Node("A")))))
                             ))
                         )))
-                    ,
-                    None
                 )),
-                WE.Node(Module(
+                WE.Node(Module.Untyped(
                     WE.Node("Bmod"), 
                     List(WE.Err(ModuleNotDeclared)), 
                     WE.Node(Class(
                         WE.Node("B"), 
                         List(WE.Node("B")), 
-                        List()))
-                    ,
-                    None))
+                        List()))))
             ),
-            imports = List(WE.Node("Bmod")),
+            imports = List(WE.Node(Import.Untyped(WE.Node("Bmod")))),
             progb = WE.Node(ProgBlock(
                 decls = List(WE.Node(Decl(WE.Node("x"), WE.Node(Expr.Num(413.0))))),
                 stmts = List(),

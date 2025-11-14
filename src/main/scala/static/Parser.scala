@@ -7,7 +7,8 @@ import ast.ParseErrNodes._
 import sexprs.SExprs._
 import util.ExampleKeyword as Keyword
 import util.ExampleKeyword.isKeyword
-import util.{NumTypeLit, takeWhileKWPrefix}
+import util.{NumTypeLit, takeWhileKWPrefixes}
+import java.awt.RenderingHints.Key
 
 object Parser:
 
@@ -17,15 +18,15 @@ object Parser:
       * @param sexpr SExpr read in from input
       * @return AST with possible error nodes if grammar rules are violated
       */
-    def parseSys(sexpr: SExpr): SystemWE = sexpr match
+    def parseMixedSys(sexpr: SExpr): SystemWE = sexpr match
         //  System ::= (Module^* Import^* Declaration^* Statement^* Expression)
         case SList(Nil) => WE.Err(SystemEmptyList) 
         case SList(elems) => 
-            val (modules, rest0) = elems.takeWhileKWPrefix(Keyword.Module)
-            val (imports, rest1) = rest0.takeWhileKWPrefix(Keyword.Import)
+            val (modules, rest0) = elems.takeWhileKWPrefixes(Keyword.Module, Keyword.TModule)
+            val (imports, rest1) = rest0.takeWhileKWPrefixes(Keyword.Import, Keyword.TImport)
             WE.Node(System(
-                modules.map(parseModule),
-                imports.map(parseImport),
+                modules.map(parseMixedModule),
+                imports.map(parseMixedImport),
                 parseProgBlock(rest1)
             ))
         case _ => WE.Err(SystemNotAList)
@@ -35,11 +36,11 @@ object Parser:
         //  TypedSystem ::= (TypedModule^* Import^* Declaration^* Statement^* Expression)
         case SList(Nil) => WE.Err(SystemEmptyList) 
         case SList(elems) => 
-            val (tmodules, rest0) = elems.takeWhileKWPrefix(Keyword.TModule)
-            val (imports, rest1) = rest0.takeWhileKWPrefix(Keyword.Import)
+            val (tmodules, rest0) = elems.takeWhileKWPrefixes(Keyword.TModule)
+            val (imports, rest1) = rest0.takeWhileKWPrefixes(Keyword.Import)
             WE.Node(System(
-                tmodules.map(parseModule).map(errIfUntypedMod),
-                imports.map(parseImport),
+                tmodules.map(parseMixedModule).map(errIfUntypedMod),
+                imports.map(parseMixedImport),
                 parseProgBlock(rest1)
             ))
         case _ => WE.Err(SystemNotAList)
@@ -55,7 +56,7 @@ object Parser:
         case SList(Nil) => WE.Err(ProgEmptyList) 
         
         case SList(elems) => 
-            val (classes, rest) = elems.takeWhileKWPrefix(Keyword.Class)
+            val (classes, rest) = elems.takeWhileKWPrefixes(Keyword.Class)
             WE.Node(Program(
                 classes.map(parseClass),
                 parseProgBlock(rest)
@@ -65,44 +66,56 @@ object Parser:
 
     // Module helpers
 
-    def parseModule(sexp: SExpr): ModuleWE = sexp match
+    def parseMixedModule(sexp: SExpr): ModuleWE = sexp match
         case SList(SSymbol(Keyword.TModule.value) :: moduleName :: rest0) =>
-            val (imports, rest1) = rest0.takeWhileKWPrefix(Keyword.Import)
+            val (imports, rest1) = rest0.takeWhileKWPrefixes(Keyword.Import, Keyword.TImport)
             rest1 match
-                // TModule ::= (tmodule ModuleName Import^* Class Shape)
+                // TModule ::= (tmodule ModuleName MixedImport^* Class Shape)
                 case clss :: shape :: Nil => 
-                    WE.Node(Module(
+                    WE.Node(Module.Typed(
                         parseName(moduleName),
-                        imports.map(parseImport),
+                        imports.map(parseMixedImport),
                         parseClass(clss),
-                        Some(parseShape(shape))
+                        parseShape(shape)
                     ))
                 case _ => WE.Err(ModuleMalformed) 
         case SList(SSymbol(Keyword.Module.value) :: moduleName :: rest0) =>
-            val (imports, rest1) = rest0.takeWhileKWPrefix(Keyword.Import)
+            val (imports, rest1) = rest0.takeWhileKWPrefixes(Keyword.Import)
             rest1 match
                 // Module  ::= (module ModuleName Import^* Class)
                 case clss :: Nil =>
-                    WE.Node(Module(
+                    WE.Node(Module.Untyped(
                         parseName(moduleName),
-                        imports.map(parseImport),
-                        parseClass(clss),
-                        None
+                        imports.map(parseUntypedImport),
+                        parseClass(clss)
                     ))
                 case _ => WE.Err(ModuleMalformed)
         case _ => WE.Err(ModuleMalformed)
 
     // Special helper for A9. Only considers typed modules as well-formed
     def errIfUntypedMod(mod: ModuleWE) : ModuleWE = mod match
-        case WE.Node(Module(_, _, _, None)) => WE.Err(ModuleMalformed) 
-        case any => any
+        case WE.Node(Module.Untyped(_, _, _)) => WE.Err(ModuleMalformed) 
+        case typedMod @ WE.Node(Module.Typed(_, _, _, _)) => typedMod
+        case e => e
 
-    def parseImport(sexp: SExpr): ImportedModWE = sexp match
+    def parseMixedImport(sexp: SExpr): ImportWE = sexp match
         //  Import ::= (import ModuleName)
         case SList(SSymbol(Keyword.Import.value) :: importName :: Nil) =>
-            parseName(importName)
+            WE.Node(Import.Untyped(parseName(importName)))
+        case SList(SSymbol(Keyword.TImport.value) :: importName :: shape :: Nil) =>
+            WE.Node(Import.Typed(
+                parseName(importName),
+                parseShape(shape)
+            ))
         case _ =>
             WE.Err(ImportMalformed)
+    
+    def parseUntypedImport(sexp: SExpr): WE[Import.Untyped[WE]] = sexp match
+        case SList(SSymbol(Keyword.Import.value) :: importName :: Nil) =>
+            WE.Node(Import.Untyped(parseName(importName)))
+        case _ =>
+            WE.Err(ImportMalformed)
+    
 
     // Type helpers
 
@@ -161,7 +174,7 @@ object Parser:
 
     def parseProgBlock(sexprs : List[SExpr]) : ProgBlockWE =
         // Program Block: Declaration^* Statement^* Expression
-        val (decls,   rest) = sexprs.takeWhileKWPrefix(Keyword.Def)
+        val (decls,   rest) = sexprs.takeWhileKWPrefixes(Keyword.Def)
         val (stmts,  restE) = (rest.dropRight(1), rest.takeRight(1))
         restE match
             case expr :: Nil => 
@@ -229,7 +242,7 @@ object Parser:
             WE.Err(BlockManyNoStmts)
         case SList(SSymbol(Keyword.Block.value) :: elems) => {
             // Ensures that we have at least one statement
-            elems.takeWhileKWPrefix(Keyword.Def) match
+            elems.takeWhileKWPrefixes(Keyword.Def) match
                 case (decls, Nil) => 
                     WE.Err(BlockManyNoStmts)
                 case (decls, stmts) => 

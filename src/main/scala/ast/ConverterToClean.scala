@@ -12,7 +12,7 @@ object ConverterToClean:
         case WE.Node(System(modules, imports, progb)) => 
             for
                 modules  <- modules.traverse(moduleWEToClean)
-                imports <- imports.traverse(stringWEToClean)
+                imports <- imports.traverse(importToClean)
                 progb  <- progBlockWEToClean(progb)
             yield 
                 System[Clean](modules, imports, progb)
@@ -29,32 +29,53 @@ object ConverterToClean:
 
     // Module (with types) helpers 
 
-    private def moduleWEToClean(m: ModuleWE): Option[CleanModule] = m match 
+    def moduleWEToClean(m: ModuleWE): Option[CleanModule] = m match 
         case WE.Err(_) => None
 
-        case WE.Node(Module(mname, imports, clas, Some(shape))) =>
+        case WE.Node(Module.Typed(mname, imports, clas, shape)) =>
             for 
                 mname   <- stringWEToClean(mname)
-                imports <- imports.traverse(stringWEToClean)
+                imports <- imports.traverse(importToClean)
                 clas    <- classWEToClean(clas)
                 shape   <- shapeWEToClean(shape)
             yield 
-                Module[Clean](mname, imports, clas, Some(shape))
+                Module.Typed[Clean](mname, imports, clas, shape)
 
         // Separate pattern match because we don't want to conflate None representing
         // untyped module and None representing an error node during the toClean 
         // conversion.
         // Can be fixed with a better type, but this issue is unlikely to surface
         // elsewhere so we keep it this way for now.
-        case WE.Node(Module(mname, imports, clas, None)) =>
+        case WE.Node(Module.Untyped(mname, imports, clas)) =>
             for 
                 mname   <- stringWEToClean(mname)
-                imports <- imports.traverse(stringWEToClean)
+                imports <- imports.traverse(untypedImportToClean)
                 clas    <- classWEToClean(clas)
             yield 
-                Module[Clean](mname, imports, clas, None)
+                Module.Untyped[Clean](mname, imports, clas)
 
-    private def typeWEToClean(typ: TypeWE): Option[CleanType] = typ match
+    def importToClean(i: ImportWE): Option[CleanImport] = i match
+        case WE.Err(e) => 
+            None
+        case WE.Node(Import.Typed(mname, shape)) =>
+            for
+                mname <- stringWEToClean(mname)
+                shape <- shapeWEToClean(shape)
+            yield
+                Import.Typed[Clean](mname, shape)
+        case WE.Node(Import.Untyped(mname)) =>
+            untypedImportToClean(WE.Node(Import.Untyped(mname)))
+
+    def untypedImportToClean(i: WE[Import.Untyped[WE]]): Option[Clean[Import.Untyped[Clean]]] = i match
+        case WE.Err(e) => 
+            None
+        case WE.Node(Import.Untyped(mname)) =>
+            for 
+                mname <- stringWEToClean(mname)
+            yield 
+                Import.Untyped[Clean](mname)
+
+    def typeWEToClean(typ: TypeWE): Option[CleanType] = typ match
         case WE.Err(_) => None
 
         case WE.Node(Type.Number()) => Some(Type.Number())
@@ -62,7 +83,7 @@ object ConverterToClean:
         case WE.Node(Type.Shape(ftypes, mtypes)) => 
             shapeWEToClean(WE.Node(Type.Shape(ftypes, mtypes)))
 
-    private def shapeWEToClean(s: ShapeTypeWE): Option[CleanShapeType] = s match 
+    def shapeWEToClean(s: ShapeTypeWE): Option[CleanShapeType] = s match 
         case WE.Err(_) => None
 
         case WE.Node(Type.Shape(ftypes, mtypes)) =>
@@ -72,7 +93,7 @@ object ConverterToClean:
             yield 
                 Type.Shape[Clean](ftypes, mtypes)
 
-    private def ftypeWEToClean(f: FieldTypeWE): Option[CleanFieldType] = f match 
+    def ftypeWEToClean(f: FieldTypeWE): Option[CleanFieldType] = f match 
         case WE.Err(_) => None
 
         case WE.Node(FieldType(fname, ftype)) =>
@@ -82,7 +103,7 @@ object ConverterToClean:
             yield 
                 FieldType[Clean](fname, ftype)
 
-    private def mtypeWEToClean(m: MethodTypeWE): Option[CleanMethodType] = m match 
+    def mtypeWEToClean(m: MethodTypeWE): Option[CleanMethodType] = m match 
         case WE.Err(_) => None
 
         case WE.Node(MethodType(mname, paramTypes, retType)) =>
@@ -95,7 +116,7 @@ object ConverterToClean:
 
     // Class helpers 
         
-    private def classWEToClean(c: ClassWE): Option[CleanClass] = c match 
+    def classWEToClean(c: ClassWE): Option[CleanClass] = c match 
         case WE.Err(_) => None
 
         case WE.Node(Class(cname, fields, methods)) =>
@@ -106,7 +127,7 @@ object ConverterToClean:
             yield 
                 Class[Clean](cname, fields, methods)
 
-    private def methodWEToClean(m: MethodWE): Option[CleanMethod] = m match 
+    def methodWEToClean(m: MethodWE): Option[CleanMethod] = m match 
         case WE.Err(_) => None
 
         case WE.Node(Method(mname, params, progb)) =>
@@ -119,7 +140,7 @@ object ConverterToClean:
     
     // Core helpers
 
-    private def progBlockWEToClean(pblock : ProgBlockWE) : Option[CleanProgBlock] = pblock match
+    def progBlockWEToClean(pblock : ProgBlockWE) : Option[CleanProgBlock] = pblock match
         case WE.Err(_) => None
         
         case WE.Node(ProgBlock(decls, stmts, expr)) => 
@@ -130,7 +151,7 @@ object ConverterToClean:
             yield 
                 ProgBlock[Clean](decls, stmts, expr)
 
-    private def declWEToClean(d: DeclWE): Option[CleanDecl] = d match 
+    def declWEToClean(d: DeclWE): Option[CleanDecl] = d match 
         case WE.Err(_) => None
 
         case WE.Node(Decl(varDecl, rhs)) =>
@@ -140,7 +161,7 @@ object ConverterToClean:
             yield 
                 Decl[Clean](varDecl, rhs)
 
-    private def stmtWEToClean(s: StmtWE): Option[CleanStmt] = s match 
+    def stmtWEToClean(s: StmtWE): Option[CleanStmt] = s match 
         case WE.Err(_) => None
 
         case WE.Node(Stmt.Assign(lhs, rhs)) => 
@@ -173,7 +194,7 @@ object ConverterToClean:
             yield 
                 Stmt.FieldAssign[Clean](instanceClean, fieldClean, rhsClean)
   
-    private def stmtBlockWEToClean(b: StmtBlockWE): Option[CleanStmtBlock] = b match 
+    def stmtBlockWEToClean(b: StmtBlockWE): Option[CleanStmtBlock] = b match 
       case WE.Err(_) => None
 
       case WE.Node(StmtBlock.One(stmt)) =>  
@@ -186,7 +207,7 @@ object ConverterToClean:
         yield 
             StmtBlock.Many[Clean](declsClean, stmtsClean)
   
-    private def exprWEToClean(e: ExprWE): Option[CleanExpr] = e match 
+    def exprWEToClean(e: ExprWE): Option[CleanExpr] = e match 
         case WE.Err(_) => None
 
         case WE.Node(Expr.Num(n)) => 
@@ -231,6 +252,6 @@ object ConverterToClean:
             yield 
                 Expr.IsInstanceOf[Clean](instanceClean, cnameClean)
 
-    private def stringWEToClean(v: WE[String]): Option[Clean[String]] = v match 
+    def stringWEToClean(v: WE[String]): Option[Clean[String]] = v match 
         case WE.Err(_) => None
         case WE.Node(vr) => Some(vr)

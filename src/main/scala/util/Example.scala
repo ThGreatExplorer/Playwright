@@ -22,6 +22,7 @@ enum ExampleKeyword(val value: String):
   case Accessor extends ExampleKeyword("-->")
   case Module   extends ExampleKeyword("module")
   case Import   extends ExampleKeyword("import")
+  case TImport  extends ExampleKeyword("timport")
   case TModule  extends ExampleKeyword("tmodule")
 
 object ExampleKeyword:
@@ -30,9 +31,10 @@ object ExampleKeyword:
 
 // Convenience takeWhile keyword prefix for SExpr list
 extension (sexprs : List[SExpr])
-    def takeWhileKWPrefix(kw : ExampleKeyword) : (List[SExpr], List[SExpr]) =
+    def takeWhileKWPrefixes(kws : ExampleKeyword*) : (List[SExpr], List[SExpr]) =
+        val keywordValues = kws.map(_.value).toSet
         sexprs.span{ 
-            case SList(SSymbol(kw.value) :: _) => true
+            case SList(SSymbol(value) :: _) => keywordValues.contains(value)
             case _ => false 
         }
 

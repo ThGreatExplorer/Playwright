@@ -9,6 +9,243 @@ import main.AssignmentRunner._
 import main._
 
 class RunnerTests extends FunSuite {
+  
+  val casesA10 = List(
+    (
+      """
+      (
+        (module A (class A () (method f () 413.0)))
+        (module B (timport A (() ((f () Number)))) (class B () (method g () 413.0)))
+        (import B)
+        (def objB (new B()))
+        objB
+      )
+      """,
+      Result.ParseError,
+      "\"parser error\""
+    ),
+    (
+      """
+      (
+        (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))
+        (module A (class A () (method g () 413.0)))
+        (import A)
+        (def objA (new A()))
+        (objA --> f())
+      )
+      """,
+      Result.DupModuleDefs,
+      "\"duplicate module name\""
+    ),
+    (
+      """
+      (
+      (tmodule A (class B (a b) (method f () 413.0)) (() ((f () Number) (f () Number))))
+      (import B)
+      (def objB (new B()))
+      (objB --> f())
+      )
+      """,
+      Result.DupMethodFieldParams,
+      "\"duplicate method, field, or parameter name\""
+    ),
+    (
+      """
+      (
+        (module A (class A () (method f () 413.0)))
+        (tmodule B (timport A (() ((f () Number)))) (timport A (() ((g () Number))))
+          (class B () (method g () 413.0)) 
+          (() ((g () Number))))
+        (import B)
+        (def objB (new B()))
+        objB
+      )
+      """,
+      Result.BadImport,
+      "\"bad import\""
+    ),
+    (
+      """
+      (
+      (tmodule A (class B () (method f () 413.0)) (() ((f () Number))))
+      (import B)
+      (def objB (new B()))
+      (objB --> f())
+      )
+      """,
+      Result.UndefinedVarError,
+      "\"undeclared variable error\""
+    ),
+    (
+      """
+      (
+        (module A (class A () (method f () 413.0)))
+        (tmodule B (timport A (() ((f () Number))))
+          (class B () 
+            (method g () 
+              (def objA (new A())) 
+              (def val (objA --> f()))
+              (val isa A))) 
+          (() ((g () Number))))
+        (import B)
+        (def objB (new B()))
+        objB
+      )
+      """,
+      Result.TypeError,
+      "\"type error\""
+    ), 
+    ( // Special Incidious example 
+      """
+      (
+        (tmodule Helper
+          (class Helper () (method faveNum () 413.0))
+          (() ((faveNum () Number)))
+        )
+        (module Insidious (import Helper)
+          (class Insidious () 
+            (method violation () 
+              (def o (new Helper ()))
+              (def val (o --> faveNum()))
+              (val isa Helper)
+            )
+          )
+        )
+        (timport Insidious (() ((violation () Number))))
+        (def o (new Insidious ()))
+        (o --> violation ())
+      )
+      """,
+      Result.SuccNum(1.0),
+      "1.0"
+    ), 
+    ( // Special Blatant example 
+      """
+      (
+        (module Blatant 
+          (class Blatant () 
+            (method violation () 
+              this
+            )
+          )
+        )
+        (timport Blatant (() ((violation () Number))))
+        (def bla (new Blatant ()))
+        (bla --> violation ())
+      )
+      """,
+      Result.SuccObj,
+      "\"object\""
+    ),
+    (
+      """
+      (
+      (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))
+      (import A)
+      (def objA (new A()))
+      (def num (objA --> f()))
+      (def zero 0.0)
+      (num / zero)
+      )
+      """,
+      Result.RuntimeError,
+      "\"run-time error\""
+    )
+  )
+
+  val casesA9 = List(
+    (
+      """
+      (
+        (module A (class A () (method f () 413.0)))
+        (import A)
+        (def objA (new A()))
+        (objA --> f())
+      )
+      """,
+      Result.ParseError,
+      "\"parser error\""
+    ),
+    (
+      """
+      (
+        (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))
+        (tmodule A (class A () (method g () 413.0)) (() ((g () Number))))
+        (import A)
+        (def objA (new A()))
+        (objA --> f())
+      )
+      """,
+      Result.DupModuleDefs,
+      "\"duplicate module name\""
+    ),
+    (
+      """
+      (
+        (tmodule A (class B (a b) (method f () 413.0)) (() ((f () Number) (f () Number))))
+        (import B)
+        (def objB (new B()))
+        (objB --> f())
+      )
+      """,
+      Result.DupMethodFieldParams,
+      "\"duplicate method, field, or parameter name\""
+    ),
+    (
+      """
+      (
+        (tmodule A (class B () (method f () 413.0)) (() ((f () Number))))
+        (import B)
+        (def objB (new B()))
+        (objB --> f())
+      )
+      """,
+      Result.UndefinedVarError,
+      "\"undeclared variable error\""
+    ),
+    (
+      """
+      (
+        (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))
+        (tmodule B (class B () (method g () 413.0)) (() ((g () Number))))
+        (import A)
+        (import B)
+        (def objA (new A()))
+        (def objB (new B()))
+        (objA = objB)
+        objA
+      )
+      """,
+      Result.TypeError,
+      "\"type error\""
+    ), 
+    (
+      """
+      (
+        (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))
+        (import A)
+        (def objA (new A()))
+        (objA --> f())
+      )
+      """,
+      Result.SuccNum(413.0),
+      "413.0"
+    ), 
+    (
+      """
+      (
+        (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))
+        (import A)
+        (def objA (new A()))
+        (def num (objA --> f()))
+        (def zero 0.0)
+        (num / zero)
+      )
+      """,
+      Result.RuntimeError,
+      "\"run-time error\""
+    )
+  )
 
   val casesA8 = List(
     (
@@ -300,6 +537,8 @@ class RunnerTests extends FunSuite {
   ))
 
   val runnerTestsByAssignment = List(
+    (10, mixedSystem(_), casesA10),
+    (9, typedSystem(_), casesA9),
     (8, ceskModule(_), casesA8),
     (7, ceskClass(_), casesA7),
     (6, classParseAndValidity(_), casesA6),
