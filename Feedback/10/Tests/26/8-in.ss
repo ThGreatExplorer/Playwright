@@ -1,0 +1,38 @@
+(
+    (tmodule stop
+        (class Stop () 
+            (method f (x y)
+                y
+            )
+        )
+        (() ((f (Number Number) Number)))
+    )
+    (module b 
+        (class B (x y))
+    )
+    (module a 
+        (import stop)
+        (import b)
+        (class A ()
+            (method f (x y)
+                (def negOne -1.0)
+                (if0 x 
+                    (this = (new Stop ()))
+                    (this = this)
+                )
+                (y = (y + x))
+                (x = (x + negOne))
+                (this --> f (x y))
+            )
+            (method g (x)
+                (def result (this --> f (x x)))
+                (new B (result result))
+            )
+        )
+    )
+    (timport a (() ((g (Number) (((y Number)) ())))))
+    (def a (new A ()))
+    (def x 5.0)
+    (def b (a --> g (x)))
+    (b --> y)
+)

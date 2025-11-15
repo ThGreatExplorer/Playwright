@@ -1,0 +1,36 @@
+((module
+  Value
+  (class Value (n)
+    (method get () (this --> n))
+    (method add (y)
+      (def a (this --> n))
+      (a + y))))
+ (module
+  Processor
+  (class Processor ()
+    (method double (v)
+      (def x (v --> get ()))
+      (v --> add (x)))
+    (method triple (v)
+      (def doubled (this --> double (v)))
+      (def x (v --> get ()))
+      (doubled + x))))
+ (tmodule
+  Calculator
+  (timport Value (((n Number)) ((get () Number) (add (Number) Number))))
+  (timport Processor (() ((double ((((n Number)) ((get () Number) (add (Number) Number)))) Number) (triple ((((n Number)) ((get () Number) (add (Number) Number)))) Number))))
+  (class Calculator ()
+    (method compute (v p)
+      (def tripled (p --> triple (v)))
+      (def doubled (p --> double (v)))
+      (tripled + doubled)))
+  (() ((compute ((((n Number)) ((get () Number) (add (Number) Number))) (() ((double ((((n Number)) ((get () Number) (add (Number) Number)))) Number) (triple ((((n Number)) ((get () Number) (add (Number) Number)))) Number)))) Number))))
+ (timport Value (((n Number)) ((get () Number) (add (Number) Number))))
+ (timport Processor (() ((double ((((n Number)) ((get () Number) (add (Number) Number)))) Number) (triple ((((n Number)) ((get () Number) (add (Number) Number)))) Number))))
+ (import Calculator)
+ (def five 5.0)
+ (def v (new Value (five)))
+ (def p (new Processor ()))
+ (def calc (new Calculator ()))
+ (def result (calc --> compute (v p)))
+ result)

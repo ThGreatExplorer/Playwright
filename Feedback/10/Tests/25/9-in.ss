@@ -1,0 +1,5 @@
+((tmodule Foo (class foo (x) (method woo (nOne nTwo) (nOne + nTwo))) (((x Number)) ((woo (Number Number) Number))))
+(module Bar (timport Foo (((x Number) (y Number)) ())) (class foo (x y)))
+(import Bar)
+(timport Foo (((x Number) (y Number)) ()))
+1.0)

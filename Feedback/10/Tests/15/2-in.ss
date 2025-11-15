@@ -1,0 +1,8 @@
+((module B (class B () (method m () 1.0)))
+(module A (import B) (class C () (method m () (new B ()))))
+(timport A (() ((m () Number)))) 
+(def x (new C ()))
+(def p 1.0)
+(def one 1.0)
+(p = (x --> m ()))
+(p + one))

@@ -1,0 +1,1 @@
+((tmodule TypedApple (class Apple (redness)) (((redness Number)) ())) (module Untyped (import TypedApple) (class Main () (method execute () (def one 1.0) (def oneApple (new Apple (one))) (def apple (new Apple (oneApple))) (def appleField (apple --> redness)) (one + appleField)))) (timport Untyped (() ((execute () Number)))) (def main (new Main ())) (main --> execute ()))

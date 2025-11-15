@@ -1,0 +1,16 @@
+((tmodule Vehicle
+    (class Car (year tankAmount)
+      (method getYear ()
+        (this --> year)))
+    (((year Number)
+      (tankAmount Number))
+     ((getYear () Number))))
+  (tmodule SeaVehicle
+    (import Vehicle)       
+    (class boat (length tankAmount)
+      (method getLength ()
+        (this --> length)))
+    (((length Number)
+      (tankAmount Number))
+     ((getLength () Number))))
+  0.0)

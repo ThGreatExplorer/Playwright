@@ -1,0 +1,118 @@
+(
+    (module cons
+        (class ConsList (first rest)
+            (method isEmpty ()
+                1.0
+            )
+            (method addToFront (x)
+                (def first (this --> first))
+                (def rest (this --> rest))
+                (def copied (new ConsList (first rest)))
+                (this --> rest = copied)
+                (this --> first = x)
+                0.0
+            )
+            (method contains (x)
+                (def result 0.5)
+                (def firstElem (this --> first))
+                (def restOfList (this --> rest))
+                (def zero 0.0)
+                (if0 (firstElem == x)
+                    (result = zero)
+                    (result = (restOfList --> contains (x)))
+                )
+                result
+            )
+            (method length ()
+                (def one 1.0)
+                (def restOfList (this --> rest))
+                (def result (restOfList --> length ()))
+                (result + one)
+            )
+            (method get (index)
+                (def result 0.5)
+                (def firstElem (this --> first))
+                (def restOfList (this --> rest))
+                (if0 index
+                    (result = firstElem)
+                    (block
+                        (def negOne -1.0)
+                        (def nextIndex (index + negOne))
+                        (result = (restOfList --> get (nextIndex)))
+                    )
+                )
+                result
+            )
+        )
+    )
+
+    (module empty 
+        (import cons)
+        (class Empty ()
+            (method addToFront (x)
+                (new ConsList (x this))
+            )
+            (method isEmpty ()
+                0.0
+            )
+            (method contains (x)
+                1.0
+            )
+            (method length ()
+                0.0
+            )
+            (method get (index)
+                -1.0
+            )
+        )
+    )
+
+    (timport empty (() (
+        (addToFront (Number) (() (
+            (addToFront (Number) Number)
+            (isEmpty () Number)
+            (contains (Number) Number)
+            (length () Number)
+            (get (Number) Number)))
+        )
+        (isEmpty () Number)
+        (contains (Number) Number)
+        (length () Number)
+        (get (Number) Number)))
+    )
+    
+    (def triNumberList (new Empty ()))
+    (def item 0.0)
+    (def numItems 10.0)
+    (def keepLooping 0.0)
+    (def i 1.0)
+    (def one 1.0)
+    (def fifteen 15.0)
+    (def result 0.5)
+    (def failure -732.3)
+    (def triNumberList (triNumberList --> addToFront (item)))
+    (def item 1.0)
+    (def i 2.0)
+    (while0 keepLooping
+        (block
+            (def dummy 0.0)
+            (def temp (triNumberList --> addToFront (item)))
+            (item = (item + i))
+            (if0 (i == numItems)
+                (keepLooping = one)
+                (i = (i + one))
+            )
+        )
+    )
+    (if0 (triNumberList --> contains (fifteen))
+        (block
+            (def two 2.0)
+            (def twothElem (triNumberList --> get (two)))
+            (result = (triNumberList --> length ()))
+            (result = (result + twothElem))
+        )
+        (result = failure)
+    )
+    result
+
+)

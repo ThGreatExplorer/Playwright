@@ -1,0 +1,1 @@
+((module UntypedApple (class Apple (redness))) (tmodule HumanModule (timport UntypedApple (((apple (((redness Number)) ()))) ((eat () Number)))) (timport UntypedApple (((redness Number)) ())) (class Human (apple) (method eat () (def apple (this --> apple)) (apple --> redness))) (((apple (((redness Number)) ()))) ((eat () Number)))) 4.0)

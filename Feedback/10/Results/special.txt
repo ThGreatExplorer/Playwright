@@ -1,0 +1,11 @@
+Extra or missing files in tests directory
+(testing /course/cs4400f25/ta4400/F25PL/Code/10/xjs)
+(testing /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./10/Special-0/0-in.ss /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./10/Special-0/0-out.ss)
+(results for test /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./10/Special-0/0-in.ss pass)
+((/course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./10/Special-0/0-in.ss /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./10/Special-0/0-out.ss))
+((passed 1) (total 1) (partial-score 1))
+(testing /course/cs4400f25/ta4400/F25PL/Code/10/xjs)
+(testing /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./10/Special-1/1-in.ss /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./10/Special-1/1-out.ss)
+(results for test /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./10/Special-1/1-in.ss pass)
+((/course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./10/Special-1/1-in.ss /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./10/Special-1/1-out.ss))
+((passed 1) (total 1) (partial-score 1))
