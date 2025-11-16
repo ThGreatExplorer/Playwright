@@ -1,5 +1,5 @@
-Total Score: 480 / 560
+Total Score: 530 / 560
 -10 "incorrect Mixed blatant system (GRADE PENDING)"
 -10 "incorrect Mixed insidious system (GRADE PENDING)"
--75 "integration tests failed to pass oracle"
+-25 "integration tests failed to pass oracle"
 +15 "bonus points for bugs found in other students' xjs programs (Max 15)"
