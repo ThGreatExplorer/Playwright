@@ -1,4 +1,2 @@
-Total Score: 555 / 560
--10 "incorrect Mixed blatant system (GRADE PENDING)"
--10 "incorrect Mixed insidious system (GRADE PENDING)"
+Total Score: 575 / 560
 +15 "bonus points for bugs found in other students' xjs programs (Max 15)"
