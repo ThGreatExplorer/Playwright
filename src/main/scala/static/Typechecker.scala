@@ -182,9 +182,10 @@ object Typechecker:
             WE.Err(ShapeTypeMethodWrongNumberOfParams)
 
         case (Method(mname, params, progb), MethodType(_, paramTypes, retType)) =>
+            val initTVarsWithThis = Map("this" -> Inferred(tVarThis))
             val paramITypes = paramTypes.map(Inferred(_))
             val paramTVars: TVarsMap = params.zip(paramITypes).toMap
-            val initTVars = paramTVars.updated("this", Inferred(tVarThis))
+            val initTVars = initTVarsWithThis ++ paramTVars
 
             WE.Node(Method(
                 WE.Node(mname),
