@@ -4,12 +4,58 @@ import ast._
 import scala.annotation.tailrec
 import scala.collection.mutable.Map as MutableMap
 
+type ScopedModuleMap = Map[String, (CleanClass, Option[CleanShapeType])]
+type ModuleToScopedModuleMap = Map[(String, Option[CleanShapeType]), ScopedModuleMap]
+
+// Note that we can assume modules are deduplicated so each module name is unique
 final case class ModuleDependency(
   mname: String,
   clss: CleanClass,
   shape: Option[CleanShapeType],
   dependencies: List[(ModuleDependency, Option[CleanShapeType])]
 ):
+
+  /**
+  * Generates a map from each reachable module to its scoped module map.
+  * 
+  * That is:
+  *   (ModuleName, Shape) -> Map[ImportedModuleName -> (Class, Shape)]
+  *
+  * Each module's scoped map is produced using its generateScopedModules(),
+  * and we recursively apply this to dependencies while memoizing.
+  */
+  def generateModuleToScopedModulesMap(): ModuleToScopedModuleMap =
+    generateModuleToScopedModulesMapHelper(Map.empty)
+    
+
+  private def generateModuleToScopedModulesMapHelper(
+    moduleToScopedModulesSoFar: ModuleToScopedModuleMap
+  ): ModuleToScopedModuleMap =
+    val key = (this.mname, this.shape)
+
+    if moduleToScopedModulesSoFar.contains(key) then moduleToScopedModulesSoFar
+    else
+      val scoped = this.generateScopedModules()
+      val updatedAcc = moduleToScopedModulesSoFar.updated(key, scoped)
+      this.dependencies.foldLeft(updatedAcc) {
+        case (acc, (childDep, _)) =>
+          childDep.generateModuleToScopedModulesMapHelper(acc)
+      }
+
+  def generateScopedModules(): ScopedModuleMap =
+    val scopeMap: ScopedModuleMap = this.dependencies.foldLeft(Map.empty){
+      case (acc, (mod, shape)) => 
+        (mod, shape) match
+          case (ModuleDependency(mname, clss, Some(modShape), dependencies), None) =>
+            acc.updated(mname, (clss, Some(modShape)))
+          case (ModuleDependency(mname, clss, None, dependencies), Some(importShape)) =>
+            acc.updated(mname, (clss, Some(importShape)))
+          case (ModuleDependency(mname, clss, None, dependencies), None) =>
+            acc.updated(mname, (clss, None))
+          case _ => throw new Exception(f"Should never be a Typed Module with a typed import or an untyped module with an untyped import: $mod | $shape")
+    }
+    scopeMap
+
 
   /**
     * Walks the DAG to collect all the reachable modules
@@ -89,7 +135,6 @@ final case class ModuleDependency(
     result.append(prefix).append(mname)
     
     if visited.contains((mname, importShape)) then
-      // TODO how to handle already seen untyped modules?
       result.append(" (already shown)")
       (result.toString(), importShape, visited)
     else

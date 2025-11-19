@@ -65,6 +65,7 @@ extension (module: Clean[Module[Clean]])
     
     
 type CleanModule = Clean[Module[Clean]]
+type CleanTypedModule = Clean[Module.Typed[Clean]]
 type ModuleWE    = WE[Module[WE]]
 
 //  MixedImport ::= (import ModuleName)
