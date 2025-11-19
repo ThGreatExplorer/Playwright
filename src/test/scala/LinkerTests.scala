@@ -92,7 +92,24 @@ object LinkerTests {
 └── ModuleBAOne
     ├── ModuleATwo
     └── ModuleAOne (already shown)""",
-  "System(List(Module(ModuleAOne,List(),Class(ModuleAOne.A,List(),List()),None),Module(ModuleATwo,List(),Class(ModuleATwo.A,List(),List()),None),Module(ModuleBAOne,List(ModuleATwo,ModuleAOne),Class(ModuleBAOne.B,List(),List(Method(newA,List(),ProgBlock(List(),List(),NewInstance(ModuleAOne.A,List()))))),None)),List(ModuleAOne,ModuleBAOne),ProgBlock(List(Decl(b,NewInstance(ModuleBAOne.B,List())),Decl(aOne,CallMethod(b,newA,List())),Decl(aOneO,NewInstance(ModuleAOne.A,List()))),List(),BinOpExpr(aOneO,Equals,aOne)))")
+  "System(List(Module(ModuleAOne,List(),Class(ModuleAOne.A,List(),List()),None),Module(ModuleATwo,List(),Class(ModuleATwo.A,List(),List()),None),Module(ModuleBAOne,List(ModuleATwo,ModuleAOne),Class(ModuleBAOne.B,List(),List(Method(newA,List(),ProgBlock(List(),List(),NewInstance(ModuleAOne.A,List()))))),None)),List(ModuleAOne,ModuleBAOne),ProgBlock(List(Decl(b,NewInstance(ModuleBAOne.B,List())),Decl(aOne,CallMethod(b,newA,List())),Decl(aOneO,NewInstance(ModuleAOne.A,List()))),List(),BinOpExpr(aOneO,Equals,aOne)))"),
+  ("""#topLevelModName@
+├──[Shape(List(),List(MethodType(m,List(Number()),Number())))] Mone
+└── Mtwo
+    └──[Shape(List(),List(MethodType(m,List(Number()),Number())))] Mone (already shown)""", 
+  """
+  """),
+  (
+    """
+#topLevelModName@
+├──[Shape(List(FieldType(x,Number())),List())] A
+├── B
+│   └──[Shape(List(),List())] A
+└──[Shape(List(FieldType(x,Number())),List())] A (already shown)
+    """,
+    """
+    """
+  )
 )
 
   val validCases = List(
@@ -193,6 +210,31 @@ object LinkerTests {
       (def aOne (b --> newA ()))
       (def aOneO (new A ()))
       (aOneO == aOne)
+    )
+    """,
+    """
+      ((module Mone (class cone () (method m (x) x)))
+      (tmodule
+        Mtwo
+        (timport Mone (() ((m (Number) Number))))
+        (class ctwo () (method m (x) x))
+        (() ((m ((() ((m (Number) Number)))) (() ((m (Number) Number)))))))
+      (timport Mone (() ((m (Number) Number))))
+      (import Mtwo)
+      (def mone (new cone ()))
+      (def mtwo (new ctwo ()))
+      (def monetoo (mtwo --> m (mone)))
+      (def two 2.0)
+      (monetoo --> m (two)))
+    """,
+    """
+    (
+      (module A (class A () ))
+      (tmodule B (timport A (() ())) (class B ()) (() ()))
+      (timport A (((x Number)) ()))
+      (import B)
+      (timport A (((x Number)) ()))
+      1.0
     )
     """
   )
