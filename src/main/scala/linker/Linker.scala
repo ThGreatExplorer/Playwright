@@ -30,7 +30,7 @@ object SystemToClassLinker:
     val modulesInScopeMap = modulesToModulesInScope(mods)
     val topLevelModName = "#topLevelModName@"
     // all modules are in scope for the top level module to import
-    ModuleDependency(topLevelModName, Class(topLevelModName, List.empty, List.empty), modulesInScopeMap.updated(topLevelModName, mods.toSet), imports)
+    ModuleDependency(topLevelModName, Class[Clean](topLevelModName, List.empty, List.empty), modulesInScopeMap.updated(topLevelModName, mods.toSet), imports)
 
   /**
     * Renames all occurrences of classes in a given Clean System into 

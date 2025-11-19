@@ -7,7 +7,8 @@ import scala.collection.mutable.Map as MutableMap
 final case class ModuleDependency(
   mname: String,
   clss: CleanClass,
-  dependencies: List[ModuleDependency]
+  shape: Option[CleanShapeType],
+  dependencies: List[(ModuleDependency, Option[CleanShapeType])]
 ):
 
   /**
@@ -23,9 +24,10 @@ final case class ModuleDependency(
         nodesAcc
       else 
         val updatedAcc = nodesAcc + mname
-        dependencies.foldLeft(updatedAcc)((acc, dep) => 
-          dep.findReachableModulesHelper(acc)
-        )
+        dependencies.foldLeft(updatedAcc){
+          case (acc, (mod, _)) => 
+          mod.findReachableModulesHelper(acc)
+        }
   
   /**
     * Gets the module dependency if is reachable from the current node in this DAG, 
@@ -37,21 +39,21 @@ final case class ModuleDependency(
   def findModuleInDAG(mnameToFind: String): Option[ModuleDependency] =
 
     @tailrec
-    def searchSubTreeForDependency(dependencies: List[ModuleDependency], visited: Set[String]): Option[ModuleDependency] = {
+    def searchSubTreeForDependency(dependencies: List[(ModuleDependency, Option[CleanShapeType])], visited: Set[String]): Option[ModuleDependency] = {
       dependencies match {
         case Nil => None
-        case head :: tail =>
-          if visited.contains(head.mname) then 
+        case (mod @ ModuleDependency(mname, clss, shape, dependencies), _) :: tail =>
+          if visited.contains(mname) then 
             searchSubTreeForDependency(tail, visited)
-          else if (head.mname == mnameToFind) 
-            Some(head)
+          else if (mname == mnameToFind) 
+            Some(mod)
           else 
-            val updatedVisited = visited + head.mname
-            searchSubTreeForDependency(tail ++ head.dependencies, updatedVisited)
+            val updatedVisited = visited + mname
+            searchSubTreeForDependency(tail ++ dependencies, updatedVisited)
       }
     }
 
-    searchSubTreeForDependency(List(this), Set.empty)
+    searchSubTreeForDependency(this.dependencies, Set.empty)
 
   /**
     * Generates the Rename Map for the module in this scope by traversing
@@ -60,12 +62,13 @@ final case class ModuleDependency(
     * @return the map from class names to their renamed Class Name
     */
   def generateRenameMap(): Map[String, String] =
-    val renameMap = this.dependencies.foldLeft(Map.empty[String,String])((acc, dependency) =>
-      dependency match
-        case ModuleDependency(depMname, depClss, _) =>
-          val (cname, qualifiedName) = generatedQualifiedName(depMname, depClss)
-          acc.updated(cname, qualifiedName)
-    )
+    val renameMap = this.dependencies.foldLeft(Map.empty[String,String]){
+      case (acc, (mod, _)) => 
+        mod match
+          case ModuleDependency(depMname, depClss, _, _) =>
+            val (cname, qualifiedName) = generatedQualifiedName(depMname, depClss)
+            acc.updated(cname, qualifiedName)
+    }
     val (cname, qualifiedName) = generatedQualifiedName(mname, clss)
     renameMap.updated(cname, qualifiedName)
 
@@ -73,55 +76,78 @@ final case class ModuleDependency(
     (clss.cname, f"$mname.${clss.cname}")
 
   override def toString: String = 
-    val (result, visited) = toStringHelper("", "", Set.empty)
+    val (result, prevShape, visited) = toStringHelper("", "", Set.empty, None)
     result
 
-  private def toStringHelper(prefix: String, childPrefix: String, visited: Set[String]): (String, Set[String]) =
+  private def toStringHelper(
+    prefix: String, 
+    childPrefix: String, 
+    visited: Set[(String, Option[CleanShapeType])],
+    importShape: Option[CleanShapeType]
+  ): (String, Option[CleanShapeType], Set[(String, Option[CleanShapeType])]) =
     val result = new StringBuilder()
     result.append(prefix).append(mname)
     
-    if visited.contains(mname) then
+    if visited.contains((mname, importShape)) then
+      // TODO how to handle already seen untyped modules?
       result.append(" (already shown)")
-      (result.toString(), visited)
+      (result.toString(), importShape, visited)
     else
-      val updatedVisited = visited + mname
+      val updatedVisited = visited.incl((mname, importShape))
       
-      val (finalResult, finalVisited) = dependencies.zipWithIndex.foldLeft((result.toString, updatedVisited)) {
-        case ((accResult, accVisited), (dep, index)) =>
+      val (finalResult, newShape, finalVisited) =
+        dependencies.zipWithIndex.foldLeft((result.toString: String, importShape: Option[CleanShapeType], updatedVisited: Set[(String, Option[CleanShapeType])])) {
+        case ((accResult, _, accVisited), ((modDep, newImportShape), index)) =>
           val isLast = index == dependencies.length - 1
-          val currentPrefix = if isLast then childPrefix + "└── " else childPrefix + "├── "
-          val nextChildPrefix = if isLast then childPrefix + "    " else childPrefix + "│   "
-          
-          val (depString, newVisited) = dep.toStringHelper(currentPrefix, nextChildPrefix, accVisited)
-          (accResult + "\n" + depString, newVisited)
+
+          val currentPrefix = newImportShape match
+            case Some(value) =>
+              if isLast then childPrefix + s"└──[$value] "
+              else childPrefix + s"├──[$value] "
+
+            case None =>
+              if isLast then childPrefix + "└── "
+              else childPrefix + "├── "
+
+          val nextChildPrefix =
+            if isLast then childPrefix + "    "
+            else childPrefix + "│   "
+
+          val (depString, returnedShape, newVisited) =
+            modDep.toStringHelper(currentPrefix, nextChildPrefix, accVisited, newImportShape)
+
+          (accResult + "\n" + depString, returnedShape, newVisited)
       }
     
-      (finalResult, finalVisited)
+      (finalResult, newShape, finalVisited)
 
 object ModuleDependency:
 
   /**
-    * Constructs a DAG Module Dependency graph by searching through each
-    * module in import order and then recurses for each import statement 
-    * returning the module if already constructed otherwise creating a new module.
+    * Constructs a DAG Module Dependency graph by creating nodes that represent 
+    * typed and untyped modules with edges that represent typed and untyped imports
+    * to other modules.
     * 
     * Since we are guaranteed by the validity checker that all modules and imports
     * have correct scope, there shouldn't be any cycles or throws 
     * from the importToModule method nor from the modules in scope lookup.
     * 
+    * Since we are guaranteed by the import checker that import rules are followed,
+    * there shouldn't be any exceptions thrown from import violations.
+    * 
     * @param mname the module name of the current module
     * @param clas the class name of the current moduled
-    * @param shape the shape of the module given
     * @param modulesInScopeMap map from module to modules available for import (based on hierachical scope)
     * @param imports the list of imports for the current module
     * @return
     */
   def apply(mname: String, clas: CleanClass, modulesInScopeMap: Map[String, Set[CleanModule]], imports: List[CleanImport]): ModuleDependency =
-    buildDAG(mname, clas, modulesInScopeMap, imports, MutableMap.empty)
+    buildDAG(mname, clas, None, modulesInScopeMap, imports, MutableMap.empty)
 
   private def buildDAG(
     mname: String,
     clas: CleanClass,
+    shape: Option[CleanShapeType],
     modulesInScopeMap: Map[String, Set[CleanModule]],
     imports: List[CleanImport],
     memoization: MutableMap[String, ModuleDependency]
@@ -135,15 +161,24 @@ object ModuleDependency:
         val dependencies = imports.map { imp =>
           (importToModule(modulesInScopeMap(mname), imp), imp) match
             case (Module.Typed(importedMname, importedImports, importedClas, importedShape), Import.Untyped(_)) =>
-              buildDAG(importedMname, importedClas, modulesInScopeMap, importedImports, memoization)
+              (
+                buildDAG(importedMname, importedClas, Some(importedShape), modulesInScopeMap, importedImports, memoization),
+                None
+              )
             case (Module.Untyped(importedMname, importedImports, importedClas), Import.Typed(_, importedShape)) =>
-              buildDAG(importedMname, importedClas, modulesInScopeMap, importedImports, memoization)
+              (
+                buildDAG(importedMname, importedClas, None, modulesInScopeMap, importedImports, memoization),
+                Some(importedShape)
+              )
             case (Module.Untyped(importedMname, importedImports, importedClas), Import.Untyped(_)) =>
-              buildDAG(importedMname, importedClas, modulesInScopeMap, importedImports, memoization)
+              (
+                buildDAG(importedMname, importedClas, None, modulesInScopeMap, importedImports, memoization),
+                None
+              )
             case (mod @ _, _) => throw new Exception(f"Should never be a Typed Module with a typed import or an untyped module with an untyped import: $imp | $mod")
         }
         
-        val result = ModuleDependency(mname, clas, dependencies)
+        val result = ModuleDependency(mname, clas, shape, dependencies)
         memoization.update(mname, result)
         result
 
