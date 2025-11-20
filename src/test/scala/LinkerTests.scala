@@ -1,9 +1,10 @@
 package test
 
 import munit.FunSuite
-import ast.ConverterToClean.systemToClean
+import ast.ConverterToClean.{rawSystemToClean, systemToClean}
 import static.Parser
 import static.{VCheckTLDups, VCheckMFPNameDups, VCheckUndefined}
+import static.ModuleData
 import main.MainFuncs
 import main.AssignmentRunner
 import linker.{SystemToClassLinker, ModuleDependency}
@@ -20,16 +21,17 @@ class LinkerTests extends FunSuite {
         val inputSexp = MainFuncs.readSexp(inputStr)  
         val pipeRes =         
           for 
-            parsedProg <- systemToClean(Parser.parseMixedSys(inputSexp))
-            vCheck1    <- systemToClean(VCheckTLDups.moduleDupsSys(parsedProg))
-            vCheck2    <- systemToClean(VCheckMFPNameDups.mfpDupsSys(vCheck1))                
-            validPr    <- systemToClean(VCheckUndefined.closedSystem(vCheck2))          
+            parsedProg <- rawSystemToClean(Parser.parseMixedSys(inputSexp))
+            vCheck1    <- rawSystemToClean(VCheckTLDups.moduleDupsSys(parsedProg))
+            vCheck2    <- rawSystemToClean(VCheckMFPNameDups.mfpDupsSys(vCheck1))
+            annotated  <- Some(ModuleData.processSystem(vCheck2))                 
+            validPr    <- systemToClean(VCheckUndefined.closedSystem(annotated))          
           yield        
             validPr
 
         pipeRes match
           case None => throw new Exception("Passed invalid test case for Linker")
-          case Some(sys @ ast.System(modules, imports, progb)) =>
+          case Some(sys @ ast.System(modules, imports, progb, _)) =>
             val baseModule = SystemToClassLinker.generateTopLevelModule(modules, imports)
             val renamedSys = SystemToClassLinker.renameClassesUsingDependencyGraph(sys)
             assertEquals(baseModule.toString().strip(), expectedDepGraph.strip())

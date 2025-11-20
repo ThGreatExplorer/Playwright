@@ -132,8 +132,9 @@ object ModuleData:
     type ScopedModuleDataMap = Map[String, ScopedModuleData]
     val TLModuleName = "Body"
 
-    def constructFromSystem(sys : CleanSystem): ModuleData = sys match
-        case System(modules, _, _) => apply(modules)
+    def processSystem(sys : CleanRawSystem): CleanSystem = sys match
+        case RawSystem(modules, imports, progb) => 
+            System(modules, imports, progb, apply(modules))
 
     def apply(modules : List[CleanModule]): ModuleData = 
         val modDataEntries = modules.map(ModuleDataEntry(_))

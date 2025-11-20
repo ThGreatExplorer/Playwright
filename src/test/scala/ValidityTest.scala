@@ -7,7 +7,8 @@ import ast.ValidityErrNodes._
 import ast.ConverterToClean.progToClean
 import static.Parser
 import static.{VCheckTLDups, VCheckMFPNameDups, VCheckUndefined}
-import ast.ConverterToClean.systemToClean
+import static.ModuleData
+import ast.ConverterToClean.{systemToClean, rawSystemToClean}
 import ast.Expr.Num
 
 class ValidityTest extends FunSuite {
@@ -17,6 +18,11 @@ class ValidityTest extends FunSuite {
             case None            => Left(prog)
             case Some(cleanProg) => Right(cleanProg)
     
+    def rawSysWEOrClean(sys : RawSystemWE) : Either[RawSystemWE, CleanRawSystem] =
+        rawSystemToClean(sys) match 
+            case None           => Left(sys)
+            case Some(cleanSys) => Right(cleanSys)
+
     def sysWEOrClean(sys : SystemWE) : Either[SystemWE, CleanSystem] =
         systemToClean(sys) match 
             case None            => Left(sys)
@@ -48,7 +54,7 @@ class ValidityTest extends FunSuite {
 
             }
 
-    def processSysTestCase(testTuple : (String, SystemWE | CleanSystem, Boolean)) : Unit = testTuple match
+    def processSysTestCase(testTuple : (String, RawSystemWE | SystemWE | CleanSystem, Boolean)) : Unit = testTuple match
         case (inputStr, expectedAST, isErrExpected) => 
             val progType = if isErrExpected then "Well-formed Invalid" else "Well-formed Valid"
             val testName = s"$progType System: validity pipeline for input: $inputStr"
@@ -57,21 +63,31 @@ class ValidityTest extends FunSuite {
 
                 val pipeRes = 
                     for 
-                        parsedSys <- sysWEOrClean(Parser.parseMixedSys(inputSexp))
-                        vCheck1   <- sysWEOrClean(VCheckTLDups.moduleDupsSys(parsedSys))
-                        vCheck2   <- sysWEOrClean(VCheckMFPNameDups.mfpDupsSys(vCheck1))
-                        validSys  <- sysWEOrClean(VCheckUndefined.closedSystem(vCheck2))
+                        parsedSys <- rawSysWEOrClean(Parser.parseMixedSys(inputSexp))
+                        vCheck1   <- rawSysWEOrClean(VCheckTLDups.moduleDupsSys(parsedSys))
+                        vCheck2   <- rawSysWEOrClean(VCheckMFPNameDups.mfpDupsSys(vCheck1))
+                        annotated <- Right(ModuleData.processSystem(vCheck2))
+                        validSys  <- sysWEOrClean(VCheckUndefined.closedSystem(annotated))
                     yield 
                         validSys
 
-                pipeRes match 
-                    case Left(sysWE)     => 
-                        assertEquals(sysWE, expectedAST)
+                (pipeRes, expectedAST) match 
+                    case (Left(WE.Node(RawSystem(modsWE, impsWE, progWE))), WE.Node(RawSystem[WE](expectedMods, expectedImps, expectedProgB)))  => 
+                        assertEquals(modsWE, expectedMods)
+                        assertEquals(impsWE, expectedImps)
+                        assertEquals(progWE, expectedProgB)
                         assertEquals(true, isErrExpected)
-                    case Right(cleanSys) => 
-                        assertEquals(cleanSys, expectedAST)
+                    case (Left(WE.Node(System(modsWE, impsWE, progWE, _))), WE.Node(System[WE](expectedMods, expectedImps, expectedProgB, _)))  => 
+                        assertEquals(modsWE, expectedMods)
+                        assertEquals(impsWE, expectedImps)
+                        assertEquals(progWE, expectedProgB)
+                        assertEquals(true, isErrExpected)
+                    case (Right(System(mods, imps, prog, _)), System[Clean](expectedMods, expectedImps, expectedProgB, _)) => 
+                        assertEquals(mods, expectedMods)
+                        assertEquals(imps, expectedImps)
+                        assertEquals(prog, expectedProgB)
                         assertEquals(false, isErrExpected)
-
+                    case _ => fail("Wrong result type")
             }
 
     ValidityTests.validProgCases.foreach(processProgTestCase)
@@ -419,7 +435,8 @@ object ValidityTests {
                     )
                 ),
                 expr = Expr.Var("guard")
-            )
+            ), 
+            ModuleData(Nil)
         ),
         false
     ),
@@ -438,8 +455,8 @@ object ValidityTests {
          (def o (new B ())) 
          (o isa B))
         """,
-        System[Clean](
-            modules = List(
+        {
+            val modules : List[CleanModule] = List(
                 Module.Untyped(
                     "OWO",
                     List(),
@@ -467,15 +484,20 @@ object ValidityTests {
                         )
                     )
                 )
-            ),
-            imports = List(Import.Untyped("UWU"), Import.Untyped("UWU")),
-            progb = ProgBlock(
-                decls = List(
-                    Decl("o", Expr.NewInstance("B", List()))
-                ),
-                stmts = List(),
-                expr = Expr.IsInstanceOf("o", "B"))
-        ),
+            )
+
+            System[Clean](
+                modules,
+                List(Import.Untyped("UWU"), Import.Untyped("UWU")),
+                ProgBlock(
+                    decls = List(
+                        Decl("o", Expr.NewInstance("B", List()))
+                    ),
+                    stmts = List(),
+                    expr = Expr.IsInstanceOf("o", "B")), 
+                ModuleData(modules)
+            )
+        },
         false
     ),
     (
@@ -495,50 +517,56 @@ object ValidityTests {
          (def o (new B ())) 
          (o isa B))
         """,
-        System[Clean](
-            modules = List(
-                Module.Untyped(
-                    "OWO",
-                    List(),
-                    Class("A", List(), List())
-                ),
-                Module.Untyped(
-                    "UWU",
-                    List(Import.Untyped("OWO")),
-                    Class(
-                        "B", 
-                        List("owo"),
-                        List(
-                            Method(
-                                "uwu",
-                                List("num"),
-                                progb = ProgBlock(
-                                    List(Decl("foo", Expr.Num(123.4))), 
-                                    List(Stmt.Assign("foo", Expr.Var("num"))),
-                                    Expr.Var("this")
-                                )
-                            ),
-                            Method(
-                                "fave",
-                                List(),
-                                progb = ProgBlock(
-                                    List(Decl("o", Expr.NewInstance("A", List()))),
+        {
+            val modules : List[CleanModule] = 
+                List(
+                    Module.Untyped(
+                        "OWO",
+                        List(),
+                        Class("A", List(), List())
+                    ),
+                    Module.Untyped(
+                        "UWU",
+                        List(Import.Untyped("OWO")),
+                        Class(
+                            "B", 
+                            List("owo"),
+                            List(
+                                Method(
+                                    "uwu",
+                                    List("num"),
+                                    progb = ProgBlock(
+                                        List(Decl("foo", Expr.Num(123.4))), 
+                                        List(Stmt.Assign("foo", Expr.Var("num"))),
+                                        Expr.Var("this")
+                                    )
+                                ),
+                                Method(
+                                    "fave",
                                     List(),
-                                    Expr.Num(413.0)
+                                    progb = ProgBlock(
+                                        List(Decl("o", Expr.NewInstance("A", List()))),
+                                        List(),
+                                        Expr.Num(413.0)
+                                    )
                                 )
                             )
                         )
                     )
                 )
-            ),
-            imports = List(Import.Untyped("UWU"), Import.Untyped("UWU")),
-            progb = ProgBlock(
-                decls = List(
-                    Decl("o", Expr.NewInstance("B", List()))
-                ),
-                stmts = List(),
-                expr = Expr.IsInstanceOf("o", "B"))
-        ),
+
+            System[Clean](
+                modules,
+                List(Import.Untyped("UWU"), Import.Untyped("UWU")),
+                ProgBlock(
+                    decls = List(
+                        Decl("o", Expr.NewInstance("B", List()))
+                    ),
+                    stmts = List(),
+                    expr = Expr.IsInstanceOf("o", "B")),
+                ModuleData(modules)
+            )
+        },
         false
     ),
     (
@@ -555,46 +583,52 @@ object ValidityTests {
          (o --> notafield = (o --> somemethod (num))) 
          (o --> alsonotafield))
         """,
-        System[Clean](
-            modules = List(
-                Module.Untyped(
-                    "WAOW",
-                    List(),
-                    Class(
-                        "B", 
-                        List("owo"),
-                        List(
-                            Method(
-                                "uwu",
-                                List("num"),
-                                progb = ProgBlock(
-                                    List(Decl("foo", Expr.Num(123.4))), 
-                                    List(Stmt.Assign("foo", Expr.Var("num"))),
-                                    Expr.Var("this"))
+        {
+            val modules : List[CleanModule] = 
+                List(
+                    Module.Untyped(
+                        "WAOW",
+                        List(),
+                        Class(
+                            "B", 
+                            List("owo"),
+                            List(
+                                Method(
+                                    "uwu",
+                                    List("num"),
+                                    progb = ProgBlock(
+                                        List(Decl("foo", Expr.Num(123.4))), 
+                                        List(Stmt.Assign("foo", Expr.Var("num"))),
+                                        Expr.Var("this"))
+                                )
                             )
                         )
+                    ),
+                    Module.Untyped(
+                        "WOAW",
+                        List(),
+                        Class("B", List(), List())
                     )
-                ),
-                Module.Untyped(
-                    "WOAW",
-                    List(),
-                    Class("B", List(), List())
                 )
-            ),
-            imports = List(Import.Untyped("WAOW"), Import.Untyped("WOAW")),
-            progb = ProgBlock(
-                decls = List(
-                    Decl("num", Expr.Num(413.0)),
-                    Decl("o", Expr.NewInstance("B", List("num")))
-                ),
-                stmts = List(
-                    Stmt.FieldAssign(
-                        "o", 
-                        "notafield", 
-                        Expr.CallMethod("o", "somemethod", List("num")))
-                ),
-                expr = Expr.GetField("o", "alsonotafield"))
-        ),
+
+            System[Clean](
+                modules,
+                List(Import.Untyped("WAOW"), Import.Untyped("WOAW")),
+                ProgBlock(
+                    decls = List(
+                        Decl("num", Expr.Num(413.0)),
+                        Decl("o", Expr.NewInstance("B", List("num")))
+                    ),
+                    stmts = List(
+                        Stmt.FieldAssign(
+                            "o", 
+                            "notafield", 
+                            Expr.CallMethod("o", "somemethod", List("num")))
+                    ),
+                    expr = Expr.GetField("o", "alsonotafield")),
+                ModuleData(modules)
+            )
+        },
         false
     )  
     )
@@ -606,7 +640,7 @@ object ValidityTests {
          (module A (class D ())) 
          413.0)
         """,
-        WE.Node(System(
+        WE.Node(RawSystem(
             modules = List(
                 WE.Node(Module.Untyped(WE.Node("A"), List(), WE.Node(Class(WE.Node("C"), List(), List())))),
                 WE.Node(Module.Untyped(WE.Err(DuplicateModuleName), List(), WE.Node(Class(WE.Node("D"), List(), List()))))
@@ -626,17 +660,22 @@ object ValidityTests {
          (import C)
          413.0)
         """,
-        WE.Node(System(
-            modules = List(
-                WE.Node(Module.Untyped(WE.Node("A"), List(), WE.Node(Class(WE.Node("C"), List(), List()))))
-            ),
-            imports = List(WE.Err(ModuleNotDeclared)),
-            progb = WE.Node(ProgBlock(
-                decls = List(),
-                stmts = List(),
-                expr = WE.Node(Expr.Num(413.0))
+        {
+            WE.Node(System(
+                List(
+                    WE.Node(Module.Untyped(WE.Node("A"), List(), WE.Node(Class(WE.Node("C"), List(), List()))))
+                ),
+                List(WE.Err(ModuleNotDeclared)),
+                WE.Node(ProgBlock(
+                    decls = List(),
+                    stmts = List(),
+                    expr = WE.Node(Expr.Num(413.0))
+                )),
+                ModuleData(List(
+                    Module.Untyped[Clean]("A", List(), Class("C", List(), List()))
+                ))
             ))
-        )),
+        },
         true
     ),
     (
@@ -650,7 +689,7 @@ object ValidityTests {
                 (method owo () -413.0))) 
          413.0)
         """,
-        WE.Node(System(
+        WE.Node(RawSystem(
             modules = List(
                 WE.Node(Module.Untyped(
                     WE.Node("A"), 
@@ -716,7 +755,7 @@ object ValidityTests {
          (new A (x)))
         """,
         WE.Node(System(
-            modules = List(
+            List(
                 WE.Node(Module.Untyped(
                     WE.Node("Amod"), 
                     List(WE.Err(ModuleNotDeclared)), 
@@ -742,11 +781,21 @@ object ValidityTests {
                         List(WE.Node("B")), 
                         List()))))
             ),
-            imports = List(WE.Node(Import.Untyped(WE.Node("Bmod")))),
-            progb = WE.Node(ProgBlock(
+            List(WE.Node(Import.Untyped(WE.Node("Bmod")))),
+            WE.Node(ProgBlock(
                 decls = List(WE.Node(Decl(WE.Node("x"), WE.Node(Expr.Num(413.0))))),
                 stmts = List(),
                 expr = WE.Node(Expr.NewInstance(WE.Err(ClassNotDeclared), List(WE.Node("x"))))
+            )),
+            ModuleData(List(
+                Module.Untyped[Clean](
+                    "Amod",
+                    List(Import.Untyped("Bmod")), 
+                    Class("A", List("A"), List(Method("A", List("A"), ProgBlock(List(), List(), Expr.Var("A")))))),
+                Module.Untyped[Clean](
+                    "Bmod",
+                    List(Import.Untyped("A")), 
+                    Class("B", List("B"), List())),
             ))
         )),
         true

@@ -18,13 +18,13 @@ object Parser:
       * @param sexpr SExpr read in from input
       * @return AST with possible error nodes if grammar rules are violated
       */
-    def parseMixedSys(sexpr: SExpr): SystemWE = sexpr match
+    def parseMixedSys(sexpr: SExpr): RawSystemWE = sexpr match
         //  System ::= (Module^* Import^* Declaration^* Statement^* Expression)
         case SList(Nil) => WE.Err(SystemEmptyList) 
         case SList(elems) => 
             val (modules, rest0) = elems.takeWhileKWPrefixes(Keyword.Module, Keyword.TModule)
             val (imports, rest1) = rest0.takeWhileKWPrefixes(Keyword.Import, Keyword.TImport)
-            WE.Node(System(
+            WE.Node(RawSystem(
                 modules.map(parseMixedModule),
                 imports.map(parseMixedImport),
                 parseProgBlock(rest1)
@@ -32,13 +32,13 @@ object Parser:
         case _ => WE.Err(SystemNotAList)
 
     // Special variant for A9. Only considers typed modules as well-formed
-    def parseTypedSys(sexpr: SExpr): SystemWE = sexpr match
+    def parseTypedSys(sexpr: SExpr): RawSystemWE = sexpr match
         //  TypedSystem ::= (TypedModule^* Import^* Declaration^* Statement^* Expression)
         case SList(Nil) => WE.Err(SystemEmptyList) 
         case SList(elems) => 
             val (tmodules, rest0) = elems.takeWhileKWPrefixes(Keyword.TModule)
             val (imports, rest1) = rest0.takeWhileKWPrefixes(Keyword.Import)
-            WE.Node(System(
+            WE.Node(RawSystem(
                 tmodules.map(parseMixedModule).map(errIfUntypedMod),
                 imports.map(parseMixedImport),
                 parseProgBlock(rest1)

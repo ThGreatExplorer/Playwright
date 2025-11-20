@@ -1,6 +1,7 @@
 package linker
 
 import ast._
+import static.ModuleData
 
 object SystemToClassRenamerAST:
 
@@ -15,11 +16,14 @@ object SystemToClassRenamerAST:
     */
   def renameSystem(s: CleanSystem, topLevelModule: ModuleDependency): CleanSystem =
     s match
-      case System(modules, imports, progb) =>
+      case System(modules, imports, progb, _) =>
+        val renamedModules = renameModules(modules, topLevelModule)
+        
         System(
-          renameModules(modules, topLevelModule), 
+          renamedModules, 
           imports,
-          renameProgb(progb, topLevelModule.generateRenameMap())
+          renameProgb(progb, topLevelModule.generateRenameMap()), 
+          ModuleData(renamedModules)
         )
   
   def renameModules(modules: List[CleanModule], topLevelModule: ModuleDependency): List[CleanModule] =

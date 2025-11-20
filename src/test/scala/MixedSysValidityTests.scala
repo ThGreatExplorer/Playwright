@@ -144,8 +144,7 @@ class VCheckImportsTest extends FunSuite:
 
     test("checkImportsSys - end-to-end system validation (does not flag undefined imports)") {
         val shape : CleanShapeType = Type.Shape(List(FieldType("field", Type.Number())), Nil)
-        val system = System[Clean](
-            modules = List(
+        val modules : List[CleanModule] = List(
                 Module.Typed(
                     "ModA",
                     List(Import.Untyped("ModB")),
@@ -157,9 +156,12 @@ class VCheckImportsTest extends FunSuite:
                     Nil,
                     Class("ClassB", Nil, Nil)
                 )
-            ),
-            imports = List(Import.Untyped("ModA")),
-            progb = ProgBlock(Nil, Nil, Expr.Num(0.0))
+            )
+        val system = System[Clean](
+            modules,
+            List(Import.Untyped("ModA")),
+            ProgBlock(Nil, Nil, Expr.Num(0.0)),
+            ModuleData(modules)
         )
 
         val result = VCheckImports.checkImportsSys(system)
@@ -167,8 +169,7 @@ class VCheckImportsTest extends FunSuite:
     }
 
     test("checkImportsSys - detects import errors in nested modules") {
-        val system = System[Clean](
-            modules = List(
+        val modules : List[CleanModule] = List(
                 Module.Untyped(
                     "UntypedMod",
                     Nil,
@@ -180,9 +181,12 @@ class VCheckImportsTest extends FunSuite:
                     Class("ClassA", Nil, Nil),
                     Type.Shape(Nil, Nil)
                 )                
-            ),
-            imports = Nil,
-            progb = ProgBlock(Nil, Nil, Expr.Num(0.0))
+            )
+        val system = System[Clean](
+            modules,
+            Nil,
+            ProgBlock(Nil, Nil, Expr.Num(0.0)),
+            ModuleData(modules)
         )
 
         val result = VCheckImports.checkImportsSys(system)

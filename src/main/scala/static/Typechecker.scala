@@ -28,9 +28,7 @@ object Typechecker:
     // Top Level entry point
 
     def typecheckSystem(s: CleanSystem): SystemWE = WE.Node( s match
-        case System[Clean](modules, imports, progb) =>
-
-            val moduleData = ModuleData(modules)
+        case System[Clean](modules, imports, progb, moduleData) =>
 
             val typecheckedModules = typecheckModules(modules, moduleData)
             // Classes in scope constructed based on the sequence of modules 
@@ -43,7 +41,8 @@ object Typechecker:
             System(
                 typecheckedModules,
                 typecheckedImports,
-                typecheckProgBWithExpType(progb, topLevelExpectedReturnType, sClasses, tVars)
+                typecheckProgBWithExpType(progb, topLevelExpectedReturnType, sClasses, tVars), 
+                moduleData
             )
     )
 

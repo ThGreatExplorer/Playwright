@@ -10,9 +10,9 @@ object VCheckMFPNameDups:
 
     // Module Valididty
 
-    def mfpDupsSys(s: CleanSystem): SystemWE = s match
-        case System(modules, imports, progb) =>
-            WE.Node(System(
+    def mfpDupsSys(s: CleanRawSystem): RawSystemWE = s match
+        case RawSystem(modules, imports, progb) =>
+            WE.Node(RawSystem(
                 modules.map(moduleDupsMFP),
                 imports.map(importToWE),
                 ConverterToWE.progBlockToWE(progb)

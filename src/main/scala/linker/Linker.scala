@@ -18,12 +18,13 @@ object SystemToClassLinker:
 
   def trimUnreachableStates(s: CleanSystem, reachableModules: Set[String]): CleanSystem =
     s match
-      case System(modules, imports, progb) =>
+      case System(modules, imports, progb, modData) =>
         val modulesReachable = modules.filter(module => reachableModules.contains(module.moduleName))
         System(
           modulesReachable,
           imports,
-          progb
+          progb, 
+          modData
         )
     
   def generateTopLevelModule(mods: List[CleanModule], imports: List[CleanImport]): ModuleDependency = 
@@ -41,7 +42,7 @@ object SystemToClassLinker:
     */
   def renameClassesUsingDependencyGraph(s: CleanSystem): CleanSystem =
     s match
-      case System(modules, imports, progb) =>
+      case System(modules, imports, progb, modData) =>
         val topLevelModule = generateTopLevelModule(modules, imports)
         val trimmedSys = trimUnreachableStates(s, topLevelModule.findReachableModules())
         SystemToClassRenamerAST.renameSystem(trimmedSys, topLevelModule)
@@ -55,7 +56,7 @@ object SystemToClassLinker:
     */
   def convertModulesToClasses(s: CleanSystem): CleanProgram =
     s match
-      case System(modules, imports, progb) =>
+      case System(modules, imports, progb, modData) =>
         Program(
           modules.getClasses,
           progb

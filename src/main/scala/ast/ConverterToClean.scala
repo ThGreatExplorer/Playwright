@@ -6,16 +6,27 @@ object ConverterToClean:
 
     // Top Level converters
 
-    def systemToClean(sys : SystemWE) : Option[CleanSystem] = sys match
+    def rawSystemToClean(sys : RawSystemWE) : Option[CleanRawSystem] = sys match
         case WE.Err(_) => None
         
-        case WE.Node(System(modules, imports, progb)) => 
+        case WE.Node(RawSystem(modules, imports, progb)) => 
             for
                 modules  <- modules.traverse(moduleWEToClean)
                 imports <- imports.traverse(importToClean)
                 progb  <- progBlockWEToClean(progb)
             yield 
-                System[Clean](modules, imports, progb)
+                RawSystem[Clean](modules, imports, progb)
+
+    def systemToClean(sys : SystemWE) : Option[CleanSystem] = sys match
+        case WE.Err(_) => None
+        
+        case WE.Node(System(modules, imports, progb, modData)) => 
+            for
+                modules  <- modules.traverse(moduleWEToClean)
+                imports <- imports.traverse(importToClean)
+                progb  <- progBlockWEToClean(progb)
+            yield 
+                System[Clean](modules, imports, progb, modData)
 
     def progToClean(prog: ProgramWE): Option[CleanProgram] = prog match 
         case WE.Err(_) => None

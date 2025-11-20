@@ -12,7 +12,6 @@ class SynthesizerTest extends FunSuite:
         val modules = List(
             Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil))
         )
-        val system = System[Clean](modules, Nil, ProgBlock(Nil, Nil, Expr.Num(0.0)))
         val moduleData = ModuleData(modules)
         
         val imports = List(Import.Typed[Clean]("ModA", shape))
@@ -40,7 +39,6 @@ class SynthesizerTest extends FunSuite:
             Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil)),
             Module.Typed[Clean]("ModB", Nil, Class("ClassB", Nil, Nil), shape)
         )
-        val system = System[Clean](modules, Nil, ProgBlock(Nil, Nil, Expr.Num(0.0)))
         val moduleData = ModuleData(modules)
         
         val imports = List(
@@ -71,7 +69,6 @@ class SynthesizerTest extends FunSuite:
             Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil)),
             Module.Typed[Clean]("ModB", Nil, Class("ClassB", Nil, Nil), shape)
         )
-        val system = System[Clean](modules, Nil, ProgBlock(Nil, Nil, Expr.Num(0.0)))
         val moduleData = ModuleData(modules)
         
         val imports = List(
@@ -107,7 +104,6 @@ class SynthesizerTest extends FunSuite:
             Module.Untyped[Clean]("ModA", origImports, Class("ClassA", Nil, Nil)),
             Module.Untyped[Clean]("DepMod", Nil, Class("DepClass", Nil, Nil))
         )
-        val system = System[Clean](modules, Nil, ProgBlock(Nil, Nil, Expr.Num(0.0)))
         val moduleData = ModuleData(modules)
         
         val imports = List(Import.Typed[Clean]("ModA", shape))
@@ -126,7 +122,6 @@ class SynthesizerTest extends FunSuite:
             Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil)),
             Module.Untyped[Clean]("ModB", Nil, Class("ClassB", Nil, Nil))
         )
-        val system = System[Clean](modules, Nil, ProgBlock(Nil, Nil, Expr.Num(0.0)))
         val moduleData = ModuleData(modules)
         
         val result = Synthesizer.synthesizeModules(modules, moduleData)
@@ -146,7 +141,6 @@ class SynthesizerTest extends FunSuite:
             Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil)),
             Module.Typed[Clean]("ModB", List(Import.Typed[Clean]("ModA", shape)), Class("ClassB", Nil, Nil), shape)
         )
-        val system = System[Clean](modules, Nil, ProgBlock(Nil, Nil, Expr.Num(0.0)))
         val moduleData = ModuleData(modules)
         
         val result = Synthesizer.synthesizeModules(modules, moduleData)
@@ -179,9 +173,7 @@ class SynthesizerTest extends FunSuite:
             Module.Typed[Clean]("ModB", List(Import.Typed[Clean]("ModA", shape1)), Class("ClassB", Nil, Nil), shape1),
             Module.Typed[Clean]("ModC", List(Import.Typed[Clean]("ModA", shape2)), Class("ClassC", Nil, Nil), shape2)
         )
-        val system = System[Clean](modules, Nil, ProgBlock(Nil, Nil, Expr.Num(0.0)))
         val moduleData = ModuleData(modules)
-        
         val result = Synthesizer.synthesizeModules(modules, moduleData)
         
         assertEquals(result.length, 5)
@@ -200,18 +192,20 @@ class SynthesizerTest extends FunSuite:
 
     test("synthesizeSystem - end-to-end with typed import in system body") {
         val shape : CleanShapeType = Type.Shape(List(FieldType("x", Type.Number())), Nil)
-        val system = System[Clean](
-            modules = List(
+        val modules = List(
                 Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil))
-            ),
-            imports = List(Import.Typed[Clean]("ModA", shape)),
-            progb = ProgBlock(Nil, Nil, Expr.Num(0.0))
+            )
+        val system = System[Clean](
+            modules,
+            List(Import.Typed[Clean]("ModA", shape)),
+            ProgBlock(Nil, Nil, Expr.Num(0.0)),
+            ModuleData(modules)
         )
         
         val result = Synthesizer.synthesizeSystem(system)
         
         result match
-            case System(mods, imps, _) =>
+            case System(mods, imps, _, _) =>
                 assertEquals(mods.length, 2)
                 assertEquals(imps.length, 1)
                 
@@ -227,8 +221,7 @@ class SynthesizerTest extends FunSuite:
     test("synthesizeSystem - complex nested typed imports") {
         val shape1 : CleanShapeType = Type.Shape(List(FieldType("x", Type.Number())), Nil)
         val shape2 : CleanShapeType = Type.Shape(List(FieldType("y", Type.Number())), Nil)
-        val system = System[Clean](
-            modules = List(
+        val modules = List(
                 Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil)),
                 Module.Typed[Clean](
                     "ModB", 
@@ -236,18 +229,21 @@ class SynthesizerTest extends FunSuite:
                     Class("ClassB", Nil, Nil), 
                     shape1
                 )
-            ),
-            imports = List(
+            )
+        val system = System[Clean](
+            modules,
+            List(
                 Import.Typed[Clean]("ModA", shape2),
                 Import.Untyped[Clean]("ModB")
             ),
-            progb = ProgBlock(Nil, Nil, Expr.Num(0.0))
+            ProgBlock(Nil, Nil, Expr.Num(0.0)),
+            ModuleData(modules)
         )
         
         val result = Synthesizer.synthesizeSystem(system)
         
         result match
-            case System(mods, imps, _) =>
+            case System(mods, imps, _, _) =>
                 assertEquals(mods.length, 4)
                 assertEquals(imps.length, 2)
                 

@@ -14,6 +14,7 @@
  *****************************************************************************/
 
 package ast
+import static.ModuleData
 
 type Clean[+A] = A
 enum WE[+A]:
@@ -25,12 +26,25 @@ enum WE[+A]:
  *****************************************************************************/
 
 //  MixedSystem ::= (MixedModule^* MixedImport^* Declaration^* Statement^* Expression)
-final case class System[Node[_]](
+
+// Used in early stages of the pipeline, while basic invariants are still not established
+final case class RawSystem[Node[_]](
     modules: List[Node[Module[Node]]],
     imports: List[Node[Import[Node]]],
     progb:   Node[ProgBlock[Node]]
 )
+type CleanRawSystem = Clean[RawSystem[Clean]]
+type RawSystemWE    = WE[RawSystem[WE]]
 
+// Used by more complex passes of the compiler
+final case class System[Node[_]](
+    modules: List[Node[Module[Node]]],
+    imports: List[Node[Import[Node]]],
+    progb:   Node[ProgBlock[Node]],
+    // Map for quick global look ups of Module-related Data, helps to avoid rediscovering
+    // module-class name-type association as well as scoped information 
+    moddata: ModuleData
+)
 type CleanSystem = Clean[System[Clean]]
 type SystemWE    = WE[System[WE]]
 
