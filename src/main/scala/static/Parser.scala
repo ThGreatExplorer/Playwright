@@ -73,7 +73,7 @@ object Parser:
                 // TModule ::= (tmodule ModuleName MixedImport^* Class Shape)
                 case clss :: shape :: Nil => 
                     WE.Node(Module.Typed(
-                        parseName(moduleName),
+                        parseModuleName(moduleName),
                         imports.map(parseMixedImport),
                         parseClass(clss),
                         parseShape(shape)
@@ -85,7 +85,7 @@ object Parser:
                 // Module  ::= (module ModuleName Import^* Class)
                 case clss :: Nil =>
                     WE.Node(Module.Untyped(
-                        parseName(moduleName),
+                        parseModuleName(moduleName),
                         imports.map(parseUntypedImport),
                         parseClass(clss)
                     ))
@@ -308,15 +308,23 @@ object Parser:
         case _ =>
             WE.Err(ExprMalformed)
 
+    def parseVarRef(ssymbol : SExpr) : VarRefWE = parseStringWE(ssymbol)
+    def parseName(ssymbol : SExpr)   : NameWE = parseStringWE(ssymbol)
+
     def parseStringWE(ssymbol : SExpr) : WE[String] = 
         ssymbol match
         case SSymbol(s) =>
             if !isKeyword(s) then WE.Node(s)
             else WE.Err(NameIsKeyword) 
         case _ =>
-            WE.Err(NotAName)
+            WE.Err(NotAName)   
 
-    def parseVarRef(ssymbol : SExpr) : VarRefWE = parseStringWE(ssymbol)
-    def parseName(ssymbol : SExpr)   : NameWE = parseStringWE(ssymbol)
+    def parseModuleName(ssymbol : SExpr) : NameWE = 
+        parseStringWE(ssymbol) match
+            case n @ WE.Err(e) => n
+            case n @ WE.Node(s) =>
+                if s != "Body" then n
+                else WE.Err(ModuleNamedBody)
+        
         
 

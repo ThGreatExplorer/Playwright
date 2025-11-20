@@ -36,6 +36,7 @@ enum ParseErrNodes:
     // Name
     case NameIsKeyword
     case NotAName
+    case ModuleNamedBody
 
 enum ValidityErrNodes:
     // Name duplicates in Class/Module definitons

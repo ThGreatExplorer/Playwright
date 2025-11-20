@@ -14,11 +14,10 @@ class RunnerTests extends FunSuite {
     (
       """
       (
-        (module A (class A () (method f () 413.0)))
-        (module B (timport A (() ((f () Number)))) (class B () (method g () 413.0)))
-        (import B)
-        (def objB (new B()))
-        objB
+        (tmodule Body (class A () (method f () 413.0)) (() ((f () Number))))
+        (import Body)
+        (def objA (new A()))
+        (objA --> f())
       )
       """,
       Result.ParseError,
@@ -115,7 +114,7 @@ class RunnerTests extends FunSuite {
       )
       """,
       Result.SynthesizedModuleNames(List("Helper", "Insidious", "Insidious.into.Body")),
-      "[\"Helper\", \"Insidious\", \"Insidious.into.Body\"]"
+      "[\"Helper\",\"Insidious\",\"Insidious.into.Body\"]"
     ), 
     ( """
       (
@@ -140,7 +139,7 @@ class RunnerTests extends FunSuite {
       )
       """,
       Result.SynthesizedModuleNames(List("Cowboy", "Artist", "MiniMain", "MiniMain.into.Body")),
-      "[\"Cowboy\", \"Artist\", \"MiniMain\", \"MiniMain.into.Body\"]"
+      "[\"Cowboy\",\"Artist\",\"MiniMain\",\"MiniMain.into.Body\"]"
     )
   )
 
