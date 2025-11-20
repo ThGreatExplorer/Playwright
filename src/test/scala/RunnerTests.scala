@@ -95,6 +95,24 @@ class RunnerTests extends FunSuite {
       Result.TypeError,
       "\"type error\""
     ), 
+    (
+      """
+      ((module A (class c ()))
+      (tmodule B (class c () (method m () 2.0)) (() ((m () Number))))
+      (timport A (() ()))
+      (import B)
+      (timport A (() ()))
+      (import B)
+      (timport A (() ()))
+      (import B)
+      (timport A (() ()))
+      (def ex (new c ()))
+      (def res (ex --> m ()))
+      res)
+      """,
+      Result.TypeError,
+      "\"type error\"" 
+    ), 
     ( // Special Incidious example 
       """
       (

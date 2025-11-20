@@ -117,19 +117,19 @@ object Typechecker:
     ) : (List[ImportWE], SClassesMap)  =
 
         def collectSClassesMapLoop(
-            impsRem: List[CleanImport], importedModSignatures : ModToSignatureMap
+            impsRem: List[CleanImport], importedClasses : SClassesMap
         ) : SClassesMap = impsRem match
 
-            case Nil => importedModSignatures.values.toMap
+            case Nil => importedClasses
 
             case (imp @ Import.Untyped(mname)) :: tail =>
                 val (cname, shape) = definedModSignatures(mname) 
-                val updImportedSoFar = importedModSignatures.updated(mname, (cname, shape.get))
+                val updImportedSoFar = importedClasses.updated(cname, shape.get)
                 collectSClassesMapLoop(tail, updImportedSoFar)
 
             case (imp @ Import.Typed(mname, shape)) :: tail => 
                 val (cname, _) = definedModSignatures(mname) 
-                val updImportedSoFar = importedModSignatures.updated(mname, (cname, shape))
+                val updImportedSoFar = importedClasses.updated(cname, shape)
                 collectSClassesMapLoop(tail, updImportedSoFar)
 
         val importsWE = imports.map(ConverterToWE.importToWE(_))
@@ -182,10 +182,9 @@ object Typechecker:
             WE.Err(ShapeTypeMethodWrongNumberOfParams)
 
         case (Method(mname, params, progb), MethodType(_, paramTypes, retType)) =>
-            val initTVarsWithThis = Map("this" -> Inferred(tVarThis))
             val paramITypes = paramTypes.map(Inferred(_))
             val paramTVars: TVarsMap = params.zip(paramITypes).toMap
-            val initTVars = initTVarsWithThis ++ paramTVars
+            val initTVars = Map("this" -> Inferred(tVarThis)) ++ paramTVars
 
             WE.Node(Method(
                 WE.Node(mname),
