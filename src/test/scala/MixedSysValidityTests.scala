@@ -1,9 +1,10 @@
-package static
+package test
 
 import munit.FunSuite
 import ast._
 import ast.ValidityErrNodes._
 import ast.ConverterToClean._
+import static._
 
 class VCheckImportsTest extends FunSuite:
 

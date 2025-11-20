@@ -9,7 +9,141 @@ import main.AssignmentRunner._
 import main._
 
 class RunnerTests extends FunSuite {
-  
+
+  val casesA11 = List(
+    (
+      """
+      (
+        (module A (class A () (method f () 413.0)))
+        (module B (timport A (() ((f () Number)))) (class B () (method g () 413.0)))
+        (import B)
+        (def objB (new B()))
+        objB
+      )
+      """,
+      Result.ParseError,
+      "\"parser error\""
+    ),
+    (
+      """
+      (
+        (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))
+        (module A (class A () (method g () 413.0)))
+        (import A)
+        (def objA (new A()))
+        (objA --> f())
+      )
+      """,
+      Result.DupModuleDefs,
+      "\"duplicate module name\""
+    ),
+    (
+      """
+      (
+      (tmodule A (class B (a b) (method f () 413.0)) (() ((f () Number) (f () Number))))
+      (import B)
+      (def objB (new B()))
+      (objB --> f())
+      )
+      """,
+      Result.DupMethodFieldParams,
+      "\"duplicate method, field, or parameter name\""
+    ),
+    (
+      """
+      (
+        (module A (class A () (method f () 413.0)))
+        (tmodule B (timport A (() ((f () Number)))) (timport A (() ((g () Number))))
+          (class B () (method g () 413.0)) 
+          (() ((g () Number))))
+        (import B)
+        (def objB (new B()))
+        objB
+      )
+      """,
+      Result.BadImport,
+      "\"bad import\""
+    ),
+    (
+      """
+      (
+      (tmodule A (class B () (method f () 413.0)) (() ((f () Number))))
+      (import B)
+      (def objB (new B()))
+      (objB --> f())
+      )
+      """,
+      Result.UndefinedVarError,
+      "\"undeclared variable error\""
+    ),
+    (
+      """
+      ((module A (class c ()))
+      (tmodule B (class c () (method m () 2.0)) (() ((m () Number))))
+      (timport A (() ()))
+      (import B)
+      (timport A (() ()))
+      (import B)
+      (timport A (() ()))
+      (import B)
+      (timport A (() ()))
+      (def ex (new c ()))
+      (def res (ex --> m ()))
+      res)
+      """,
+      Result.TypeError,
+      "\"type error\"" 
+    ), 
+    ( """
+      (
+        (tmodule Helper
+          (class Helper () (method faveNum () 413.0))
+          (() ((faveNum () Number)))
+        )
+        (module Insidious (import Helper)
+          (class Insidious () 
+            (method violation () 
+              (def o (new Helper ()))
+              (def val (o --> faveNum()))
+              (val isa Helper)
+            )
+          )
+        )
+        (timport Insidious (() ((violation () Number))))
+        (def o (new Insidious ()))
+        (o --> violation ())
+      )
+      """,
+      Result.SynthesizedModuleNames(List("Helper", "Insidious", "Insidious.into.Body")),
+      "[\"Helper\", \"Insidious\", \"Insidious.into.Body\"]"
+    ), 
+    ( """
+      (
+        (module Cowboy (class Cowboy() (method draw() 1.0)))
+        (module Artist (class Artist() (method draw() 666.0)))
+        (module MiniMain 
+          (import Cowboy)
+          (import Artist)
+          (class MiniMain()
+            (method main() 
+              (def a (new Artist ()))
+              (def c (new Cowboy ()))
+              (def x 0.0)
+              (if0 1.0 (x = a) (x = c))
+              (x = (x --> draw ()))
+              x)
+          )
+        )
+        (timport MiniMain (()((main () Number))))
+        (def obj (new MiniMain()))
+        (obj --> main())
+      )
+      """,
+      Result.SynthesizedModuleNames(List("Cowboy", "Artist", "MiniMain", "MiniMain.into.Body")),
+      "[\"Cowboy\", \"Artist\", \"MiniMain\", \"MiniMain.into.Body\"]"
+    )
+  )
+
   val casesA10 = List(
     (
       """
@@ -94,24 +228,6 @@ class RunnerTests extends FunSuite {
       """,
       Result.TypeError,
       "\"type error\""
-    ), 
-    (
-      """
-      ((module A (class c ()))
-      (tmodule B (class c () (method m () 2.0)) (() ((m () Number))))
-      (timport A (() ()))
-      (import B)
-      (timport A (() ()))
-      (import B)
-      (timport A (() ()))
-      (import B)
-      (timport A (() ()))
-      (def ex (new c ()))
-      (def res (ex --> m ()))
-      res)
-      """,
-      Result.TypeError,
-      "\"type error\"" 
     ), 
     ( // Special Incidious example 
       """
@@ -555,6 +671,7 @@ class RunnerTests extends FunSuite {
   ))
 
   val runnerTestsByAssignment = List(
+    (11, mixedLinking(_), casesA11),
     (10, mixedSystem(_), casesA10),
     (9, typedSystem(_), casesA9),
     (8, ceskModule(_), casesA8),
