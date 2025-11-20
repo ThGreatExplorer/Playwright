@@ -6,14 +6,14 @@ import static.Parser
 import ast._
 import ast.ParseErrNodes._
 import ast.ConverterToClean.progToClean
-import ast.ConverterToClean.systemToClean
+import ast.ConverterToClean.rawSystemToClean
 
 class ParserTests extends FunSuite {
   
-  def processTypedSysParse(input : String) : (SystemWE, Boolean) =
+  def processTypedSysParse(input : String) : (RawSystemWE, Boolean) =
     val inputSexp = MainFuncs.readSexp(input);
     val system    = Parser.parseTypedSys(inputSexp); 
-    val hasError  = systemToClean(system).isEmpty;
+    val hasError  = rawSystemToClean(system).isEmpty;
     (system, hasError)
 
   def processProgParse(input : String) : (ProgramWE, Boolean) = 
@@ -22,10 +22,10 @@ class ParserTests extends FunSuite {
     val hasError  = progToClean(prog).isEmpty;
     (prog, hasError)
 
-  def processSysParse(input : String) : (SystemWE, Boolean) = 
+  def processSysParse(input : String) : (RawSystemWE, Boolean) = 
     val inputSexp = MainFuncs.readSexp(input);
     val system    = Parser.parseMixedSys(inputSexp); 
-    val hasError  = systemToClean(system).isEmpty;
+    val hasError  = rawSystemToClean(system).isEmpty;
     (system, hasError)
 
   val allTests = Seq(
@@ -72,7 +72,7 @@ object ParserTests:
   )
     """,
     WE.Node(
-        System(
+        RawSystem(
           modules = List(
             WE.Node(Module.Typed(
               mname = WE.Node("A"),
@@ -149,7 +149,7 @@ object ParserTests:
       4.0
       )""",
       WE.Node(
-        System(
+        RawSystem(
           modules = List(
             WE.Err(ModuleMalformed)
           ),
@@ -175,7 +175,7 @@ object ParserTests:
       4.0
       )""",
       WE.Node(
-        System(
+        RawSystem(
           modules = List(
             WE.Node(Module.Typed(
               mname = WE.Node("A"),
@@ -259,7 +259,7 @@ object ParserTests:
   val validModuleCases = Seq(
     (
       "((foo = 123.4) bar)",
-      WE.Node(System(
+      WE.Node(RawSystem(
         modules = List(),
         imports = List(),
         progb = WE.Node(ProgBlock(
@@ -290,7 +290,7 @@ object ParserTests:
       (pointA --> addCoords ())
       )""",
       WE.Node(
-        System(
+        RawSystem(
           modules = List(
             WE.Node(Module.Untyped(
               mname = WE.Node("A"),
@@ -394,7 +394,7 @@ object ParserTests:
       4.0
       )""",
       WE.Node(
-        System(
+        RawSystem(
           modules = List(
             WE.Node(Module.Untyped(
               mname = WE.Node("A"),
@@ -449,7 +449,7 @@ object ParserTests:
       4.0
       )""",
       WE.Node(
-        System(
+        RawSystem(
           modules = List(
             WE.Err(ModuleMalformed),
             WE.Node(Module.Untyped(

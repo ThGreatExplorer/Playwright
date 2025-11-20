@@ -4,30 +4,36 @@ import main.MainFuncs
 import static._
 import ast._
 import munit.FunSuite
-import ast.ConverterToClean.systemToClean
+import ast.ConverterToClean.{systemToClean,rawSystemToClean}
 import ast.ProgBlock
 
 class TypecheckerTests extends FunSuite {
 
   TypecheckerTests.testCases.zip(TypecheckerTests.expectedTestCaseResults)foreach{ 
-    case (inputStr, expectedProg) =>
+    case (inputStr, WE.Node(System(expectedMods, expectedImps, expectedProgB, _))) =>
       test(inputStr) {
         val inputSexp = MainFuncs.readSexp(inputStr)  
         val pipeRes =         
           for 
-            parsedProg <- systemToClean(Parser.parseTypedSys(inputSexp))
-            vCheck1    <- systemToClean(VCheckTLDups.moduleDupsSys(parsedProg))
-            vCheck2    <- systemToClean(VCheckMFPNameDups.mfpDupsSys(vCheck1))                
-            validPr    <- systemToClean(VCheckUndefined.closedSystem(vCheck2))
+            parsedProg <- rawSystemToClean(Parser.parseTypedSys(inputSexp))
+            vCheck1    <- rawSystemToClean(VCheckTLDups.moduleDupsSys(parsedProg))
+            vCheck2    <- rawSystemToClean(VCheckMFPNameDups.mfpDupsSys(vCheck1))  
+            annotated  <- Some(ModuleData.processSystem(vCheck2))              
+            validPr    <- systemToClean(VCheckUndefined.closedSystem(annotated))
           yield
             validPr
 
         pipeRes match
           case None => throw new Exception("Passed invalid test case for Typechecker")
           case Some(cleanProg) =>
-            val progWE = Typechecker.typecheckSystem(cleanProg)
-            assertEquals(progWE, expectedProg)
+            Typechecker.typecheckSystem(cleanProg) match
+              case WE.Node(System(modsWE, impsWE, progWE, _)) => 
+                assertEquals(modsWE, expectedMods)
+                assertEquals(impsWE, expectedImps)
+                assertEquals(progWE, expectedProgB)
+              case _ => fail("Top level node is an error")
       }  
+    case _ => throw new Exception("Passed invalid test case for Typechecker")
   }
 }
 
@@ -204,7 +210,7 @@ val expectedTestCaseResults = List(
                 ))
               ))
             ))
-          )
+          ),
         )),
         WE.Node(Type.Shape(
           List(
@@ -258,7 +264,8 @@ val expectedTestCaseResults = List(
         ))
       ),
       WE.Node(Expr.Var(WE.Node("x")))
-    ))
+    )),
+    ModuleData(Nil)
   )),
     WE.Node(System(
     List(
@@ -391,7 +398,8 @@ val expectedTestCaseResults = List(
         ))
       ),
       WE.Node(Expr.Var(WE.Node("x")))
-    ))
+    )),
+    ModuleData(Nil)
   )),
   WE.Node(System(
     List(
@@ -465,7 +473,8 @@ val expectedTestCaseResults = List(
         ))
       ),
       WE.Node(Expr.Var(WE.Node("x")))
-    ))
+    )),
+    ModuleData(Nil)
   )),
   // ...existing code...
 WE.Node(System(
@@ -563,7 +572,8 @@ WE.Node(System(
       ))
     ),
     WE.Node(Expr.Var(WE.Node("x")))
-  ))
+  )),
+    ModuleData(Nil)
 )),
   WE.Node(System(
   List(
@@ -660,7 +670,8 @@ WE.Node(System(
       ))
     ),
     WE.Node(Expr.Var(WE.Node("x")))
-  ))
+  )),
+    ModuleData(Nil)
 )),
 WE.Node(System(
   List(
@@ -741,7 +752,8 @@ WE.Node(System(
       ))
     ),
     WE.Node(Expr.Var(WE.Node("x")))
-  ))
+  )),
+    ModuleData(Nil)
 )),
 WE.Node(System(
   List(
@@ -934,7 +946,8 @@ WE.Node(System(
       WE.Node("calcN"),
       List(WE.Node("n"))
     ))
-  ))
+  )),
+    ModuleData(Nil)
 ))    
 )
 
