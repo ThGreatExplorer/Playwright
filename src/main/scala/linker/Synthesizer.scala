@@ -9,7 +9,7 @@ object Synthesizer:
   def synthesizeSystem(sys: CleanSystem): CleanSystem = sys match
     case System(modules, imports, progb) => 
 
-      val moduleData = ModuleData(sys)
+      val moduleData = ModuleData.constructFromSystem(sys)
       val updModules = synthesizeModules(modules, moduleData)
       val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, "Body", moduleData)
       
@@ -23,7 +23,7 @@ object Synthesizer:
   def synthesizeAndGetMNames(sys: CleanSystem): List[String] = sys match
     case System(modules, imports, progb) => 
 
-      val moduleData = ModuleData(sys)
+      val moduleData = ModuleData.constructFromSystem(sys)
       val updModules = synthesizeModules(modules, moduleData)
       val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, "Body", moduleData)
       val allModules = updModules ::: newTypedCopiesOfMods
@@ -114,4 +114,5 @@ object Synthesizer:
 
         synthesizeImportsLoop(tail, newTypedMods, processedImp :: impsSoFar)
 
-    synthesizeImportsLoop(imports, Nil, Nil)
+    val distinctImports = imports.distinct
+    synthesizeImportsLoop(distinctImports, Nil, Nil)

@@ -1,1 +1,1 @@
-["A","B","C","D","E","F","D.into.E","D.into.F"]
+["A","B","C","D","D.into.E","E","D.into.F","F"]

@@ -18,23 +18,50 @@ object ModuleDataEntry:
 
 trait ModuleData:
     def lookupModule(moduleName: String): ModuleDataEntry
+    def lookupModuleShape(moduleName: String): Option[CleanShapeType]
+    def contains(moduleName: String): Boolean
     override def toString(): String
 
 object ModuleData:
 
-    type ScopedModuleMap = Map[String, ModuleDataEntry]
+    type ModuleDataMap = Map[String, ModuleDataEntry]
+    type ScopedModuleDataMap = Map[String, ModuleDataMap]
 
-    def apply(sys : CleanSystem): ModuleData = sys match
-        case System(modules, _, _) => 
-            val modDataEntries = modules.map(ModuleDataEntry(_)).toMap 
-            new MapModDefs(modDataEntries)
+    private val topLevelKey = "#TL#"
 
-    private class MapModDefs(underlying: Map[String, ModuleDataEntry]) extends ModuleData:
+    def constructFromSystem(sys : CleanSystem): ModuleData = sys match
+        case System(modules, _, _) => apply(modules)
+
+    def apply(modules : List[CleanModule]): ModuleData = 
+        val modDataEntries = modules.map(ModuleDataEntry(_))
+        val scopedModsDataEntries = modDataEntries.zipWithIndex.map{
+            case ((mname, entry), index) =>
+                val scopedMap = modDataEntries.take(index).toMap
+                mname -> scopedMap
+        }
+        val scopedModsWithTLDataEntries = 
+            (topLevelKey -> modDataEntries.toMap) :: scopedModsDataEntries
+
+        new MapModDefs(scopedModsWithTLDataEntries.toMap)
+
+    private class MapModDefs(underlying: ScopedModuleDataMap) extends ModuleData:
         override def toString(): String = underlying.toString()
 
+        def contains(moduleName: String): Boolean =
+            underlying.contains(moduleName)
+
         def lookupModule(moduleName: String): ModuleDataEntry =
-            underlying.get(moduleName) match
-                case Some(mDef) => mDef
+            underlying(topLevelKey).get(moduleName) match
+                case Some(moduleData) => moduleData
+                case None =>   
+                    // Technically unnecessary throw but it will help us catch env errors early
+                    throw new UnreachablePatternMatch(
+                        "Should never happen: moduleName " + moduleName + " not found in ModuleData: " + underlying.toString
+                    )
+        
+        def lookupModuleShape(moduleName: String): Option[CleanShapeType] =
+            underlying(topLevelKey).get(moduleName) match
+                case Some(ModuleDataEntry(_, _, shape)) => shape
                 case None =>   
                     // Technically unnecessary throw but it will help us catch env errors early
                     throw new UnreachablePatternMatch(

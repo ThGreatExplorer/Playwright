@@ -48,7 +48,7 @@ enum Result:
     case RuntimeError => "\"run-time error\""
 
     case SynthesizedModuleNames(names) => 
-      val nameList = names.map(name => s"\"$name\"").mkString(", ")
+      val nameList = names.map(name => s"\"$name\"").mkString(",")
       s"[$nameList]"
 
 object AssignmentRunner: 
