@@ -9,9 +9,9 @@ object Synthesizer:
   def synthesizeSystem(sys: CleanSystem): CleanSystem = sys match
     case System(modules, imports, progb) => 
 
-      val moduleData = ModuleData.constructFromSystem(sys)
+      val moduleData = ModuleData(modules)
       val updModules = synthesizeModules(modules, moduleData)
-      val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, "Body", moduleData)
+      val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, ModuleData.TLModuleName, moduleData)
       
       System[Clean](
         updModules ::: newTypedCopiesOfMods,
@@ -25,7 +25,7 @@ object Synthesizer:
 
       val moduleData = ModuleData.constructFromSystem(sys)
       val updModules = synthesizeModules(modules, moduleData)
-      val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, "Body", moduleData)
+      val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, ModuleData.TLModuleName, moduleData)
       val allModules = updModules ::: newTypedCopiesOfMods
       
       allModules.getMDNames
@@ -78,23 +78,24 @@ object Synthesizer:
     imports: List[CleanImport], intoMName: String, moduleData : ModuleData
   ): (List[CleanModule], List[CleanImport]) =
 
-    def synthesizeImport(imp: CleanImport): (CleanImport, Option[CleanModule]) = imp match
+    def synthesizeImport(imp: CleanImport, createdSoFar : List[CleanModule]): (CleanImport, Option[CleanModule]) = imp match
       case Import.Untyped(mname) => (Import.Untyped(mname), None)
 
       case Import.Typed(mname, importShape) =>
-        moduleData.lookupModule(mname) match
-          case ModuleDataEntry(imports, currClss, None) => 
-            
-            val newTypedModName = s"$mname.into.$intoMName"
+        val newTypedModName = s"$mname.into.$intoMName"
 
+        moduleData.lookupModule(mname) match
+          case (e : ModuleDataEntry) if createdSoFar.exists(m => m.moduleName == newTypedModName) => 
+            (Import.Untyped(newTypedModName), None)
+
+          case ModuleDataEntry(imports, currClss, None) => 
             val newTypedMod: CleanModule = Module.Typed[Clean](
               newTypedModName,
               imports,
               currClss,
               importShape
             )
-
-            (Import.Untyped[Clean](newTypedModName), Some(newTypedMod))
+            (Import.Untyped(newTypedModName), Some(newTypedMod))
 
           case _ => 
             throw new Exception(s"Should never happen: Typed import of Typed module $imp | $mname")
@@ -106,7 +107,7 @@ object Synthesizer:
       case Nil => (newTypedModsSoFar.reverse, impsSoFar.reverse)
 
       case (imp: CleanImport) :: tail => 
-        val (processedImp, newTypedModOpt) = synthesizeImport(imp)
+        val (processedImp, newTypedModOpt) = synthesizeImport(imp, newTypedModsSoFar)
         val newTypedMods = 
           newTypedModOpt match
             case Some(newMod) => newMod :: newTypedModsSoFar
@@ -114,5 +115,4 @@ object Synthesizer:
 
         synthesizeImportsLoop(tail, newTypedMods, processedImp :: impsSoFar)
 
-    val distinctImports = imports.distinct
-    synthesizeImportsLoop(distinctImports, Nil, Nil)
+    synthesizeImportsLoop(imports, Nil, Nil)
