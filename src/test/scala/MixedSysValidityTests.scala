@@ -8,6 +8,11 @@ import static._
 
 class VCheckImportsTest extends FunSuite:
 
+    def makeScopedMap(expectedMap : Map[String, Option[CleanShapeType]]) : ScopedModuleData =
+        val entries = expectedMap.toList.map((mname, shape) => 
+            mname -> ModuleDataEntry(Nil, Class("dummy", Nil, Nil), shape))
+        ScopedModuleData(entries)
+
     test("checkImportsModules - mixed mods, no imports") {
         val shape : CleanShapeType = Type.Shape(List(FieldType[Clean]("x", Type.Number())), Nil)
         val modules = 
@@ -17,29 +22,27 @@ class VCheckImportsTest extends FunSuite:
                 Module.Untyped[Clean]("Untyped2", Nil, Class[Clean]("C3", Nil, Nil))
             )
             
-        val (processed, modMap) = VCheckImports.checkImportsModules(modules)
+        val mdata = ModuleData(modules)
+        val processed = VCheckImports.checkImportsModules(modules, mdata)
         
         processed.map(moduleWEToClean(_).isDefined).foreach(assert(_))
-        assertEquals(modMap("Untyped1"), None)
-        assertEquals(modMap("Typed1"),   Some(shape))
-        assertEquals(modMap("Untyped2"), None)
     }
 
     test("checkMixedImports - imports of undefined modules don't produce errors") {
-        val modMap: VCheckImports.ModToOptShapeMap = Map.empty
         val imports = List(
             Import.Untyped[Clean]("UndefinedMod1"),
             Import.Typed[Clean]("UndefinedMod2", Type.Shape(Nil, Nil))
         )
         
-        val processed = VCheckImports.checkMixedImports(imports, modMap)
+        val mdata = ModuleData(Nil)
+        val processed = VCheckImports.checkMixedImports(imports, mdata.atTopLevel)
 
         processed.map(importToClean(_).isDefined).foreach(assert(_))
     }
 
     test("checkMixedImports - untyped import of untyped module from typed context errors") {
         val imports = List(Import.Untyped[Clean]("UntypedMod"))
-        val modMap: VCheckImports.ModToOptShapeMap = Map("UntypedMod" -> None)
+        val modMap:  ScopedModuleData = makeScopedMap(Map("UntypedMod" -> None))
 
         val processed = VCheckImports.checkMixedImports(imports, modMap)
         assertEquals(processed.length, 1)
@@ -51,7 +54,7 @@ class VCheckImportsTest extends FunSuite:
 
     test("checkMixedImports - untyped import of typed module succeeds") {
         val imports = List(Import.Untyped[Clean]("TypedMod"))
-        val modMap: VCheckImports.ModToOptShapeMap = Map("TypedMod" -> Some(Type.Shape(Nil, Nil)))
+        val modMap:  ScopedModuleData = makeScopedMap(Map("TypedMod" -> Some(Type.Shape(Nil, Nil))))
 
         val result = VCheckImports.checkMixedImports(imports, modMap)
 
@@ -63,7 +66,7 @@ class VCheckImportsTest extends FunSuite:
     test("checkMixedImports - typed import of typed module errors") {
         val shape : CleanShapeType = Type.Shape(Nil, Nil)
         val imports = List(Import.Typed[Clean]("TypedMod", shape))
-        val modMap: VCheckImports.ModToOptShapeMap = Map("TypedMod" -> Some(shape))
+        val modMap:  ScopedModuleData = makeScopedMap(Map("TypedMod" -> Some(shape)))
 
         val processed = VCheckImports.checkMixedImports(imports, modMap)
         assertEquals(processed.length, 1)
@@ -76,7 +79,7 @@ class VCheckImportsTest extends FunSuite:
     test("checkMixedImports - typed import of untyped module succeeds") {
         val shape : CleanShapeType = Type.Shape(Nil, Nil)
         val imports = List(Import.Typed[Clean]("UntypedMod", shape))
-        val modMap: VCheckImports.ModToOptShapeMap = Map("UntypedMod" -> None)
+        val modMap:  ScopedModuleData = makeScopedMap(Map("UntypedMod" -> None))
 
         val processed = VCheckImports.checkMixedImports(imports, modMap)
         assertEquals(processed.length, 1)
@@ -90,7 +93,7 @@ class VCheckImportsTest extends FunSuite:
             Import.Untyped[Clean]("TypedMod"),
             Import.Typed[Clean]("UntypedMod", shape)
         )
-        val modMap: VCheckImports.ModToOptShapeMap = Map("UntypedMod" -> None, "TypedMod" -> Some(shape))
+        val modMap:  ScopedModuleData = makeScopedMap(Map("UntypedMod" -> None, "TypedMod" -> Some(shape)))
 
         val processed = VCheckImports.checkMixedImports(imports, modMap)
         assertEquals(processed.length, 3)
@@ -104,7 +107,7 @@ class VCheckImportsTest extends FunSuite:
             Import.Typed[Clean]("UntypedMod", shape1),
             Import.Typed[Clean]("UntypedMod", shape2)
         )
-        val modMap: VCheckImports.ModToOptShapeMap = Map("UntypedMod" -> None)
+        val modMap:  ScopedModuleData = makeScopedMap(Map("UntypedMod" -> None))
 
         val processed = VCheckImports.checkMixedImports(imports, modMap)
 
@@ -125,11 +128,11 @@ class VCheckImportsTest extends FunSuite:
             Import.Untyped[Clean]("UntypedMod2")         // ERROR - untyped of untyped
         )
         
-        val modMap: VCheckImports.ModToOptShapeMap = Map(
+        val modMap:  ScopedModuleData = makeScopedMap(Map(
             "TypedMod" -> Some(Type.Shape(Nil, Nil)),
             "UntypedMod1" -> None,
             "UntypedMod2" -> None
-        )
+        ))
 
         val processed = VCheckImports.checkMixedImports(imports, modMap)
         processed match

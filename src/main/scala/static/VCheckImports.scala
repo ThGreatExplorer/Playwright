@@ -11,14 +11,14 @@ object VCheckImports:
 
     // Top Level entry point
 
-    def checkImportsSys(s: CleanSystem): SystemWE = WE.Node(s match
+    def checkImportsSys(sys: CleanSystem): SystemWE = WE.Node(sys match
         case System[Clean](modules, imports, progb) =>
 
-            val (checkedModules, modToOptShapeMap) = checkImportsModules(modules)
+            val moduleData = ModuleData(modules)
 
             System(
-                checkedModules,
-                checkMixedImports(imports, modToOptShapeMap),
+                checkImportsModules(modules, moduleData),
+                checkMixedImports(imports, moduleData.atTopLevel),
                 progBlockToWE(progb)
             )
     )
@@ -27,71 +27,70 @@ object VCheckImports:
 
     type ModToOptShapeMap = Map[String, Option[CleanShapeType]]
 
-    def checkImportsModules(mods: List[CleanModule]) : (List[ModuleWE], ModToOptShapeMap) = 
+    def checkImportsModules(mods: List[CleanModule], moduleData : ModuleData) : List[ModuleWE] = 
 
-        def checkImportsOneMod(m : CleanModule, mapSoFar : ModToOptShapeMap) : (ModuleWE, ModToOptShapeMap) = m match
+        def checkImportsOneMod(m : CleanModule) : ModuleWE = m match
             case Module.Untyped(mname, imports, clas) => 
-                val processedModule = WE.Node(Module.Untyped(
+                WE.Node(Module.Untyped(
                     WE.Node(mname),
                     imports.map(untypedImportToWE(_)),
                     classToWE(clas)
                 ))
-                (processedModule, mapSoFar.updated(mname, None))
 
             case Module.Typed(mname, imports, clas, shape) => 
-                val processedModule = WE.Node(Module.Typed(
+                WE.Node(Module.Typed(
                     WE.Node(mname),
-                    checkMixedImports(imports, mapSoFar),
+                    checkMixedImports(imports, moduleData.scopedAt(mname)),
                     classToWE(clas),
                     shapeToWE(shape)
                 ))
-                (processedModule, mapSoFar.updated(mname, Some(shape)))
 
         def checkImportsModsLoop(
-            modsRem: List[CleanModule], modsSoFar: List[ModuleWE], modToOptShapeMapSoFar : ModToOptShapeMap
-        ) : (List[ModuleWE], ModToOptShapeMap) = modsRem match
+            modsRem: List[CleanModule], modsSoFar: List[ModuleWE]
+        ) : List[ModuleWE] = modsRem match
 
-            case Nil => (modsSoFar.reverse, modToOptShapeMapSoFar)
+            case Nil => modsSoFar.reverse
 
             case (m: CleanModule) :: tail => 
-                val (processedModule, updModToOptShapeMap) = checkImportsOneMod(m, modToOptShapeMapSoFar)
-                checkImportsModsLoop(tail, processedModule :: modsSoFar, updModToOptShapeMap)
+                val processedModule = checkImportsOneMod(m)
+                checkImportsModsLoop(tail, processedModule :: modsSoFar)
 
 
-        checkImportsModsLoop(mods, Nil, Map.empty)
+        checkImportsModsLoop(mods, Nil)
 
     def checkMixedImports(
-        imports: List[CleanImport], definedModsToOptShapeMap : ModToOptShapeMap
+        imports: List[CleanImport], moduleData : ScopedModuleData
     ) : List[ImportWE] =
 
         // Used to ensure we do not import the same module with two different shapes
         type ModToShapeMap = Map[String, CleanShapeType]
 
-        def checkOneImport(i : CleanImport, importedSoFar : ModToShapeMap) : (ImportWE, ModToShapeMap) = i match
-            case imp @ Import.Untyped(mname) =>
-                definedModsToOptShapeMap.get(mname) match 
-                    // Undefined module import
-                    case None => (untypedImportToWE(imp), importedSoFar)
-                    // Untyped import of an untyped module into a typed module
-                    case Some(None) => (WE.Err(UntypedModImportedWithoutTImport), importedSoFar)
-                    // Untyped import of a typed module into a typed module
-                    case Some(Some(shape)) => (untypedImportToWE(imp), importedSoFar.updated(mname, shape))
-
-            case imp @ Import.Typed(mname, importedShape) =>
-                (definedModsToOptShapeMap.get(mname), importedSoFar.get(mname)) match 
-                    // Undefined module import
-                    case (None, _) => (importToWE(imp), importedSoFar)
-                    // Typed import of a typed module into a typed module
-                    case (Some(Some(shape)), _) => (WE.Err(TypedModTImported), importedSoFar)
-                    // Typed import of an untyped module into a typed module NOT SEEN before
-                    case (Some(None), None) => 
-                        (importToWE(imp), importedSoFar.updated(mname, importedShape))
-                    // Typed import of an untyped module into a typed module SEEN before
-                    case (Some(None), Some(alreadyImportedShape)) => 
-                        if importedShape == alreadyImportedShape then
-                            (importToWE(imp), importedSoFar)
-                        else 
-                            (WE.Err(UntypedModTImportedWithDiffShape), importedSoFar)
+        // Assumes that all imports are defined and distinct 
+        def checkOneImport(imp : CleanImport, importedSoFar : ModToShapeMap) : (ImportWE, ModToShapeMap) = 
+            val mname = imp.importedModName
+            (imp, moduleData.lookupModuleShape(mname)) match
+                // Untyped import of a typed module into a typed module
+                case (Import.Untyped(mname), Some(shape)) => 
+                    (importToWE(imp), importedSoFar.updated(mname, shape))
+                // Untyped import of an untyped module into a typed module
+                case (Import.Untyped(_), None) =>
+                    (WE.Err(UntypedModImportedWithoutTImport), importedSoFar)
+                
+                // Typed import of a typed module into a typed module
+                case (Import.Typed(_, _), Some(shape)) => 
+                    (WE.Err(TypedModTImported), importedSoFar)
+                // Typed import of an untyped module into a typed module 
+                case (Import.Typed(mname, importedShape), None) => 
+                    importedSoFar.get(mname) match
+                        // Not seen before
+                        case None => 
+                            (importToWE(imp), importedSoFar.updated(mname, importedShape))
+                        // Seen before (imports are distinct, so this means a different shape was imported)
+                        case Some(alreadyImportedShape) =>  
+                            if importedShape == alreadyImportedShape then
+                                (importToWE(imp), importedSoFar)
+                            else 
+                                (WE.Err(UntypedModTImportedWithDiffShape), importedSoFar)
 
         def checkMixedImportsLoop(
             impsRem: List[CleanImport], impsSoFar: List[ImportWE], importedSoFar : ModToShapeMap
@@ -100,8 +99,15 @@ object VCheckImports:
             case Nil => impsSoFar.reverse
 
             case (imp: CleanImport) :: tail => 
-                val (processedImport, updImportedSoFar) = checkOneImport(imp, importedSoFar)
-                checkMixedImportsLoop(tail, processedImport :: impsSoFar, updImportedSoFar)
 
+                // Due to spec mistake this pass occurs before Undefined checking, so
+                // we simply pass undefined imports through at this stage
+                val (processedImport, updImportedSoFar) = 
+                    if moduleData.contains(imp.importedModName) then
+                        checkOneImport(imp, importedSoFar)
+                    else 
+                        (importToWE(imp), importedSoFar) 
+
+                checkMixedImportsLoop(tail, processedImport :: impsSoFar, updImportedSoFar)
 
         checkMixedImportsLoop(imports, Nil, Map.empty)

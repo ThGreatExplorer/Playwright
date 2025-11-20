@@ -323,7 +323,7 @@ object Parser:
         parseStringWE(ssymbol) match
             case n @ WE.Err(e) => n
             case n @ WE.Node(s) =>
-                if s != "Body" then n
+                if s != ModuleData.TLModuleName then n
                 else WE.Err(ModuleNamedBody)
         
         
