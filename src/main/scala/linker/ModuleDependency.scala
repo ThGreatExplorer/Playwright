@@ -19,7 +19,7 @@ final case class ModuleDependency(
   * Generates a map from each reachable module to its scoped module map.
   * 
   * That is:
-  *   (ModuleName, Shape) -> Map[ImportedModuleName -> (Class, Shape)]
+  *   Map[(ModuleName, Shape) -> Map[ImportedModuleName -> (Class, Shape)]]
   *
   * Each module's scoped map is produced using its generateScopedModules(),
   * and we recursively apply this to dependencies while memoizing.
@@ -66,14 +66,14 @@ final case class ModuleDependency(
     findReachableModulesHelper(Set.empty)
   
   private def findReachableModulesHelper(nodesAcc: Set[String]): Set[String] = 
-      if nodesAcc.contains(mname) then
-        nodesAcc
-      else 
-        val updatedAcc = nodesAcc + mname
-        dependencies.foldLeft(updatedAcc){
-          case (acc, (mod, _)) => 
-          mod.findReachableModulesHelper(acc)
-        }
+    if nodesAcc.contains(mname) then
+      nodesAcc
+    else 
+      val updatedAcc = nodesAcc + mname
+      dependencies.foldLeft(updatedAcc){
+        case (acc, (mod, _)) => 
+        mod.findReachableModulesHelper(acc)
+      }
   
   /**
     * Gets the module dependency if is reachable from the current node in this DAG, 
