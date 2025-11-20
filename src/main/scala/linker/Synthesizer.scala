@@ -1,105 +1,117 @@
 package linker
 
 import ast._
+import static.{ModuleData,ModuleDataEntry}
+import util.getMDNames
 
 object Synthesizer:
 
-  def synthesizeSystem(s: CleanSystem): CleanSystem = 
-    s match
-      case System(modules, imports, progb) => 
-        val topLevelModule = SystemToClassLinker.generateTopLevelModule(modules, imports)
-        val topLevelScopedModules = topLevelModule.generateModuleToScopedModulesMap()
+  def synthesizeSystem(sys: CleanSystem): CleanSystem = sys match
+    case System(modules, imports, progb) => 
 
-        val (newBodyModulesList, newBodyImports) = synthesizeImports(imports, topLevelModule, "Body")
-        val (updModList, newModsCreated) = modules.foldLeft((List.empty[CleanTypedModule], List.empty[CleanTypedModule])){
-          case ((modList, newModList), mod) =>
-            mod match
-              case Module.Untyped(mname, imports, clas) => 
-                (modList, newModList)
-              case tMod @ Module.Typed(mname, imports, clas, shape) =>
-                val modDep = topLevelModule.findModuleInDAG(mname) match
-                  case Some(mDep) => mDep
-                  case None => throw new Exception("All modules should be reachable from base module")
-                
-                val (updTMod, newTModsCreated) = synthesizeModule(tMod, modDep)
-                (modList.appended(updTMod),newModList ++ newTModsCreated)
-        }
+      val moduleData = ModuleData(sys)
+      val updModules = synthesizeModules(modules, moduleData)
+      val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, "Body", moduleData)
+      
+      System[Clean](
+        updModules ::: newTypedCopiesOfMods,
+        updImports,
+        progb
+      )
 
-        System[Clean](
-          newBodyModulesList ++ newModsCreated ++ updModList,
-          newBodyImports,
-          progb
-        )
+  // Special entry point for Assignment 11
+  def synthesizeAndGetMNames(sys: CleanSystem): List[String] = sys match
+    case System(modules, imports, progb) => 
 
+      val moduleData = ModuleData(sys)
+      val updModules = synthesizeModules(modules, moduleData)
+      val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, "Body", moduleData)
+      val allModules = updModules ::: newTypedCopiesOfMods
+      
+      allModules.getMDNames
 
   /**
-    * For a Typed Module, updates any timports to imports and creates Typed Modules.
+    * Performs a synthesis run over a top level list of modules. Untyped modules are passed 
+    * through as-is, Typed Modules are checked for Typed Imports. If a Typed imports if found, 
+    * we create a Typed copy of this Untyped module with the shape specified in the Typed import.
     *
-    * @param m the current module
-    * @param modDep the module dependency for the module node
-    * @return updated Typed Module with new imports, List of Typed Modules created for those new imports
+    * @param mods list of Modules to be processed in the scope of this module
+    * @param moduleData Module Data map for quick lookups
+    * @return the List of Modules that includes the newly created Typed copies of Untyped Modules
+    * imported into Typed Modules
     */
-  def synthesizeModule(m: CleanTypedModule, modDep: ModuleDependency): (CleanTypedModule, List[CleanTypedModule]) =
-    m match
+  def synthesizeModules(mods: List[CleanModule], moduleData : ModuleData) : List[CleanModule] = 
+
+    def synthesizeModule(m: CleanModule): (CleanModule, List[CleanModule]) = m match
+      case mod @ Module.Untyped(mname, imports, clas) => 
+        (mod, Nil)
+
       case Module.Typed(mname, imports, clas, shape) =>
-        val (newModuleModulesList, newModuleModuleImports) = synthesizeImports(imports, modDep, mname)
+        val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, mname, moduleData)
         (
-          Module.Typed[Clean](mname, newModuleModuleImports, clas, shape), 
-          newModuleModulesList
+          Module.Typed[Clean](mname, updImports, clas, shape), 
+          newTypedCopiesOfMods
         )
 
+    def synthesizeModulesLoop(
+      modsRem: List[CleanModule], modsSoFar: List[CleanModule]
+    ) : List[CleanModule] = modsRem match
+
+        case Nil => modsSoFar.reverse
+
+        case (module: CleanModule) :: tail => 
+          val (processedModule, newTypedCopiesOfMods) = synthesizeModule(module)
+          synthesizeModulesLoop(tail, processedModule :: newTypedCopiesOfMods ::: modsSoFar)
+
+    synthesizeModulesLoop(mods, Nil)
+
   /**
-    * Creates the new List of Typed Modules from the timports in the scope of a Module using the ModuleDependency node of that module. 
+    * Creates a List of Typed copies of Untyped Modules from the timports in the scope of the
+    * current Module
     *
     * @param imports imports in the scope of this module
-    * @param modDep module dependency node for the module
-    * @param intoMName mname for renaming
-    * @return the List of created Typed Modules and the list of original + updated imports
+    * @param intoMName Module Name of the Current Module
+    * @param moduleData Module Data map for quick lookups
+    * @return the List of created Typed Modules and the list of updated imports
     */
-  def synthesizeImports(imports: List[CleanImport], modDep: ModuleDependency, intoMName: String): (List[CleanTypedModule], List[CleanImport]) =
-    imports.foldLeft((List.empty[CleanTypedModule], List.empty[CleanImport])){
-      case ((modsList, impList), imp) =>
-        synthesizeImport(imp, modDep, intoMName) match
-          case (newImport, None) => (modsList, impList.appended(newImport))
-          case (newImport, Some(tMod)) => (modsList.appended(tMod), impList.appended(newImport))
-    }
+  def synthesizeImports(
+    imports: List[CleanImport], intoMName: String, moduleData : ModuleData
+  ): (List[CleanModule], List[CleanImport]) =
 
-  /**
-    * Creates the TypedModule with updated import, otherwise returns the import and None
-    *
-    * @param i import to process
-    * @param modDep module dependency in the scope of the current module NOT the module being imported
-    * @param intoMName the mname to use for renaming
-    * @return updated import or original import, typed module if created else None
-    */
-  def synthesizeImport(i: CleanImport, modDep: ModuleDependency, intoMName: String): (CleanImport, Option[CleanTypedModule]) = 
-    i match
+    def synthesizeImport(imp: CleanImport): (CleanImport, Option[CleanModule]) = imp match
       case Import.Untyped(mname) => (Import.Untyped(mname), None)
-      case Import.Typed(mname, importShape) =>
-        val newTypedModName = s"$mname.into.$intoMName"
-        modDep.findModuleInDAG(mname) match
-          case Some(ModuleDependency(currMname, currClss, None, currDependencies)) => 
-            
-            val modulesImports: List[CleanImport] = currDependencies.map {
-              case (ModuleDependency(depMname, depClss, depShape, depDependencies), depImportShape) =>
-                depImportShape match
-                  case Some(depImportedShape) => Import.Typed(depMname, depImportedShape) 
-                  case None => Import.Untyped(depMname)
-            }
-            // Idt we need this blc a typed import is only for untyped modules
-            // which will never themselves contain typed imports
-            // modulesImports.foreach(imp => synthesizeImport(imp, modDep, currMname))
 
-            // create the new typed module
-            val newTypedMod: CleanTypedModule = Module.Typed[Clean](
+      case Import.Typed(mname, importShape) =>
+        moduleData.lookupModule(mname) match
+          case ModuleDataEntry(imports, currClss, None) => 
+            
+            val newTypedModName = s"$mname.into.$intoMName"
+
+            val newTypedMod: CleanModule = Module.Typed[Clean](
               newTypedModName,
-              modulesImports,
+              imports,
               currClss,
               importShape
             )
 
             (Import.Untyped[Clean](newTypedModName), Some(newTypedMod))
-          case None => throw new Exception(s"All imported modules should be reachable and found in DAG $modDep")
-          case _ => throw new Exception(s"Should never have typed import with typed module $i | $mname")
-        
-    
+
+          case _ => 
+            throw new Exception(s"Should never happen: Typed import of Typed module $imp | $mname")
+
+    def synthesizeImportsLoop(
+      impsRem: List[CleanImport], newTypedModsSoFar: List[CleanModule], impsSoFar: List[CleanImport]
+    ) : (List[CleanModule], List[CleanImport]) = impsRem match
+
+      case Nil => (newTypedModsSoFar.reverse, impsSoFar.reverse)
+
+      case (imp: CleanImport) :: tail => 
+        val (processedImp, newTypedModOpt) = synthesizeImport(imp)
+        val newTypedMods = 
+          newTypedModOpt match
+            case Some(newMod) => newMod :: newTypedModsSoFar
+            case None         => newTypedModsSoFar
+
+        synthesizeImportsLoop(tail, newTypedMods, processedImp :: impsSoFar)
+
+    synthesizeImportsLoop(imports, Nil, Nil)

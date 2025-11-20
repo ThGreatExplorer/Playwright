@@ -13,7 +13,7 @@ import util.ExampleChecker.assertExample
   val inputSexp = MainFuncs.readSexp(inputString)
   assertExample(inputSexp)
 
-  val result = AssignmentRunner.mixedSystem(inputSexp)
+  val result = AssignmentRunner.mixedLinking(inputSexp)
   println(result.outputString)
 
 object MainFuncs:

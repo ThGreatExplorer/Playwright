@@ -10,6 +10,7 @@ import static.VCheckMFPNameDups.{mfpDupsProg, mfpDupsSys}
 import static.VCheckImports.{checkImportsSys}
 import static.VCheckUndefined.{closedProg, closedSystem}
 import static.Typechecker.{typecheckSystem}
+import linker.Synthesizer.{synthesizeSystem, synthesizeAndGetMNames}
 import linker.SystemToClassLinker.{linkProgram}
 import cesk.{CESKMachine, RuntimeError, ObjectVal}
 
@@ -24,6 +25,7 @@ enum Result:
   case UndefinedVarError
   case TypeError
   case ValidityBelongs
+  case SynthesizedModuleNames(names : List[String])
   case SuccObj
   case SuccNum(n : Number)
   case RuntimeError
@@ -45,7 +47,35 @@ enum Result:
     case SuccNum(n) => s"$n"
     case RuntimeError => "\"run-time error\""
 
+    case SynthesizedModuleNames(names) => 
+      val nameList = names.map(name => s"\"$name\"").mkString(", ")
+      s"[$nameList]"
+
 object AssignmentRunner: 
+
+  /**
+    * Result printer for Assignment 11 — Mixed: Linking
+    * 
+    * @param input SExpr read from stdin
+    */
+  def mixedLinking(input: SExpr): Result =
+
+    val pipeRes = 
+      for 
+        parsedSys      <- resOrCleanSys(Result.ParseError,           parseMixedSys(input))
+        sysNoDupMods   <- resOrCleanSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
+        sysNoDupMFPs   <- resOrCleanSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
+        sysGoodImps    <- resOrCleanSys(Result.BadImport,            checkImportsSys(sysNoDupMFPs))
+        validSys       <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysGoodImps))
+        typecheckedSys <- resOrCleanSys(Result.TypeError,            typecheckSystem(validSys))
+      yield
+        typecheckedSys
+    
+    pipeRes match 
+      case Left(errRes)     => errRes
+      case Right(validSys) => 
+        val mnames = synthesizeAndGetMNames(validSys)
+        Result.SynthesizedModuleNames(mnames)
 
   /**
     * Result printer for Assignment 10 — A La JS
