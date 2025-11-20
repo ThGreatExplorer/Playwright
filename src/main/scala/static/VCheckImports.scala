@@ -12,14 +12,15 @@ object VCheckImports:
     // Top Level entry point
 
     def checkImportsSys(sys: CleanSystem): SystemWE = WE.Node(sys match
-        case System[Clean](modules, imports, progb) =>
+        case System[Clean](modules, imports, progb, moduleData) =>
 
             val moduleData = ModuleData(modules)
 
             System(
                 checkImportsModules(modules, moduleData),
                 checkMixedImports(imports, moduleData.atTopLevel),
-                progBlockToWE(progb)
+                progBlockToWE(progb), 
+                moduleData
             )
     )
 

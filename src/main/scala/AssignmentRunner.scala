@@ -2,11 +2,12 @@ package main
 
 import sexprs.SExprs._
 import util.UnreachablePatternMatch
-import ast.ConverterToClean.{progToClean, systemToClean}
-import ast.{NumVal, ProgramWE, CleanProgram, CleanSystem, SystemWE}
+import ast.ConverterToClean.{progToClean, systemToClean, rawSystemToClean}
+import ast.{NumVal, ProgramWE, CleanProgram, CleanSystem, SystemWE, CleanRawSystem, RawSystemWE}
 import static.Parser.{parseProg, parseMixedSys, parseTypedSys}
 import static.VCheckTLDups.{classDupsProg, moduleDupsSys}
 import static.VCheckMFPNameDups.{mfpDupsProg, mfpDupsSys}
+import static.ModuleData
 import static.VCheckImports.{checkImportsSys}
 import static.VCheckUndefined.{closedProg, closedSystem}
 import static.Typechecker.{typecheckSystem}
@@ -62,17 +63,18 @@ object AssignmentRunner:
 
     val pipeRes = 
       for 
-        parsedSys      <- resOrCleanSys(Result.ParseError,           parseMixedSys(input))
-        sysNoDupMods   <- resOrCleanSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
-        sysNoDupMFPs   <- resOrCleanSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
-        sysGoodImps    <- resOrCleanSys(Result.BadImport,            checkImportsSys(sysNoDupMFPs))
+        parsedSys      <- resOrCleanRawSys(Result.ParseError,           parseMixedSys(input))
+        sysNoDupMods   <- resOrCleanRawSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
+        sysNoDupMFPs   <- resOrCleanRawSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
+        annotatedSys   <- annotateModuleData(sysNoDupMFPs)
+        sysGoodImps    <- resOrCleanSys(Result.BadImport,            checkImportsSys(annotatedSys))
         validSys       <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysGoodImps))
         typecheckedSys <- resOrCleanSys(Result.TypeError,            typecheckSystem(validSys))
       yield
         typecheckedSys
     
     pipeRes match 
-      case Left(errRes)     => errRes
+      case Left(errRes)    => errRes
       case Right(validSys) => 
         val mnames = synthesizeAndGetMNames(validSys)
         Result.SynthesizedModuleNames(mnames)
@@ -86,10 +88,11 @@ object AssignmentRunner:
 
     val pipeRes = 
       for 
-        parsedSys      <- resOrCleanSys(Result.ParseError,           parseMixedSys(input))
-        sysNoDupMods   <- resOrCleanSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
-        sysNoDupMFPs   <- resOrCleanSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
-        sysGoodImps    <- resOrCleanSys(Result.BadImport,            checkImportsSys(sysNoDupMFPs))
+        parsedSys      <- resOrCleanRawSys(Result.ParseError,           parseMixedSys(input))
+        sysNoDupMods   <- resOrCleanRawSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
+        sysNoDupMFPs   <- resOrCleanRawSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
+        annotatedSys   <- annotateModuleData(sysNoDupMFPs)
+        sysGoodImps    <- resOrCleanSys(Result.BadImport,            checkImportsSys(annotatedSys))
         validSys       <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysGoodImps))
         typecheckedSys <- resOrCleanSys(Result.TypeError,            typecheckSystem(validSys))
       yield
@@ -115,10 +118,11 @@ object AssignmentRunner:
 
     val pipeRes = 
       for 
-        parsedSys      <- resOrCleanSys(Result.ParseError,           parseTypedSys(input))
-        sysNoDupMods   <- resOrCleanSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
-        sysNoDupMFPs   <- resOrCleanSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
-        validSys       <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysNoDupMFPs))
+        parsedSys      <- resOrCleanRawSys(Result.ParseError,           parseTypedSys(input))
+        sysNoDupMods   <- resOrCleanRawSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
+        sysNoDupMFPs   <- resOrCleanRawSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
+        annotatedSys   <- annotateModuleData(sysNoDupMFPs)
+        validSys       <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(annotatedSys))
         typecheckedSys <- resOrCleanSys(Result.TypeError,            typecheckSystem(validSys))
       yield
         typecheckedSys
@@ -144,10 +148,11 @@ object AssignmentRunner:
 
     val pipeRes = 
       for 
-        parsedSys     <- resOrCleanSys(Result.ParseError,           parseMixedSys(input))
-        sysNoDupMods  <- resOrCleanSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
-        sysNoDupMFPs  <- resOrCleanSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
-        validSys      <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysNoDupMFPs))
+        parsedSys     <- resOrCleanRawSys(Result.ParseError,           parseMixedSys(input))
+        sysNoDupMods  <- resOrCleanRawSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
+        sysNoDupMFPs  <- resOrCleanRawSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
+        annotatedSys  <- annotateModuleData(sysNoDupMFPs)
+        validSys      <- resOrCleanSys(Result.UndefinedVarError,       closedSystem(annotatedSys))
       yield
         validSys
     
@@ -285,6 +290,15 @@ object AssignmentRunner:
   /******************************************************************************
     Helpers for building the pipeline
   *****************************************************************************/
+
+  def annotateModuleData(sys : CleanRawSystem) : Either[Result, CleanSystem] =
+    Right(ModuleData.processSystem(sys))
+
+  def resOrCleanRawSys(errRes : Result, sys : RawSystemWE) : Either[Result, CleanRawSystem] =
+    rawSystemToClean(sys) match   
+      case None            => 
+        Left [Result, CleanRawSystem](errRes)
+      case Some(cleanSys) => Right[Result, CleanRawSystem](cleanSys)
 
   def resOrCleanSys(errRes : Result, sys : SystemWE) : Either[Result, CleanSystem] =
     systemToClean(sys) match   

@@ -11,7 +11,7 @@ object VCheckUndefined:
     // Top Level entry points
 
     def closedSystem(s: CleanSystem): SystemWE = WE.Node(s match
-        case System[Clean](modules, imports, progb) =>
+        case System[Clean](modules, imports, progb, moduleData) =>
 
             val moduleData = ModuleData(modules)
 
@@ -24,7 +24,8 @@ object VCheckUndefined:
             System(
                 validatedModules,
                 validatedImports,
-                closedProgBlock(progb, clssInScope, varsInScope)
+                closedProgBlock(progb, clssInScope, varsInScope), 
+                moduleData
             )
         )
 

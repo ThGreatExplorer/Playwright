@@ -9,9 +9,9 @@ object VCheckTLDups:
 
     // Module Valididty
 
-    def moduleDupsSys(s: CleanSystem): SystemWE = s match
-        case System(modules, imports, progb) => 
-            WE.Node(System(
+    def moduleDupsSys(s: CleanRawSystem): RawSystemWE = s match
+        case RawSystem(modules, imports, progb) => 
+            WE.Node(RawSystem(
                 moduleDupsModules(modules),
                 imports.map(importToWE),
                 progBlockToWE(progb)

@@ -4,12 +4,22 @@ object ConverterToWE:
 
     // Top Level converters
 
-    def systemToWE(s: CleanSystem): SystemWE = WE.Node( s match
-        case System[Clean](modules, imports, progb) => 
-            System[WE](
+    def rawSystemToWE(s: CleanRawSystem): RawSystemWE = WE.Node( s match
+        case RawSystem[Clean](modules, imports, progb) => 
+            RawSystem[WE](
                 modules.map(moduleToWE),
                 imports.map(importToWE),
                 progBlockToWE(progb)
+            )
+        )
+
+    def systemToWE(s: CleanSystem): SystemWE = WE.Node( s match
+        case System[Clean](modules, imports, progb, modData) => 
+            System[WE](
+                modules.map(moduleToWE),
+                imports.map(importToWE),
+                progBlockToWE(progb), 
+                modData
             )
         )
 
