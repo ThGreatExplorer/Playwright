@@ -37,6 +37,15 @@ object ScopedModuleData:
         def contains(moduleName: String): Boolean =
             underlying.contains(moduleName)
 
+        /**
+         * Should be enforced by a path type dependency (but isn't yet) that this method should not be called until
+         * after the check undefined validity pass.
+         * 
+         * Otherwise, the lookup may throw if this method is called prior (or if a random string is passed)
+         * 
+         * @param moduleName the module to lookup
+         * @return the ModuleDataEntry associated to the moduleName
+        */
         def lookupModule(moduleName: String): ModuleDataEntry =
             underlying.get(moduleName) match
                 case Some(moduleData) => moduleData
@@ -46,14 +55,43 @@ object ScopedModuleData:
                         "Should never happen: moduleName " + moduleName + " not found in ModuleData: " + underlying.toString
                     )
         
+        /**
+         * Should be enforced by a path type dependency (but isn't yet) that this method should not be called until
+         * after the check undefined validity pass.
+         * 
+         * Otherwise, the lookup may throw if this method is called prior (or if a random string is passed)
+         * 
+         * @param moduleName the module to lookup
+         * @return the cname of the class in the module
+        */
         def lookupModuleCName(moduleName: String): String =
             this.lookupModule(moduleName) match
                 case ModuleDataEntry(_, Class(cname, _, _), _) => cname
 
+        /**
+         * Should be enforced by a path type dependency (but isn't yet) that this method should not be called until
+         * after the check undefined validity pass.
+         * 
+         * Otherwise, the lookup may throw if this method is called prior (or if a random string is passed)
+         * 
+         * @param moduleName the module to lookup
+         * @return the shape associated with the module or None
+        */
         def lookupModuleShape(moduleName: String): Option[CleanShapeType] =
             this.lookupModule(moduleName) match
                 case ModuleDataEntry(_, _, shape) => shape
 
+        /**
+         * Should be enforced by a path type dependency (but isn't yet) that this method should not be called until
+         * after the check undefined validity pass.
+         * 
+         * Otherwise, the lookup may throw if this method is called prior (or if a random string is passed)
+         * 
+         * Additionally, this method will throw if the name of a non-typed module is passed.
+         * 
+         * @param moduleName the module to lookup
+         * @return the cname and shape of the typed module
+        */
         def lookupTypedCNameAndShape(moduleName: String): (String, CleanShapeType) =
             this.lookupModule(moduleName) match
                 case ModuleDataEntry(_, Class(cname, _, _), Some(shape)) => (cname, shape)
@@ -63,6 +101,17 @@ object ScopedModuleData:
                         "Should never happen: expected moduleName " + moduleName + " to be typed in ModuleData: " + underlying.toString
                     )
 
+        /**
+         * Should be enforced by a path type dependency (but isn't yet) that this method should not be called until
+         * after the check undefined validity pass.
+         * 
+         * Otherwise, the lookup may throw if this method is called prior (or if a random string is passed)
+         * 
+         * Additionally, this method will throw if the name of a typed module is passed.
+         * 
+         * @param moduleName the module to lookup
+         * @return the cname of the untyped module
+        */
         def lookupUntypedCName(moduleName: String): String =
             this.lookupModule(moduleName) match
                 case ModuleDataEntry(_, Class(cname, _, _), None) => cname
