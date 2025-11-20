@@ -13,9 +13,11 @@ object VCheckUndefined:
     def closedSystem(s: CleanSystem): SystemWE = WE.Node(s match
         case System[Clean](modules, imports, progb) =>
 
-            val (validatedModules, modToCNameMap) = closedModules(modules)
+            val moduleData = ModuleData(modules)
+
+            val validatedModules = closedModules(modules, moduleData)
             // Classes in scope constructed based on the sequence of modules 
-            val (validatedImports, clssInScope)   = closedImports(imports, modToCNameMap)
+            val (validatedImports, clssInScope)   = closedImports(imports, moduleData.atTopLevel)
             // Variables obey lexical scope, so we begin with an empty environment
             val varsInScope = Set[String]()
 
@@ -49,11 +51,11 @@ object VCheckUndefined:
     * @param mods List of CleanModule to be processed
     * @return Tuple of validated Module nodes and Map[ModuleName, ClassName] 
     */
-    def closedModules(mods: List[CleanModule]) : (List[ModuleWE], Map[String, String]) = 
+    def closedModules(mods: List[CleanModule], moduleData : ModuleData) : List[ModuleWE] = 
 
-        def checkOneMod(m : CleanModule, modToCNameMapSoFar : Map[String, String]) : ModuleWE = m match
+        def checkOneMod(m : CleanModule) : ModuleWE = m match
             case Module.Untyped(mname, imports, clas) => 
-                val (validatedImports, clssInScope) = closedUntypedImports(imports, modToCNameMapSoFar)
+                val (validatedImports, clssInScope) = closedUntypedImports(imports, moduleData.scopedAt(mname))
                 WE.Node(Module.Untyped(
                     WE.Node(mname),
                     validatedImports,
@@ -61,7 +63,7 @@ object VCheckUndefined:
                 ))
 
             case Module.Typed(mname, imports, clas, shape) => 
-                val (validatedImports, clssInScope) = closedImports(imports, modToCNameMapSoFar)
+                val (validatedImports, clssInScope) = closedImports(imports, moduleData.scopedAt(mname))
                 WE.Node(Module.Typed(
                     WE.Node(mname),
                     validatedImports,
@@ -70,18 +72,16 @@ object VCheckUndefined:
                 ))
 
         def closedModulesLoop(
-            modsRem: List[CleanModule], modsSoFar: List[ModuleWE], modToCNameMapSoFar : Map[String, String]
-        ) : (List[ModuleWE], Map[String, String]) = modsRem match
+            modsRem: List[CleanModule], modsSoFar: List[ModuleWE]
+        ) : List[ModuleWE] = modsRem match
 
-            case Nil => (modsSoFar.reverse, modToCNameMapSoFar)
+            case Nil => modsSoFar.reverse
 
             case (module: CleanModule) :: tail => 
-                val processedModule = checkOneMod(module, modToCNameMapSoFar)
-                val extModToCNameMap = modToCNameMapSoFar.updated(module.moduleName, module.clas.cname)
-                
-                closedModulesLoop(tail, processedModule :: modsSoFar, extModToCNameMap)
+                val processedModule = checkOneMod(module)
+                closedModulesLoop(tail, processedModule :: modsSoFar)
 
-        closedModulesLoop(mods, Nil, Map[String, String]())
+        closedModulesLoop(mods, Nil)
 
     /**
      * Validates that every import refers to a ModuleName that is defined in 
@@ -89,59 +89,63 @@ object VCheckUndefined:
      * classes that would be in scope under this sequence of imports.
      * 
      * @param imports List of imports 
-     * @param modToCNameMap Map from ModuleNames to ClassNames that were defined before
-     * this sequence of imports
+     * @param moduleData Module Data map for quick lookups scoped at the current module
      * @return Tuple of validated Import nodes and set of Classes in scope 
      */ 
     def closedImports(
-        imports: List[CleanImport], modToCNameMap : Map[String, String]
+        imports: List[CleanImport], moduleData : ScopedModuleData
     ) : (List[ImportWE], Set[String]) =
-        val modsInScope      = modToCNameMap.keySet
-        val validatedImports = imports.map(closedImportName(_, modsInScope))
-        val clssInScope      = validatedImports.foldLeft(Map[String, String]()){
-                case (acc, WE.Node(Import.Typed(WE.Node(mname), _))) => 
-                    acc.updated(mname, modToCNameMap(mname))
-                case (acc, WE.Node(Import.Untyped(WE.Node(mname)))) =>
-                    acc.updated(mname, modToCNameMap(mname))
-                case (acc, _) => acc
-            }.values.toSet
+
+        def closedImportName(c: CleanImport): ImportWE = c match
+            case (i : CleanImport) if !moduleData.contains(i.importedModName) => 
+                WE.Err(ModuleNotDeclared)
+
+            case Import.Untyped(mname) =>
+                WE.Node(Import.Untyped(stringToWE(mname)))
+
+            case Import.Typed(mname, shape) =>
+                WE.Node(Import.Typed(
+                    stringToWE(mname), 
+                    shapeToWE(shape)
+                ))
+
+        val validatedImports = imports.map(closedImportName(_))
+        val clssInScope   =
+            validatedImports
+            .flatMap{
+                case WE.Node(Import.Untyped(WE.Node(mname)))  => Some(mname)
+                case WE.Node(Import.Typed(WE.Node(mname), _)) => Some(mname)
+                case WE.Err(e) => None
+                case _         => None
+            }
+            .map(moduleName => moduleData.lookupModuleCName(moduleName))
+            .toSet
 
         (validatedImports, clssInScope)
 
     def closedUntypedImports(
-        imports: List[CleanUntypedImport], modToCNameMap : Map[String, String]
-    ) : (List[UntypedImportWE], Set[String]) = 
-        val modsInScope      = modToCNameMap.keySet
-        val validatedImports = imports.map(closedImportedUntypedModName(_, modsInScope))
-        val clssInScope      = validatedImports.foldLeft(Map[String, String]()){
-                case (acc, WE.Node(Import.Untyped(WE.Node(mname)))) =>
-                    acc.updated(mname, modToCNameMap(mname))
-                case (acc, _) => acc
-            }.values.toSet
+        imports: List[CleanUntypedImport], moduleData : ScopedModuleData
+    ) : (List[UntypedImportWE], Set[String]) =
+
+        def closedImportName(c: CleanUntypedImport): UntypedImportWE = c match
+            case (i : CleanUntypedImport) if !moduleData.contains(i.importedModName) => 
+                WE.Err(ModuleNotDeclared)
+
+            case Import.Untyped(mname) =>
+                WE.Node(Import.Untyped(stringToWE(mname)))
+
+        val validatedImports = imports.map(closedImportName(_))
+        val clssInScope   =
+            validatedImports
+            .flatMap{
+                case WE.Node(Import.Untyped(WE.Node(mname)))  => Some(mname)
+                case WE.Err(e) => None
+                case _         => None
+            }
+            .map(moduleName => moduleData.lookupModuleCName(moduleName))
+            .toSet
 
         (validatedImports, clssInScope)
-
-    def closedImportedUntypedModName(c: CleanUntypedImport, modsInScope: Set[String]): UntypedImportWE = 
-        
-        if modsInScope.contains(c.importedModName) then
-            WE.Node(c match
-                case Import.Untyped(mname) =>
-                    Import.Untyped(stringToWE(mname))
-            )
-        else
-            WE.Err(ModuleNotDeclared)
-
-    def closedImportName(c: CleanImport, modsInScope: Set[String]): ImportWE =
-
-        if modsInScope.contains(c.importedModName) then
-            WE.Node(c match
-                case Import.Typed(mname, shape) =>
-                    Import.Typed(stringToWE(mname), shapeToWE(shape))
-                case Import.Untyped(mname) =>
-                    Import.Untyped(stringToWE(mname))
-            )
-        else
-            WE.Err(ModuleNotDeclared)
 
     // Class helpers
 

@@ -18,9 +18,12 @@ object ModuleDataEntry:
 
 
 trait ScopedModuleData:
-    def lookupModule(moduleName: String): ModuleDataEntry
-    def lookupModuleShape(moduleName: String): Option[CleanShapeType]
     def contains(moduleName: String): Boolean
+    def lookupModule(moduleName: String): ModuleDataEntry
+    def lookupModuleCName(moduleName: String): String
+    def lookupModuleShape(moduleName: String): Option[CleanShapeType]
+    def lookupTypedCNameAndShape(moduleName: String): (String, CleanShapeType)
+    def lookupUntypedCName(moduleName: String): String
     override def toString(): String
 
 object ScopedModuleData:
@@ -43,13 +46,30 @@ object ScopedModuleData:
                         "Should never happen: moduleName " + moduleName + " not found in ModuleData: " + underlying.toString
                     )
         
+        def lookupModuleCName(moduleName: String): String =
+            this.lookupModule(moduleName) match
+                case ModuleDataEntry(_, Class(cname, _, _), _) => cname
+
         def lookupModuleShape(moduleName: String): Option[CleanShapeType] =
-            underlying.get(moduleName) match
-                case Some(ModuleDataEntry(_, _, shape)) => shape
-                case None =>   
+            this.lookupModule(moduleName) match
+                case ModuleDataEntry(_, _, shape) => shape
+
+        def lookupTypedCNameAndShape(moduleName: String): (String, CleanShapeType) =
+            this.lookupModule(moduleName) match
+                case ModuleDataEntry(_, Class(cname, _, _), Some(shape)) => (cname, shape)
+                case _ =>   
                     // Technically unnecessary throw but it will help us catch env errors early
                     throw new UnreachablePatternMatch(
-                        "Should never happen: moduleName " + moduleName + " not found in ModuleData: " + underlying.toString
+                        "Should never happen: expected moduleName " + moduleName + " to be typed in ModuleData: " + underlying.toString
+                    )
+
+        def lookupUntypedCName(moduleName: String): String =
+            this.lookupModule(moduleName) match
+                case ModuleDataEntry(_, Class(cname, _, _), None) => cname
+                case _ =>   
+                    // Technically unnecessary throw but it will help us catch env errors early
+                    throw new UnreachablePatternMatch(
+                        "Should never happen: expected moduleName " + moduleName + " to be untyped in ModuleData: " + underlying.toString
                     )
 
 trait ModuleData:

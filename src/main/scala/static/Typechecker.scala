@@ -30,9 +30,11 @@ object Typechecker:
     def typecheckSystem(s: CleanSystem): SystemWE = WE.Node( s match
         case System[Clean](modules, imports, progb) =>
 
-            val (typecheckedModules, modToCNameAndShapeMap) = typecheckModules(modules)
+            val moduleData = ModuleData(modules)
+
+            val typecheckedModules = typecheckModules(modules, moduleData)
             // Classes in scope constructed based on the sequence of modules 
-            val (typecheckedImports, sClasses) = typecheckImports(imports, modToCNameAndShapeMap)
+            val (typecheckedImports, sClasses) = typecheckImports(imports, moduleData.atTopLevel)
             // Variables obey lexical scope, so we begin with an empty Map from variables to Types
             val tVars : TVarsMap = Map.empty
 
@@ -56,64 +58,51 @@ object Typechecker:
 
     /**
     * Validates that each module is closed with respect to collection of imported classes.
-    * During validation, constructs a Map from ModuleNames to ClassNames that were defined
-    * in this list of module definitions.
     *
     * @param mods List of CleanModule to be processed
-    * @return Tuple of validated Module nodes and Map[ModuleName, (ClassName, Shape)] 
+    * @param moduleData Module Data map for quick lookups
+    * @return Tuple of validated Module nodes 
     */
-    def typecheckModules(mods: List[CleanModule]) : (List[ModuleWE], MixedModToSignatureMap) = 
+    def typecheckModules(mods: List[CleanModule], moduleData : ModuleData) : List[ModuleWE] = 
 
-        def typecheckOneModule(module: CleanModule, modToCNameAndShapeMapSoFar : MixedModToSignatureMap) : (ModuleWE, MixedModToSignatureMap) = module match
+        def typecheckOneModule(module: CleanModule) : ModuleWE = module match
             case m @ Module.Untyped(mname, imports, clas) => 
-                val updModToCNameAndShapeMapSoFar = 
-                    modToCNameAndShapeMapSoFar.updated(mname, (clas.cname, None))
-
-                val processedModule = ConverterToWE.moduleToWE(m) 
-
-                (processedModule, updModToCNameAndShapeMapSoFar)
+                ConverterToWE.moduleToWE(m) 
 
             case m @ Module.Typed(mname, imports, clas, shape) =>
-                val (typecheckedImports, sClasses) = typecheckImports(imports, modToCNameAndShapeMapSoFar)
+                val (typecheckedImports, sClasses) = typecheckImports(imports, moduleData.scopedAt(mname))
 
-                val (updatedSClasses, updModToCNameAndShapeMapSoFar) = 
-                    (
-                        sClasses.updated(clas.cname, shape), 
-                        modToCNameAndShapeMapSoFar.updated(mname, (clas.cname, Some(shape)))
-                    )
+                val updatedSClasses = sClasses.updated(clas.cname, shape)
          
-                val processedModule = WE.Node(Module.Typed(
+                WE.Node(Module.Typed(
                     WE.Node(mname),
                     typecheckedImports,
                     typecheckClass(clas, updatedSClasses),
                     ConverterToWE.shapeToWE(shape) 
                 ))
 
-                (processedModule, updModToCNameAndShapeMapSoFar)
-
         def typecheckModulesLoop(
-            modsRem: List[CleanModule], modsSoFar: List[ModuleWE], modToCNameAndShapeMapSoFar : MixedModToSignatureMap
-        ) : (List[ModuleWE], MixedModToSignatureMap) = modsRem match
+            modsRem: List[CleanModule], modsSoFar: List[ModuleWE]
+        ) : List[ModuleWE] = modsRem match
 
-            case Nil => (modsSoFar.reverse, modToCNameAndShapeMapSoFar)
+            case Nil => modsSoFar.reverse
 
             case (module: CleanModule) :: tail => 
-                val (processedModule, updModToCNameAndShapeMapSoFar) = typecheckOneModule(module, modToCNameAndShapeMapSoFar)
-                typecheckModulesLoop(tail, processedModule :: modsSoFar, updModToCNameAndShapeMapSoFar)
+                val processedModule = typecheckOneModule(module)
+                typecheckModulesLoop(tail, processedModule :: modsSoFar)
 
-        typecheckModulesLoop(mods, Nil, Map.empty)
+        typecheckModulesLoop(mods, Nil)
 
     /**
      * Constructs the sClasses Map from class name to Shape of all the classes that are in scope for
      * the scope of this sequence of imports.
      * 
      * @param imports List of imports 
-     * @param modToCNameAndShapeMap Map from ModuleNames to (ClassNames, ClassShapes) that were define
-     * before this sequence of imports
+     * @param moduleData Module Data map for quick lookups scoped at the current module
      * @return Tuple of ImportWE and Map from Class Names to their Shapes 
      */ 
     def typecheckImports(
-        imports: List[CleanImport], definedModSignatures : MixedModToSignatureMap
+        imports: List[CleanImport], moduleData : ScopedModuleData
     ) : (List[ImportWE], SClassesMap)  =
 
         def collectSClassesMapLoop(
@@ -123,12 +112,12 @@ object Typechecker:
             case Nil => importedClasses
 
             case (imp @ Import.Untyped(mname)) :: tail =>
-                val (cname, shape) = definedModSignatures(mname) 
-                val updImportedSoFar = importedClasses.updated(cname, shape.get)
+                val (cname, shape) = moduleData.lookupTypedCNameAndShape(mname) 
+                val updImportedSoFar = importedClasses.updated(cname, shape)
                 collectSClassesMapLoop(tail, updImportedSoFar)
 
             case (imp @ Import.Typed(mname, shape)) :: tail => 
-                val (cname, _) = definedModSignatures(mname) 
+                val cname = moduleData.lookupUntypedCName(mname) 
                 val updImportedSoFar = importedClasses.updated(cname, shape)
                 collectSClassesMapLoop(tail, updImportedSoFar)
 
