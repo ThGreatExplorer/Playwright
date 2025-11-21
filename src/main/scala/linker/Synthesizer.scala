@@ -22,8 +22,7 @@ object Synthesizer:
   // Special entry point for Assignment 11
   def synthesizeAndGetMNames(sys: CleanSystem): List[String] = sys match
     case System(modules, imports, progb, moduleData) => 
-
-      val moduleData = ModuleData(modules)
+      
       val updModules = synthesizeModules(modules, moduleData)
       val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, ModuleData.TLModuleName, moduleData)
       val allModules = updModules ::: newTypedCopiesOfMods
