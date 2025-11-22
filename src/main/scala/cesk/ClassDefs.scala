@@ -59,12 +59,12 @@ object ClassDefs:
 
         def getMethodDef(className: String, methodName: String): Either[RuntimeError, MethodDef] =
             getClassDef(className) match
-                case ClassDef(fields, methods, ) => 
+                case ClassDef(fields, methods, _) => 
                     methods.get(methodName).toRight(RuntimeError.MethodNotFound)
         
         def getInstanceOfClass(className : String, argVals : List[CESKValue]) : Either[RuntimeError, ObjectVal] =
             getClassDef(className) match
-                case ClassDef(fields, methods, ) =>
+                case ClassDef(fields, methods, _) =>
                     if fields.lengthIs != argVals.length  then
                         Left[RuntimeError, ObjectVal](RuntimeError.NewInstWrongFieldCount)
                     else

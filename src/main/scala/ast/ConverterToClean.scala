@@ -116,16 +116,23 @@ object ConverterToClean:
     def classWEToClean(c: ClassWE): Option[CleanClass] = c match 
         case WE.Err(_) => None
 
-        case WE.Node(Class(cname, fields, methods, shape)) =>
+        case WE.Node(Class(cname, fields, methods, Some(shape))) =>
             for 
                 cname <- stringWEToClean(cname)
                 fields <- fields.traverse(stringWEToClean)
                 methods <- methods.traverse(methodWEToClean)
+                shape <- shapeWEToClean(shape)
             yield 
-                val cleanShape = shape match
-                    case None => None
-                    case Some(shapeToClean) => shapeWEToClean(shapeToClean)
-                Class[Clean](cname, fields, methods, cleanShape)
+                Class[Clean](cname, fields, methods, Some(shape))
+
+        case WE.Node(Class(cname, fields, methods, None)) =>
+            for 
+                cname <- stringWEToClean(cname)
+                fields <- fields.traverse(stringWEToClean)
+                methods <- methods.traverse(methodWEToClean)
+            yield
+                Class[Clean](cname, fields, methods, None)
+
 
     def methodWEToClean(m: MethodWE): Option[CleanMethod] = m match 
         case WE.Err(_) => None

@@ -155,17 +155,20 @@ class CESKTests extends FunSuite {
     val pointClass = Class[Clean](
       cname = "Point",
       fields = List("x", "y"),
-      methods = List()
+      methods = List(),
+      shape = None
     )
     val knotClass = Class[Clean](
       cname = "Knot",
       fields = List("s"),
-      methods = List()
+      methods = List(),
+      shape = None
     )
     val dKnotClass = Class[Clean](
       cname = "DKnot",
       fields = List("r", "t"),
-      methods = List()
+      methods = List(),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("px", Expr.Num(3.0)),
@@ -228,7 +231,8 @@ class CESKTests extends FunSuite {
     val pointClass = Class[Clean](
       cname = "Point",
       fields = List("x", "y"),
-      methods = List()
+      methods = List(),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("px", Expr.Num(3.0)),
@@ -257,7 +261,8 @@ class CESKTests extends FunSuite {
     val pointClass = Class[Clean](
       cname = "Point",
       fields = List("x", "y"),
-      methods = List()
+      methods = List(),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("px", Expr.Num(3.0)),
@@ -280,7 +285,8 @@ class CESKTests extends FunSuite {
     val pointClass = Class[Clean](
       cname = "Point",
       fields = List("x", "y"),
-      methods = List()
+      methods = List(),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("px", Expr.Num(3.0)),
@@ -298,7 +304,8 @@ class CESKTests extends FunSuite {
     val pointClass = Class[Clean](
       cname = "Point",
       fields = List("x", "y"),
-      methods = List()
+      methods = List(),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("px", Expr.Num(3.0)),
@@ -327,7 +334,8 @@ class CESKTests extends FunSuite {
     val numberClass = Class[Clean](
       cname = "Number",
       fields = List("x"),
-      methods = List(addMethod)
+      methods = List(addMethod),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("base", Expr.Num(10.0)),
@@ -355,7 +363,8 @@ class CESKTests extends FunSuite {
     val numberClass = Class[Clean](
       cname = "Number",
       fields = List("x"),
-      methods = List(addMethod)
+      methods = List(addMethod),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("base", Expr.Num(10.0)),
@@ -375,7 +384,8 @@ class CESKTests extends FunSuite {
     val pointClass = Class[Clean](
       cname = "Point",
       fields = List("x"),
-      methods = List()
+      methods = List(),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("val", Expr.Num(1.0)),
@@ -393,7 +403,8 @@ class CESKTests extends FunSuite {
     val pointClass = Class[Clean](
       cname = "Point",
       fields = List("x"),
-      methods = List()
+      methods = List(),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("val", Expr.Num(1.0)),
@@ -424,7 +435,8 @@ class CESKTests extends FunSuite {
     val pointClass = Class[Clean](
       cname = "Point",
       fields = List("x", "y"),
-      methods = List()
+      methods = List(),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("px", Expr.Num(1.0)),
@@ -443,7 +455,8 @@ class CESKTests extends FunSuite {
     val pointClass = Class[Clean](
       cname = "Point",
       fields = List("x", "y"),
-      methods = List()
+      methods = List(),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("px", Expr.Num(1.0)),
@@ -502,7 +515,8 @@ class CESKTests extends FunSuite {
     val pointClass = Class[Clean](
       cname = "Point",
       fields = List("x", "y"),
-      methods = List()
+      methods = List(),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("px", Expr.Num(1.0)),
@@ -549,7 +563,8 @@ class CESKTests extends FunSuite {
     val pointClass = Class[Clean](
       cname = "Point",
       fields = List("x", "y"),
-      methods = List()
+      methods = List(),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("px", Expr.Num(1.0)),
@@ -618,7 +633,8 @@ class CESKTests extends FunSuite {
     val pointClass = Class[Clean](
       cname = "Point",
       fields = List("x", "y"),
-      methods = List(getXMethod)
+      methods = List(getXMethod),
+      shape = None
     )
     val decls = List(
       Decl[Clean]("px", Expr.Num(42.0)),

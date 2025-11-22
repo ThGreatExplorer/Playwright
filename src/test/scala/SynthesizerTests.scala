@@ -4,13 +4,14 @@ import munit.FunSuite
 import ast._
 import static.ModuleData
 import linker._
+ import util.getMDNames
 
 class SynthesizerTest extends FunSuite:
 
     test("synthesizeImports - typed import of untyped module creates new typed module") {
         val shape : CleanShapeType = Type.Shape(List(FieldType("x", Type.Number())), Nil)
         val modules = List(
-            Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil))
+            Module[Clean]("ModA", Nil, Class("ClassA", Nil, Nil, None))
         )
         val moduleData = ModuleData(modules)
         
@@ -21,11 +22,11 @@ class SynthesizerTest extends FunSuite:
         assertEquals(updImports.length, 1)
         
         newMods.head match
-            case Module.Typed(mname, imps, clas, s) =>
+            case Module(mname, imps, clas @ Class(cname, fields, methods, Some(s))) =>
                 assertEquals(mname, "ModA.into.ModB")
                 assertEquals(s, shape)
                 clas match
-                    case Class(cname, _, _) => assertEquals(cname, "ClassA")
+                    case Class(cname, _, _, _) => assertEquals(cname, "ClassA")
             case _ => fail("Expected typed module")
         
         updImports.head match
@@ -36,8 +37,8 @@ class SynthesizerTest extends FunSuite:
     test("synthesizeImports - mixed typed and untyped imports") {
         val shape : CleanShapeType = Type.Shape(List(FieldType("x", Type.Number())), Nil)
         val modules = List(
-            Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil)),
-            Module.Typed[Clean]("ModB", Nil, Class("ClassB", Nil, Nil), shape)
+            Module[Clean]("ModA", Nil, Class("ClassA", Nil, Nil, None)),
+            Module[Clean]("ModB", Nil, Class("ClassB", Nil, Nil, Some(shape)))
         )
         val moduleData = ModuleData(modules)
         
@@ -51,7 +52,7 @@ class SynthesizerTest extends FunSuite:
         assertEquals(updImports.length, 2)
         
         newMods.head match
-            case Module.Typed(mname, _, _, _) => assertEquals(mname, "ModA.into.ModC")
+            case m @ Module(mname, _, _) if m.isTyped => assertEquals(mname, "ModA.into.ModC")
             case _ => fail("Expected typed module")
         
         updImports(0) match
@@ -66,8 +67,8 @@ class SynthesizerTest extends FunSuite:
     test("synthesizeImports - mixed typed and untyped imports, only distinct typed imports produce clones") {
         val shape : CleanShapeType = Type.Shape(List(FieldType("x", Type.Number())), Nil)
         val modules = List(
-            Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil)),
-            Module.Typed[Clean]("ModB", Nil, Class("ClassB", Nil, Nil), shape)
+            Module[Clean]("ModA", Nil, Class("ClassA", Nil, Nil, None)),
+            Module[Clean]("ModB", Nil, Class("ClassB", Nil, Nil, Some(shape)))
         )
         val moduleData = ModuleData(modules)
         
@@ -85,7 +86,7 @@ class SynthesizerTest extends FunSuite:
         assertEquals(updImports.length, 6)
         
         newMods.head match
-            case Module.Typed(mname, _, _, _) => assertEquals(mname, "ModA.into.ModC")
+            case m @ Module(mname, _, _) if m.isTyped => assertEquals(mname, "ModA.into.ModC")
             case _ => fail("Expected typed module")
         
         updImports(0) match
@@ -101,8 +102,8 @@ class SynthesizerTest extends FunSuite:
         val shape : CleanShapeType = Type.Shape(Nil, Nil)
         val origImports : List[CleanUntypedImport] = List(Import.Untyped[Clean]("DepMod"))
         val modules = List(
-            Module.Untyped[Clean]("ModA", origImports, Class("ClassA", Nil, Nil)),
-            Module.Untyped[Clean]("DepMod", Nil, Class("DepClass", Nil, Nil))
+            Module[Clean]("ModA", origImports, Class("ClassA", Nil, Nil, None)),
+            Module[Clean]("DepMod", Nil, Class("DepClass", Nil, Nil, None))
         )
         val moduleData = ModuleData(modules)
         
@@ -111,7 +112,7 @@ class SynthesizerTest extends FunSuite:
         
         assertEquals(newMods.length, 1)
         newMods.head match
-            case Module.Typed(_, imps, _, _) =>
+            case m @ Module(_, imps, _) if m.isTyped =>
                 assertEquals(imps.length, 1)
                 assertEquals(imps, origImports)
             case _ => fail("Expected typed module")
@@ -119,8 +120,8 @@ class SynthesizerTest extends FunSuite:
 
     test("synthesizeModules - untyped modules pass through unchanged") {
         val modules = List(
-            Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil)),
-            Module.Untyped[Clean]("ModB", Nil, Class("ClassB", Nil, Nil))
+            Module[Clean]("ModA", Nil, Class("ClassA", Nil, Nil, None)),
+            Module[Clean]("ModB", Nil, Class("ClassB", Nil, Nil, None))
         )
         val moduleData = ModuleData(modules)
         
@@ -128,18 +129,18 @@ class SynthesizerTest extends FunSuite:
         
         assertEquals(result.length, 2)
         result(0) match
-            case Module.Untyped(mname, _, _) => assertEquals(mname, "ModA")
+            case Module(mname, _, _) => assertEquals(mname, "ModA")
             case _ => fail("Expected untyped module")
         result(1) match
-            case Module.Untyped(mname, _, _) => assertEquals(mname, "ModB")
+            case Module(mname, _, _) => assertEquals(mname, "ModB")
             case _ => fail("Expected untyped module")
     }
 
     test("synthesizeModules - typed module with typed import creates new module") {
         val shape : CleanShapeType = Type.Shape(List(FieldType("x", Type.Number())), Nil)
         val modules = List(
-            Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil)),
-            Module.Typed[Clean]("ModB", List(Import.Typed[Clean]("ModA", shape)), Class("ClassB", Nil, Nil), shape)
+            Module[Clean]("ModA", Nil, Class("ClassA", Nil, Nil, None)),
+            Module[Clean]("ModB", List(Import.Typed[Clean]("ModA", shape)), Class("ClassB", Nil, Nil, Some(shape)))
         )
         val moduleData = ModuleData(modules)
         
@@ -148,15 +149,15 @@ class SynthesizerTest extends FunSuite:
         assertEquals(result.length, 3)
         
         result(0) match
-            case Module.Untyped(mname, _, _) => assertEquals(mname, "ModA")
+            case Module(mname, _, _) => assertEquals(mname, "ModA")
             case _ => fail("Expected untyped module")
         
         result(1) match
-            case Module.Typed(mname, _, _, _) => assertEquals(mname, "ModA.into.ModB")
+            case m @ Module(mname, _, _) if m.isTyped => assertEquals(mname, "ModA.into.ModB")
             case _ => fail("Expected synthesized typed module")
         
         result(2) match
-            case Module.Typed(mname, imps, _, _) =>
+            case m @ Module(mname, imps, _) if m.isTyped =>
                 assertEquals(mname, "ModB")
                 assertEquals(imps.length, 1)
                 imps.head match
@@ -169,19 +170,16 @@ class SynthesizerTest extends FunSuite:
         val shape1 : CleanShapeType = Type.Shape(List(FieldType("x", Type.Number())), Nil)
         val shape2 : CleanShapeType = Type.Shape(List(FieldType("y", Type.Number())), Nil)
         val modules = List(
-            Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil)),
-            Module.Typed[Clean]("ModB", List(Import.Typed[Clean]("ModA", shape1)), Class("ClassB", Nil, Nil), shape1),
-            Module.Typed[Clean]("ModC", List(Import.Typed[Clean]("ModA", shape2)), Class("ClassC", Nil, Nil), shape2)
+            Module[Clean]("ModA", Nil, Class("ClassA", Nil, Nil, None)),
+            Module[Clean]("ModB", List(Import.Typed[Clean]("ModA", shape1)), Class("ClassB", Nil, Nil, Some(shape1))),
+            Module[Clean]("ModC", List(Import.Typed[Clean]("ModA", shape2)), Class("ClassC", Nil, Nil, Some(shape2)))
         )
         val moduleData = ModuleData(modules)
         val result = Synthesizer.synthesizeModules(modules, moduleData)
         
         assertEquals(result.length, 5)
         
-        val moduleNames = result.map {
-            case Module.Untyped(mname, _, _) => mname
-            case Module.Typed(mname, _, _, _) => mname
-        }
+        val moduleNames = result.getMDNames
         
         assert(moduleNames.contains("ModA"))
         assert(moduleNames.contains("ModA.into.ModB"))
@@ -193,7 +191,7 @@ class SynthesizerTest extends FunSuite:
     test("synthesizeSystem - end-to-end with typed import in system body") {
         val shape : CleanShapeType = Type.Shape(List(FieldType("x", Type.Number())), Nil)
         val modules = List(
-                Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil))
+                Module[Clean]("ModA", Nil, Class("ClassA", Nil, Nil, None))
             )
         val system = System[Clean](
             modules,
@@ -210,7 +208,7 @@ class SynthesizerTest extends FunSuite:
                 assertEquals(imps.length, 1)
                 
                 mods(1) match
-                    case Module.Typed(mname, _, _, _) => assertEquals(mname, "ModA.into.Body")
+                    case m @ Module(mname, _, _) if m.isTyped => assertEquals(mname, "ModA.into.Body")
                     case _ => fail("Expected synthesized typed module")
                 
                 imps.head match
@@ -222,12 +220,11 @@ class SynthesizerTest extends FunSuite:
         val shape1 : CleanShapeType = Type.Shape(List(FieldType("x", Type.Number())), Nil)
         val shape2 : CleanShapeType = Type.Shape(List(FieldType("y", Type.Number())), Nil)
         val modules = List(
-                Module.Untyped[Clean]("ModA", Nil, Class("ClassA", Nil, Nil)),
-                Module.Typed[Clean](
+                Module[Clean]("ModA", Nil, Class("ClassA", Nil, Nil, None)),
+                Module[Clean](
                     "ModB", 
                     List(Import.Typed[Clean]("ModA", shape1)), 
-                    Class("ClassB", Nil, Nil), 
-                    shape1
+                    Class("ClassB", Nil, Nil, Some(shape1))
                 )
             )
         val system = System[Clean](
@@ -247,10 +244,7 @@ class SynthesizerTest extends FunSuite:
                 assertEquals(mods.length, 4)
                 assertEquals(imps.length, 2)
                 
-                val moduleNames = mods.map {
-                    case Module.Untyped(mname, _, _) => mname
-                    case Module.Typed(mname, _, _, _) => mname
-                }
+                val moduleNames = mods.getMDNames
                 
                 assert(moduleNames.contains("ModA"))
                 assert(moduleNames.contains("ModA.into.ModB"))
@@ -258,13 +252,13 @@ class SynthesizerTest extends FunSuite:
                 assert(moduleNames.contains("ModA.into.Body"))
 
                 mods(1) match
-                    case Module.Typed(mname, _, _, shape) => 
+                    case Module(mname, _, Class(cname, fields, methods, Some(shape))) => 
                         assertEquals(mname, "ModA.into.ModB")
                         assertEquals(shape, shape1)
                     case _ => fail("Expected synthesized typed module")
                 
                 mods(3) match
-                    case Module.Typed(mname, _, _, shape) => 
+                    case Module(mname, _, Class(cname, fields, methods, Some(shape))) => 
                         assertEquals(mname, "ModA.into.Body")
                         assertEquals(shape, shape2)
                     case _ => fail("Expected synthesized typed module")

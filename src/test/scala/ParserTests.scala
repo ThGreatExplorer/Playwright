@@ -74,7 +74,7 @@ object ParserTests:
     WE.Node(
         RawSystem(
           modules = List(
-            WE.Node(Module.Typed(
+            WE.Node(Module(
               mname = WE.Node("A"),
               imports = List(),
               clas = 
@@ -121,13 +121,13 @@ object ParserTests:
                           ))
                       )
                     ))
-                  )
+                  ),
+                  shape= Some(WE.Node(Type.Shape(
+                    fieldTypes = List(WE.Node(FieldType(WE.Node("x"), WE.Node(Type.Number()))), WE.Node(FieldType(WE.Node("y"), WE.Node(Type.Number())))),
+                    methodTypes = List(WE.Node(MethodType(WE.Node("addCoords"), List(), WE.Node(Type.Number()))))
+                  )))
                 )
-              ),
-              shape = WE.Node(Type.Shape(
-                fieldTypes = List(WE.Node(FieldType(WE.Node("x"), WE.Node(Type.Number()))), WE.Node(FieldType(WE.Node("y"), WE.Node(Type.Number())))),
-                methodTypes = List(WE.Node(MethodType(WE.Node("addCoords"), List(), WE.Node(Type.Number()))))
-              ))
+              ), 
             ))
           ),
           imports = List(),
@@ -177,19 +177,20 @@ object ParserTests:
       WE.Node(
         RawSystem(
           modules = List(
-            WE.Node(Module.Typed(
+            WE.Node(Module(
               mname = WE.Node("A"),
               imports = List(),
               clas = 
                 WE.Node(Class(
                   cname = WE.Node("Point"),
                   fields = List(WE.Node("x"), WE.Node("y")),
-                  methods = List()
+                  methods = List(),
+                  shape = Some(WE.Err(ShapeMalformed))
                 )
               ),
-              shape = WE.Err(ShapeMalformed)
+              
             )),
-            WE.Node(Module.Typed(
+            WE.Node(Module(
               mname = WE.Node("B"),
               imports = List(),
               clas = 
@@ -236,13 +237,13 @@ object ParserTests:
                           ))
                       )
                     ))
-                  )
+                  ),
+                  shape = Some(WE.Node(Type.Shape(
+                    fieldTypes = List(WE.Err(FieldTypeMalformed), WE.Node(FieldType(WE.Node("y"), WE.Node(Type.Number())))),
+                    methodTypes = List(WE.Err(MethodTypeMalformed))
+                  )))
                 )
               ),
-              shape = WE.Node(Type.Shape(
-                fieldTypes = List(WE.Err(FieldTypeMalformed), WE.Node(FieldType(WE.Node("y"), WE.Node(Type.Number())))),
-                methodTypes = List(WE.Err(MethodTypeMalformed))
-              ))
             ))
           ),
           imports = List(),
@@ -292,7 +293,7 @@ object ParserTests:
       WE.Node(
         RawSystem(
           modules = List(
-            WE.Node(Module.Untyped(
+            WE.Node(Module(
               mname = WE.Node("A"),
               imports = List(),
               clas = 
@@ -339,7 +340,8 @@ object ParserTests:
                           ))
                       )
                     ))
-                  )
+                  ),
+                  None
                 )
               )
             ))
@@ -396,25 +398,27 @@ object ParserTests:
       WE.Node(
         RawSystem(
           modules = List(
-            WE.Node(Module.Untyped(
+            WE.Node(Module(
               mname = WE.Node("A"),
               imports = List(),
               clas = 
                 WE.Node(Class(
                   cname = WE.Node("Point"),
                   fields = List(WE.Node("x"), WE.Node("y")),
-                  methods = List()
+                  methods = List(),
+                  None
                 )
               )
             )),
-            WE.Node(Module.Untyped(
+            WE.Node(Module(
               mname = WE.Node("B"),
               imports = List(WE.Node(Import.Untyped(WE.Node("A")))),
               clas = 
                 WE.Node(Class(
                   cname = WE.Node("Point"),
                   fields = List(WE.Node("x"), WE.Node("y")),
-                  methods = List()
+                  methods = List(),
+                  None
                 )
               )
             )),
@@ -452,14 +456,15 @@ object ParserTests:
         RawSystem(
           modules = List(
             WE.Err(ModuleMalformed),
-            WE.Node(Module.Untyped(
+            WE.Node(Module(
               mname = WE.Node("A"),
               imports = List(),
               clas = 
                 WE.Node(Class(
                   cname = WE.Node("Point"),
                   fields = List(WE.Node("x"), WE.Node("y")),
-                  methods = List()
+                  methods = List(),
+                  None
                 )
               )
             )),
@@ -656,7 +661,8 @@ object ParserTests:
                         ))
                     ))
                   )
-                )
+                ),
+                None
               )
             )
           ),
@@ -971,7 +977,8 @@ object ParserTests:
                         ))
                     ))
                   )
-                )
+                ),
+                None
               )
             )
           ),
@@ -1042,7 +1049,8 @@ object ParserTests:
               Class(
                 cname = WE.Node("Point"),
                 fields = List(WE.Node("x")),
-                methods = List(WE.Node(Method(WE.Node("addy"), List(WE.Node("y")), WE.Err(ProgBlockNoExpr))))
+                methods = List(WE.Node(Method(WE.Node("addy"), List(WE.Node("y")), WE.Err(ProgBlockNoExpr)))),
+                None
               )
             )
           ),
