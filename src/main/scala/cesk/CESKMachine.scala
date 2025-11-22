@@ -117,7 +117,7 @@ final class CESKMachine(prog: CleanProgram):
           kont    = state.kont.pop
         )
 
-      // Return Expression
+      // Return Expression (PITCH)
       case (Control.Search, ProgFrame(Nil, Nil, expr : CleanExpr)) =>
         val allVars = ExprRenamer.getAllVars(expr)
         val renameMap = ExprRenamer.unqiuifyVarNames(allVars)
@@ -139,6 +139,111 @@ final class CESKMachine(prog: CleanProgram):
           store   = updStore,
           kont    = state.kont.pop
         )
+
+      // Assignment Statements
+      case (Control.Search, ProgFrame(Nil, Stmt.Assign(lhs, rhs) :: stmts, expr)) =>
+        CESKState(
+          control = Control.Expr(rhs),
+          env     = state.env,
+          store   = state.store,
+          kont    = state.kont
+        )
+      case (Control.Value(v), ProgFrame(Nil, Stmt.Assign(lhs, rhs) :: stmts, expr)) =>
+        val loc = state.env.getLoc(lhs)
+        CESKState(
+          control = Control.Search,
+          env     = state.env,
+          store   = state.store.updatedStore(loc, v),
+          kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
+        )
+
+      // While Loops
+      case (Control.Search, ProgFrame(Nil, Stmt.While(grd, body) :: stmts, expr)) =>
+        CESKState(
+          control = Control.Expr(grd),
+          env     = state.env,
+          store   = state.store,
+          kont    = state.kont
+        )
+      case (Control.Value(grdVal), ProgFrame(Nil, Stmt.While(grd, body) :: stmts, expr)) =>
+        grdVal match
+          case num : NumVal if num.isZero() =>
+            val loop = Stmt.While[Clean](grd, body)
+            CESKState(
+              control = Control.Search,
+              env     = state.env,
+              store   = state.store,
+              kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, body :: loop :: stmts, expr))
+            )
+          case _ =>
+            CESKState(
+                control = Control.Search,
+                env     = state.env,
+                store   = state.store,
+                kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
+              )
+
+      // Conditionals
+      case (Control.Search, ProgFrame(Nil, Stmt.Ifelse(grd, tbranch, ebranch) :: stmts, expr)) =>
+        CESKState(
+          control = Control.Expr(grd),
+          env     = state.env,
+          store   = state.store,
+          kont    = state.kont
+        )
+      case (Control.Value(grdVal), ProgFrame(Nil, Stmt.Ifelse(grd, tbranch, ebranch) :: stmts, expr)) =>
+        grdVal match
+          case num : NumVal if num.isZero() =>
+            CESKState(
+              control = Control.Search,
+              env     = state.env,
+              store   = state.store,
+              kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, tbranch :: stmts, expr))
+            )
+          case _ => 
+              CESKState(
+                control = Control.Search,
+                env     = state.env,
+                store   = state.store,
+                kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, ebranch :: stmts, expr))
+              )
+      
+      // Field Assignment statement
+      case (Control.Search, ProgFrame(Nil, Stmt.FieldAssign(instance, field, rhs) :: stmts, expr)) =>
+        CESKState(
+          control = Control.Expr(rhs),
+          env     = state.env,
+          store   = state.store,
+          kont    = state.kont  
+        )
+      case (Control.Value(exprVal), ProgFrame(Nil, Stmt.FieldAssign(instance, field, rhs) :: stmts, expr)) =>
+        state.lookupVar(instance) match 
+          case obj: ObjectVal =>
+            obj.lookupField(field) match
+              case Left(err) => 
+                constructErrorState(err)
+              case Right(_) =>
+                obj.updateField(field, exprVal)
+                CESKState(
+                  control = Control.Search,
+                  env     = state.env,
+                  store   = state.store,
+                  kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
+                )
+          case prx : ProxyVal => 
+            prx.conformToFieldType(field, exprVal, classDefs) match
+              case Left(err) =>
+                constructErrorState(err)
+              case Right(conformedVal) => 
+                prx.updateField(field, conformedVal)
+                CESKState(
+                  control = Control.Search,
+                  env     = state.env,
+                  store   = state.store,
+                  kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
+                )
+          case _: NumVal => 
+            constructErrorState(RuntimeError.ValNotAnObject)
 
       // Expressions 
       case (Control.Expr(Expr.Num(num)), _) =>
@@ -228,6 +333,7 @@ final class CESKMachine(prog: CleanProgram):
                   RuntimeError.InvalidVarType("Binop attempted on a non-numeric value.")
                 )
           }
+
       // Object Expressions
       case (Control.Expr(Expr.NewInstance(cname, args)), _) =>
         val fieldVals = args.map(state.lookupVar(_))
@@ -257,6 +363,7 @@ final class CESKMachine(prog: CleanProgram):
               store   = state.store,
               kont    = state.kont 
             )
+
       // Expr: Get Field
       case (Control.Expr(Expr.GetField(x, field)), _) =>
         state.lookupVar(x) match
@@ -273,6 +380,7 @@ final class CESKMachine(prog: CleanProgram):
                   store   = state.store,
                   kont    = state.kont  
                 )
+
       // Expr: Method call
       case (Control.Expr(Expr.CallMethod(instance, mname, args)), _) =>
         state.lookupVar(instance) match
@@ -301,112 +409,7 @@ final class CESKMachine(prog: CleanProgram):
                   env     = newEnv,
                   kont    = state.kont.push(methodClosure)
                 )            
-
-      // Assignment Statements
-      case (Control.Search, ProgFrame(Nil, Stmt.Assign(lhs, rhs) :: stmts, expr)) =>
-        CESKState(
-          control = Control.Expr(rhs),
-          env     = state.env,
-          store   = state.store,
-          kont    = state.kont
-        )
-      case (Control.Value(v), ProgFrame(Nil, Stmt.Assign(lhs, rhs) :: stmts, expr)) =>
-        val loc = state.env.getLoc(lhs)
-        CESKState(
-          control = Control.Search,
-          env     = state.env,
-          store   = state.store.updatedStore(loc, v),
-          kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
-        )
-
-      // While Loops
-      case (Control.Search, ProgFrame(Nil, Stmt.While(grd, body) :: stmts, expr)) =>
-        CESKState(
-          control = Control.Expr(grd),
-          env     = state.env,
-          store   = state.store,
-          kont    = state.kont
-        )
-      case (Control.Value(grdVal), ProgFrame(Nil, Stmt.While(grd, body) :: stmts, expr)) =>
-        grdVal match
-          case num : NumVal if num.isZero() =>
-            val loop = Stmt.While[Clean](grd, body)
-            CESKState(
-              control = Control.Search,
-              env     = state.env,
-              store   = state.store,
-              kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, body :: loop :: stmts, expr))
-            )
-          case _ =>
-            CESKState(
-                control = Control.Search,
-                env     = state.env,
-                store   = state.store,
-                kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
-              )
-
-      // Conditionals
-      case (Control.Search, ProgFrame(Nil, Stmt.Ifelse(grd, tbranch, ebranch) :: stmts, expr)) =>
-        CESKState(
-          control = Control.Expr(grd),
-          env     = state.env,
-          store   = state.store,
-          kont    = state.kont
-        )
-      case (Control.Value(grdVal), ProgFrame(Nil, Stmt.Ifelse(grd, tbranch, ebranch) :: stmts, expr)) =>
-        grdVal match
-          case num : NumVal if num.isZero() =>
-            CESKState(
-              control = Control.Search,
-              env     = state.env,
-              store   = state.store,
-              kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, tbranch :: stmts, expr))
-            )
-          case _ => 
-              CESKState(
-                control = Control.Search,
-                env     = state.env,
-                store   = state.store,
-                kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, ebranch :: stmts, expr))
-              )
-      
-      // Field update statement
-      case (Control.Search, ProgFrame(Nil, Stmt.FieldAssign(instance, field, rhs) :: stmts, expr)) =>
-        CESKState(
-          control = Control.Expr(rhs),
-          env     = state.env,
-          store   = state.store,
-          kont    = state.kont  
-        )
-      case (Control.Value(exprVal), ProgFrame(Nil, Stmt.FieldAssign(instance, field, rhs) :: stmts, expr)) =>
-        state.lookupVar(instance) match 
-          case obj: ObjectVal =>
-            obj.lookupField(field) match
-              case Left(err) => 
-                constructErrorState(err)
-              case Right(_) =>
-                obj.updateField(field, exprVal)
-                CESKState(
-                  control = Control.Search,
-                  env     = state.env,
-                  store   = state.store,
-                  kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
-                )
-          case prx : ProxyVal => 
-            prx.conformToFieldType(field, exprVal, classDefs) match
-              case Left(err) =>
-                constructErrorState(err)
-              case Right(v) => 
-                prx.updateField(field, exprVal)
-                CESKState(
-                  control = Control.Search,
-                  env     = state.env,
-                  store   = state.store,
-                  kont    = state.kont.updateTopProgFrame(ProgFrame(Nil, stmts, expr))
-                )
-          case _: NumVal => 
-            constructErrorState(RuntimeError.ValNotAnObject)
-
+                
       // case _ =>
       //   throw new UnreachableStateException(
       //     "Unknown state reached in CESK machine transition function:" + state
