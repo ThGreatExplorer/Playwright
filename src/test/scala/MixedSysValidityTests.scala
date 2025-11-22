@@ -10,16 +10,16 @@ class VCheckImportsTest extends FunSuite:
 
     def makeScopedMap(expectedMap : Map[String, Option[CleanShapeType]]) : ScopedModuleData =
         val entries = expectedMap.toList.map((mname, shape) => 
-            mname -> ModuleDataEntry(Nil, Class("dummy", Nil, Nil), shape))
+            ModuleDataEntry(Module(mname, Nil, Class("dummy", Nil, Nil, shape))))
         ScopedModuleData(entries)
 
     test("checkImportsModules - mixed mods, no imports") {
         val shape : CleanShapeType = Type.Shape(List(FieldType[Clean]("x", Type.Number())), Nil)
         val modules = 
             List(
-                Module.Untyped[Clean]("Untyped1", Nil, Class[Clean]("C1", Nil, Nil)),
-                Module.Typed[Clean]("Typed1", Nil, Class[Clean]("C2", Nil, Nil), shape),
-                Module.Untyped[Clean]("Untyped2", Nil, Class[Clean]("C3", Nil, Nil))
+                Module[Clean]("Untyped1", Nil, Class[Clean]("C1", Nil, Nil, None)),
+                Module[Clean]("Typed1", Nil, Class[Clean]("C2", Nil, Nil, Some(shape))),
+                Module[Clean]("Untyped2", Nil, Class[Clean]("C3", Nil, Nil, None))
             )
             
         val mdata = ModuleData(modules)
@@ -145,16 +145,15 @@ class VCheckImportsTest extends FunSuite:
     test("checkImportsSys - end-to-end system validation (does not flag undefined imports)") {
         val shape : CleanShapeType = Type.Shape(List(FieldType("field", Type.Number())), Nil)
         val modules : List[CleanModule] = List(
-                Module.Typed(
+                Module(
                     "ModA",
                     List(Import.Untyped("ModB")),
-                    Class("ClassA", Nil, Nil),
-                    Type.Shape(Nil, Nil)
+                    Class("ClassA", Nil, Nil, Some(Type.Shape(Nil, Nil)))
                 ),
-                Module.Untyped(
+                Module(
                     "ModB",
                     Nil,
-                    Class("ClassB", Nil, Nil)
+                    Class("ClassB", Nil, Nil, None)
                 )
             )
         val system = System[Clean](
@@ -170,16 +169,15 @@ class VCheckImportsTest extends FunSuite:
 
     test("checkImportsSys - detects import errors in nested modules") {
         val modules : List[CleanModule] = List(
-                Module.Untyped(
+                Module(
                     "UntypedMod",
                     Nil,
-                    Class("ClassB", Nil, Nil)
+                    Class("ClassB", Nil, Nil, None)
                 ),
-                Module.Typed(
+                Module(
                     "TypedMod",
                     List(Import.Untyped("UntypedMod")), // This should error
-                    Class("ClassA", Nil, Nil),
-                    Type.Shape(Nil, Nil)
+                    Class("ClassA", Nil, Nil, Some(Type.Shape(Nil, Nil))),
                 )                
             )
         val system = System[Clean](
@@ -196,7 +194,7 @@ class VCheckImportsTest extends FunSuite:
             case WE.Node(sys) =>
                 // Second module should have import error
                 sys.modules(1) match
-                    case WE.Node(Module.Typed(_, imports, _, _)) =>
+                    case WE.Node(Module(_, imports, _)) =>
                         imports.head match
                             case WE.Err(UntypedModImportedWithoutTImport) => ()
                             case _ => fail("Expected import error in first module")

@@ -57,6 +57,11 @@ final case class Module[Node[_]](
     clas: Node[Class[Node]]
 )
 
+extension (m: CleanModule)
+    def isTyped: Boolean = m match
+        case Module(_, _, Class(_, _, _, shape)) => 
+            shape.isDefined
+
 type CleanModule = Clean[Module[Clean]]
 type ModuleWE    = WE[Module[WE]]
 
