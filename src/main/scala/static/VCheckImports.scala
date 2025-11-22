@@ -31,19 +31,18 @@ object VCheckImports:
     def checkImportsModules(mods: List[CleanModule], moduleData : ModuleData) : List[ModuleWE] = 
 
         def checkImportsOneMod(m : CleanModule) : ModuleWE = m match
-            case Module.Untyped(mname, imports, clas) => 
-                WE.Node(Module.Untyped(
+            case Module(mname, imports, clas @ Class[Clean](cname, fields, methods, None)) => 
+                WE.Node(Module(
                     WE.Node(mname),
-                    imports.map(untypedImportToWE(_)),
+                    imports.map(importToWE(_)),
                     classToWE(clas)
                 ))
 
-            case Module.Typed(mname, imports, clas, shape) => 
-                WE.Node(Module.Typed(
+            case Module(mname, imports, clas @ Class[Clean](cname, fields, methods, Some(shape))) => 
+                WE.Node(Module(
                     WE.Node(mname),
                     checkMixedImports(imports, moduleData.scopedAt(mname)),
                     classToWE(clas),
-                    shapeToWE(shape)
                 ))
 
         def checkImportsModsLoop(

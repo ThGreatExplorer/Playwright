@@ -43,27 +43,13 @@ object ConverterToClean:
     def moduleWEToClean(m: ModuleWE): Option[CleanModule] = m match 
         case WE.Err(_) => None
 
-        case WE.Node(Module.Typed(mname, imports, clas, shape)) =>
+        case WE.Node(Module(mname, imports, clas)) =>
             for 
                 mname   <- stringWEToClean(mname)
                 imports <- imports.traverse(importToClean)
                 clas    <- classWEToClean(clas)
-                shape   <- shapeWEToClean(shape)
             yield 
-                Module.Typed[Clean](mname, imports, clas, shape)
-
-        // Separate pattern match because we don't want to conflate None representing
-        // untyped module and None representing an error node during the toClean 
-        // conversion.
-        // Can be fixed with a better type, but this issue is unlikely to surface
-        // elsewhere so we keep it this way for now.
-        case WE.Node(Module.Untyped(mname, imports, clas)) =>
-            for 
-                mname   <- stringWEToClean(mname)
-                imports <- imports.traverse(untypedImportToClean)
-                clas    <- classWEToClean(clas)
-            yield 
-                Module.Untyped[Clean](mname, imports, clas)
+                Module[Clean](mname, imports, clas)
 
     def importToClean(i: ImportWE): Option[CleanImport] = i match
         case WE.Err(e) => 
@@ -130,13 +116,16 @@ object ConverterToClean:
     def classWEToClean(c: ClassWE): Option[CleanClass] = c match 
         case WE.Err(_) => None
 
-        case WE.Node(Class(cname, fields, methods)) =>
+        case WE.Node(Class(cname, fields, methods, shape)) =>
             for 
                 cname <- stringWEToClean(cname)
                 fields <- fields.traverse(stringWEToClean)
                 methods <- methods.traverse(methodWEToClean)
             yield 
-                Class[Clean](cname, fields, methods)
+                val cleanShape = shape match
+                    case None => None
+                    case Some(shapeToClean) => shapeWEToClean(shapeToClean)
+                Class[Clean](cname, fields, methods, cleanShape)
 
     def methodWEToClean(m: MethodWE): Option[CleanMethod] = m match 
         case WE.Err(_) => None

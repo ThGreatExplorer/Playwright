@@ -11,11 +11,8 @@ final case class ModuleDataEntry(
 
 object ModuleDataEntry:
     def apply(m : CleanModule) : (String, ModuleDataEntry) = m match
-        case Module.Typed(mname, imps, clas, shape) => 
-            mname -> ModuleDataEntry(imps, clas, Some(shape))
-        case Module.Untyped(mname, imps, clas) =>
-            mname -> ModuleDataEntry(imps, clas, None)
-
+        case Module(mname, imps, clas @ Class(cname, fields, methods, shape)) => 
+            mname -> ModuleDataEntry(imps, clas, shape)
 
 trait ScopedModuleData:
     def contains(moduleName: String): Boolean
@@ -66,7 +63,7 @@ object ScopedModuleData:
         */
         def lookupModuleCName(moduleName: String): String =
             this.lookupModule(moduleName) match
-                case ModuleDataEntry(_, Class(cname, _, _), _) => cname
+                case ModuleDataEntry(_, Class[Clean](cname, _, _,_), _) => cname
 
         /**
          * Should be enforced by a path type dependency (but isn't yet) that this method should not be called until
@@ -94,7 +91,7 @@ object ScopedModuleData:
         */
         def lookupTypedCNameAndShape(moduleName: String): (String, CleanShapeType) =
             this.lookupModule(moduleName) match
-                case ModuleDataEntry(_, Class(cname, _, _), Some(shape)) => (cname, shape)
+                case ModuleDataEntry(_, Class[Clean](cname, _, _, _), Some(shape)) => (cname, shape)
                 case _ =>   
                     // Technically unnecessary throw but it will help us catch env errors early
                     throw new UnreachablePatternMatch(
@@ -114,7 +111,7 @@ object ScopedModuleData:
         */
         def lookupUntypedCName(moduleName: String): String =
             this.lookupModule(moduleName) match
-                case ModuleDataEntry(_, Class(cname, _, _), None) => cname
+                case ModuleDataEntry(_, Class[Clean](cname, _, _, _), None) => cname
                 case _ =>   
                     // Technically unnecessary throw but it will help us catch env errors early
                     throw new UnreachablePatternMatch(

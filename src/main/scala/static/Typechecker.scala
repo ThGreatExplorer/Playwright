@@ -65,19 +65,18 @@ object Typechecker:
     def typecheckModules(mods: List[CleanModule], moduleData : ModuleData) : List[ModuleWE] = 
 
         def typecheckOneModule(module: CleanModule) : ModuleWE = module match
-            case m @ Module.Untyped(mname, imports, clas) => 
+            case m @ Module(mname, imports, Class[Clean](cname, fields, methods, None)) => 
                 ConverterToWE.moduleToWE(m) 
 
-            case m @ Module.Typed(mname, imports, clas, shape) =>
+            case m @ Module(mname, imports, clas @ Class[Clean](cname, field, methods, Some(shape))) =>
                 val (typecheckedImports, sClasses) = typecheckImports(imports, moduleData.scopedAt(mname))
 
                 val updatedSClasses = sClasses.updated(clas.cname, shape)
          
-                WE.Node(Module.Typed(
+                WE.Node(Module(
                     WE.Node(mname),
                     typecheckedImports,
-                    typecheckClass(clas, updatedSClasses),
-                    ConverterToWE.shapeToWE(shape) 
+                    typecheckClass(clas, updatedSClasses), 
                 ))
 
         def typecheckModulesLoop(
@@ -130,13 +129,13 @@ object Typechecker:
     def typecheckClass(cls : CleanClass, sClasses: SClassesMap) : ClassWE = 
         val thisShape = sClasses(cls.cname)
         (cls, thisShape) match
-            case (Class(_, fields, _), Shape(fieldTypes, _)) if fields.lengthIs != fieldTypes.length => 
+            case (Class(_, fields, _, _), Shape(fieldTypes, _)) if fields.lengthIs != fieldTypes.length => 
                 WE.Err(ShapeTypeWrongNumberOfFields)
 
-            case (Class(_, _, methods), Shape(_, methodTypes)) if methods.lengthIs != methodTypes.length => 
+            case (Class(_, _, methods, _), Shape(_, methodTypes)) if methods.lengthIs != methodTypes.length => 
                 WE.Err(ShapeTypeWrongNumberOfMethods) 
 
-            case (Class(cname, fields, methods), Shape(fieldTypes, methodTypes)) => 
+            case (Class(cname, fields, methods, shape), Shape(fieldTypes, methodTypes)) => 
                 // According to simplification, we expect fields to appear in the same order
                 val fieldsWE = fields.zip(fieldTypes).map{
                         case (fnameInDef, FieldType(fnameInTyp, _)) if fnameInDef != fnameInTyp => 
@@ -153,11 +152,13 @@ object Typechecker:
                         case (method, methodType) =>
                             typecheckMethodWithMethodType(method, methodType, sClasses, thisShape)
                     }
+                val shapeWE = ConverterToWE.optionalShapeToWE(shape)
                 
                 WE.Node(Class(
                     WE.Node(cname),
                     fieldsWE,
-                    methodsWE
+                    methodsWE,
+                    shapeWE
                 ))
 
     def typecheckMethodWithMethodType(

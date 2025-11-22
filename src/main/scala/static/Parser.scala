@@ -58,7 +58,7 @@ object Parser:
         case SList(elems) => 
             val (classes, rest) = elems.takeWhileKWPrefixes(Keyword.Class)
             WE.Node(Program(
-                classes.map(parseClass),
+                classes.map(parseClass(_, None)),
                 parseProgBlock(rest)
             ))
 
@@ -70,32 +70,33 @@ object Parser:
         case SList(SSymbol(Keyword.TModule.value) :: moduleName :: rest0) =>
             val (imports, rest1) = rest0.takeWhileKWPrefixes(Keyword.Import, Keyword.TImport)
             rest1 match
-                // TModule ::= (tmodule ModuleName MixedImport^* Class Shape)
+                // TModule ::= (tmodule ModuleName MixedImport^* Class Shape) 
+                // convert with Shape inside of the Class
                 case clss :: shape :: Nil => 
-                    WE.Node(Module.Typed(
+                    WE.Node(Module(
                         parseModuleName(moduleName),
                         imports.map(parseMixedImport),
-                        parseClass(clss),
-                        parseShape(shape)
+                        parseClass(clss, Some(parseShape(shape))),
                     ))
                 case _ => WE.Err(ModuleMalformed) 
         case SList(SSymbol(Keyword.Module.value) :: moduleName :: rest0) =>
             val (imports, rest1) = rest0.takeWhileKWPrefixes(Keyword.Import)
             rest1 match
                 // Module  ::= (module ModuleName Import^* Class)
+                // have Shape inside of Class be None
                 case clss :: Nil =>
-                    WE.Node(Module.Untyped(
+                    WE.Node(Module(
                         parseModuleName(moduleName),
                         imports.map(parseUntypedImport),
-                        parseClass(clss)
+                        parseClass(clss, None)
                     ))
                 case _ => WE.Err(ModuleMalformed)
         case _ => WE.Err(ModuleMalformed)
 
     // Special helper for A9. Only considers typed modules as well-formed
     def errIfUntypedMod(mod: ModuleWE) : ModuleWE = mod match
-        case WE.Node(Module.Untyped(_, _, _)) => WE.Err(ModuleMalformed) 
-        case typedMod @ WE.Node(Module.Typed(_, _, _, _)) => typedMod
+        case WE.Node(Module(_, _, WE.Node(Class(cname, fields, methods, None)))) => WE.Err(ModuleMalformed) 
+        case typedMod @ WE.Node(Module(_, _, WE.Node(Class(cname, fields, methods, Some(shape))))) => typedMod
         case e => e
 
     def parseMixedImport(sexp: SExpr): ImportWE = sexp match
@@ -150,13 +151,14 @@ object Parser:
 
     // Class helpers
 
-    def parseClass(sexp: SExpr): ClassWE = sexp match
+    def parseClass(sexp: SExpr, shape: Option[ShapeTypeWE]): ClassWE = sexp match
         // Class: (class ClassName (FieldName^*) Method^*)
         case SList(SSymbol(Keyword.Class.value) :: className :: SList(fieldnames) :: methods) =>
             WE.Node(Class(
                 parseName(className),
                 fieldnames.map(parseName),
-                methods.map(parseMethod)
+                methods.map(parseMethod),
+                shape
             ))
         case _ => WE.Err(ClassMalformed)
 

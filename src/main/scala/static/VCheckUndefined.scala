@@ -5,6 +5,7 @@ import ast.ValidityErrNodes._
 import ast.ConverterToWE.shapeToWE
 import util.{getCNames}
 import ast.ConverterToWE.stringToWE
+import ast.ConverterToWE.optionalShapeToWE
 
 object VCheckUndefined:
 
@@ -55,21 +56,12 @@ object VCheckUndefined:
     def closedModules(mods: List[CleanModule], moduleData : ModuleData) : List[ModuleWE] = 
 
         def checkOneMod(m : CleanModule) : ModuleWE = m match
-            case Module.Untyped(mname, imports, clas) => 
-                val (validatedImports, clssInScope) = closedUntypedImports(imports, moduleData.scopedAt(mname))
-                WE.Node(Module.Untyped(
+            case Module(mname, imports, clas) => 
+                val (validatedImports, clssInScope) = closedImports(imports, moduleData.scopedAt(mname))
+                WE.Node(Module(
                     WE.Node(mname),
                     validatedImports,
                     closedClass(clas, clssInScope),
-                ))
-
-            case Module.Typed(mname, imports, clas, shape) => 
-                val (validatedImports, clssInScope) = closedImports(imports, moduleData.scopedAt(mname))
-                WE.Node(Module.Typed(
-                    WE.Node(mname),
-                    validatedImports,
-                    closedClass(clas, clssInScope), 
-                    shapeToWE(shape)
                 ))
 
         def closedModulesLoop(
@@ -124,38 +116,15 @@ object VCheckUndefined:
 
         (validatedImports, clssInScope)
 
-    def closedUntypedImports(
-        imports: List[CleanUntypedImport], moduleData : ScopedModuleData
-    ) : (List[UntypedImportWE], Set[String]) =
-
-        def closedImportName(c: CleanUntypedImport): UntypedImportWE = c match
-            case (i : CleanUntypedImport) if !moduleData.contains(i.importedModName) => 
-                WE.Err(ModuleNotDeclared)
-
-            case Import.Untyped(mname) =>
-                WE.Node(Import.Untyped(stringToWE(mname)))
-
-        val validatedImports = imports.map(closedImportName(_))
-        val clssInScope   =
-            validatedImports
-            .flatMap{
-                case WE.Node(Import.Untyped(WE.Node(mname)))  => Some(mname)
-                case WE.Err(e) => None
-                case _         => None
-            }
-            .map(moduleName => moduleData.lookupModuleCName(moduleName))
-            .toSet
-
-        (validatedImports, clssInScope)
-
     // Class helpers
 
     def closedClass(cls : CleanClass, clssInScope: Set[String]) : ClassWE = WE.Node(cls match
-        case Class(cname, fields, methods) => 
+        case Class(cname, fields, methods, shape) => 
             Class(
                 WE.Node(cname),
                 fields.map(WE.Node(_)),
-                methods.map(closedMethod(_, clssInScope.incl(cname)))
+                methods.map(closedMethod(_, clssInScope.incl(cname))),
+                optionalShapeToWE(shape)
             )
         )
     

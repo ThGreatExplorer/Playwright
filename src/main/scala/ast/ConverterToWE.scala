@@ -34,17 +34,10 @@ object ConverterToWE:
     // Module helpers
 
     def moduleToWE(m : CleanModule): ModuleWE = m match
-        case Module.Typed(mname, imports, clas, shape) =>
-            WE.Node(Module.Typed(
+        case Module(mname, imports, clas) =>
+            WE.Node(Module(
                 stringToWE(mname), 
                 imports.map(importToWE),
-                classToWE(clas),
-                shapeToWE(shape)
-            ))
-        case Module.Untyped(mname, imports, clas) =>
-            WE.Node(Module.Untyped(
-                stringToWE(mname), 
-                imports.map(untypedImportToWE),
                 classToWE(clas)
             ))
     
@@ -73,6 +66,10 @@ object ConverterToWE:
             )
     )
 
+    def optionalShapeToWE(s : Option[CleanShapeType]) : Option[ShapeTypeWE] = s match
+        case Some(value) => Some(shapeToWE(value))
+        case None => None
+
     def ftypeToWE(f : CleanFieldType) : FieldTypeWE = WE.Node(f match
         case FieldType[Clean](fname, ftype) =>
             FieldType[WE](
@@ -93,11 +90,14 @@ object ConverterToWE:
     // Class helpers 
 
     def classToWE(c: CleanClass): ClassWE = WE.Node(c match
-        case Class[Clean](cname, fields, methods) => 
+        case Class[Clean](cname, fields, methods, shape) => 
+            val shapeWE = optionalShapeToWE(shape)
+            
             Class[WE](
                 stringToWE(cname),
                 fields.map(stringToWE),
-                methods.map(methodToWE)
+                methods.map(methodToWE),
+                shapeWE
             )
         )
     

@@ -12,14 +12,21 @@ object SystemToClassLinker:
   def modulesToModulesInScope(modules: List[CleanModule]): Map[String, Set[CleanModule]] = 
     val (modulesInScopeMap, _) = modules.foldLeft((Map.empty[String, Set[CleanModule]], Set.empty[CleanModule])) {
       case ((accMap, accSet), module) => 
-        (accMap.updated(module.moduleName, accSet), accSet + module)
+        module match
+          case Module(mname, imports, clas) =>
+            (accMap.updated(mname, accSet), accSet + module)
     }
     modulesInScopeMap
 
   def trimUnreachableStates(s: CleanSystem, reachableModules: Set[String]): CleanSystem =
     s match
       case System(modules, imports, progb, modData) =>
-        val modulesReachable = modules.filter(module => reachableModules.contains(module.moduleName))
+        val modulesReachable = modules.filter(
+          module => 
+            module match
+              case Module(mname, imports, clas) => 
+                reachableModules.contains(mname)
+        )
         System(
           modulesReachable,
           imports,
@@ -31,7 +38,7 @@ object SystemToClassLinker:
     val modulesInScopeMap = modulesToModulesInScope(mods)
     val topLevelModName = "#topLevelModName@"
     // all modules are in scope for the top level module to import
-    ModuleDependency(topLevelModName, Class[Clean](topLevelModName, List.empty, List.empty), modulesInScopeMap.updated(topLevelModName, mods.toSet), imports)
+    ModuleDependency(topLevelModName, Class[Clean](topLevelModName, List.empty, List.empty, None), modulesInScopeMap.updated(topLevelModName, mods.toSet), imports)
 
   /**
     * Renames all occurrences of classes in a given Clean System into 

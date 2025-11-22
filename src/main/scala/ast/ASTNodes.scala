@@ -48,38 +48,16 @@ final case class System[Node[_]](
 type CleanSystem = Clean[System[Clean]]
 type SystemWE    = WE[System[WE]]
 
-//  MixedModule      ::= (module  ModuleName Import^* Class)
-//                   |   (tmodule ModuleName MixedImport^* Class Shape) 
-enum Module[Node[_]]:
-    case Untyped(
-        mname: Node[Name], 
-        imports: List[Node[Import.Untyped[Node]]], 
-        clas: Node[Class[Node]])
-    case Typed(
-        mname: Node[Name], 
-        imports: List[Node[Import[Node]]], 
-        clas: Node[Class[Node]], 
-        shape: Node[Type.Shape[Node]]
-    )
-// TODO: Once we get annotation lookup table done, get rid of distinction for typed and untyped here
-// Will make code much more readable without losing any value  
+//  Module      ::= (module  ModuleName Import^* Class)
+// Note that typed modules (defined as modules with class with shape) can have mixed imports
+// but untyped modules (modules with class without shape) can only have untyped imports
+final case class Module[Node[_]](
+    mname: Node[Name],
+    imports: List[Node[Import[Node]]], 
+    clas: Node[Class[Node]]
+)
 
-extension (module: Clean[Module[Clean]])
-    def moduleName: String = module match
-        case Module.Typed(mname, _, _, _) => mname
-        case Module.Untyped(mname, _, _) => mname
-    
-    def imports: List[CleanImport] = module match
-        case Module.Untyped(mname, imports, clas) =>  imports
-        case Module.Typed(mname, imports, clas, shape) => imports
-
-    def clas: CleanClass = module match
-        case Module.Untyped[Clean](mname, imports, clas) => clas
-        case Module.Typed[Clean](mname, imports, clas, shape) => clas
-    
-    
 type CleanModule = Clean[Module[Clean]]
-type CleanTypedModule = Clean[Module.Typed[Clean]]
 type ModuleWE    = WE[Module[WE]]
 
 //  MixedImport ::= (import ModuleName)
@@ -112,11 +90,12 @@ final case class Program[Node[_]](
 type CleanProgram = Clean[Program[Clean]]
 type ProgramWE    = WE[Program[WE]]
 
-// Class       ::= (class ClassName (FieldName^*) Method^*)
+// Class       ::= (class ClassName (FieldName^*) Method^* Shape | None)
 final case class Class[Node[_]](
     cname:   Node[Name], 
     fields:  List[Node[Name]], 
-    methods: List[Node[Method[Node]]]
+    methods: List[Node[Method[Node]]],
+    shape: Option[Node[Type.Shape[Node]]]
 )
 
 type CleanClass = Clean[Class[Clean]]
