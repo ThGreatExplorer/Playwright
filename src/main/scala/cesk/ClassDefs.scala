@@ -3,7 +3,7 @@ package cesk
 import ast._
 import util.UnreachablePatternMatch
 import scala.collection.mutable.Map as MutableMap
-import util.{getMNames, getCNames}
+import util.{getMNames, getCNames, getMTypeNames}
 
 final case class MethodDef(
     params: List[Name],
@@ -36,6 +36,7 @@ trait ClassDefs:
     def getClassDef(className: String): ClassDef
     def getMethodDef(className: String, methodName: String): Either[RuntimeError, MethodDef]
     def getInstanceOfClass(className : String, argVals : List[CESKValue]) : Either[RuntimeError, ObjectVal]
+    def methodsOfClassConformToTypes(className : String, mtypes : List[CleanMethodType]) : Either[RuntimeError, Unit]
     override def toString(): String
 
 object ClassDefs:
@@ -59,14 +60,31 @@ object ClassDefs:
 
         def getMethodDef(className: String, methodName: String): Either[RuntimeError, MethodDef] =
             getClassDef(className) match
-                case ClassDef(fields, methods, ) => 
+                case ClassDef(fields, methods, _) => 
                     methods.get(methodName).toRight(RuntimeError.MethodNotFound)
         
         def getInstanceOfClass(className : String, argVals : List[CESKValue]) : Either[RuntimeError, ObjectVal] =
             getClassDef(className) match
-                case ClassDef(fields, methods, ) =>
+                case ClassDef(fields, methods, _) =>
                     if fields.lengthIs != argVals.length  then
-                        Left[RuntimeError, ObjectVal](RuntimeError.NewInstWrongFieldCount)
+                        Left(RuntimeError.NewInstWrongFieldCount)
                     else
                         val fieldMap = MutableMap.from(fields.zip(argVals)) 
-                        Right[RuntimeError, ObjectVal](ObjectVal(className, fieldMap)) 
+                        Right(ObjectVal(className, fieldMap)) 
+
+        def methodsOfClassConformToTypes(className : String, mtypes : List[CleanMethodType]) : Either[RuntimeError, Unit] =
+            getClassDef(className) match
+                case ClassDef(_, methods, _) if mtypes.getMTypeNames.toSet != methods.keySet =>
+                    Left(RuntimeError.MethodNamesDontConformToProxyShape)
+
+                case ClassDef(_, methods, _) =>
+                    val conforms = 
+                        mtypes.forall{
+                            case MethodType(mname, paramTypes, _) => 
+                                methods(mname).params.lengthIs == paramTypes.length
+                        }
+                    
+                    if conforms then 
+                        Right(())
+                    else 
+                        Left(RuntimeError.MethodParamsDontConformToProxyShape)
