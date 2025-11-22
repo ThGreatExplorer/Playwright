@@ -1,0 +1,1 @@
+((module NeverSynthesized (class NS ())) (module Synthesized (class S ())) (timport Synthesized (() ())) 1.0)

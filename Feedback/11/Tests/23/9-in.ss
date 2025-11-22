@@ -1,0 +1,1 @@
+((tmodule modOne (class MTClass ()) (() ())) (import modOne) (def x 1.0) (def y 1.0) (if0 (x == y) (block (def x (new MTClass ())) (x = 3.0)) (block (def y (new MTClass ())) (y = 3.0))) x)

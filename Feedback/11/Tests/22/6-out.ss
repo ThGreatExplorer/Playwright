@@ -1,0 +1,1 @@
+["Bank", "Bank.into.typedModule", "typedModule"]

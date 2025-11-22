@@ -1,0 +1,1 @@
+((module UntypedA (class A ())) (module UntypedB (import UntypedA) (class B () (method getObject () (new A ())))) (timport UntypedB (() ((getObject () Number)))) (def b (new B ())) (b --> getObject ()))

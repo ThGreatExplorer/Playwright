@@ -1,0 +1,1 @@
+((module mOne (class c ())) (module mTwo (class c (x))) (tmodule hello (timport mOne (() ())) (timport mTwo (((x Number)) ())) (class Point ()) (() ())) (timport mOne (() ())) (import hello) (timport mTwo (((x Number)) ())) (def x 1.0) x)

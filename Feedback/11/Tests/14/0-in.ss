@@ -1,0 +1,1 @@
+((module UntypedApple (class Apple (redness))) (timport UntypedApple (((redness Number)) ())) (def one 1.0) (def apple (new Apple (one))) 1.0)

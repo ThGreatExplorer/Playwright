@@ -1,0 +1,1 @@
+((tmodule mOne (class goodClass (fieldOne)) (((fieldOne Number)) ())) (tmodule mTwo (import mOne) (class goodClass (fieldOne)) (((fieldOne Number)) ())) (import mOne) (import mTwo) (def x 1.0) (x = 2.0) (new goodClass (x)))
