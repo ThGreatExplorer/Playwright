@@ -35,7 +35,7 @@ object ClassDef:
 trait ClassDefs:
     def getClassDef(className: String): ClassDef
     def getMethodDef(className: String, methodName: String): Either[RuntimeError, MethodDef]
-    def getInstanceOfClass(className : String, argVals : List[CESKValue]) : Either[RuntimeError, ObjectVal]
+    def getInstanceOfClass(className : String, argVals : List[CESKValue]) : Either[RuntimeError, CESKValue]
     def methodsOfClassConformToTypes(className : String, mtypes : List[CleanMethodType]) : Either[RuntimeError, Unit]
     override def toString(): String
 
@@ -63,14 +63,20 @@ object ClassDefs:
                 case ClassDef(fields, methods, _) => 
                     methods.get(methodName).toRight(RuntimeError.MethodNotFound)
         
-        def getInstanceOfClass(className : String, argVals : List[CESKValue]) : Either[RuntimeError, ObjectVal] =
+        def getInstanceOfClass(className : String, argVals : List[CESKValue]) : Either[RuntimeError, CESKValue] =
             getClassDef(className) match
-                case ClassDef(fields, methods, _) =>
-                    if fields.lengthIs != argVals.length  then
-                        Left(RuntimeError.NewInstWrongFieldCount)
-                    else
-                        val fieldMap = MutableMap.from(fields.zip(argVals)) 
-                        Right(ObjectVal(className, fieldMap)) 
+                case ClassDef(fields, _, _) if fields.lengthIs != argVals.length =>
+                    Left(RuntimeError.NewInstWrongFieldCount)
+
+                case ClassDef(fields, methods, None) => 
+                    val fieldMap = MutableMap.from(fields.zip(argVals)) 
+                    val obj      = ObjectVal(className, fieldMap)
+                    Right(ObjectVal(className, fieldMap)) 
+
+                case ClassDef(fields, methods, Some(shape)) =>
+                    val fieldMap = MutableMap.from(fields.zip(argVals)) 
+                    val obj      = ObjectVal(className, fieldMap)
+                    ProxyVal.conformToType(obj, shape, this)
 
         def methodsOfClassConformToTypes(className : String, mtypes : List[CleanMethodType]) : Either[RuntimeError, Unit] =
             getClassDef(className) match

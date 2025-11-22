@@ -245,7 +245,7 @@ final class CESKMachine(prog: CleanProgram):
           case _: NumVal => 
             constructErrorState(RuntimeError.ValNotAnObject)
 
-      // Expressions 
+      // Core Expressions 
       case (Control.Expr(Expr.Num(num)), _) =>
         CESKState(
           control = Control.Value(num),
@@ -262,79 +262,57 @@ final class CESKMachine(prog: CleanProgram):
           kont    = state.kont
         )
       case (Control.Expr(Expr.BinOpExpr(lhs, op, rhs)), _) =>
-        (state.lookupVar(lhs), state.lookupVar(rhs)) match 
-          case (val1 : NumVal, val2 : NumVal) => {
-            op match
-              case BinOp.Add =>
-                CESKState(
-                  control = Control.Value(val1 + val2),
-                  env     = state.env,
-                  store   = state.store,
-                  kont    = state.kont
-                )    
-              case BinOp.Div =>
-                if val2.isZero() then
-                  CESKState.constructErrorState(
-                    RuntimeError.DivisionByZero(f"Dividing by Zero: $val1 / $val2")
-                  )
-                else
-                  CESKState(
-                    control = Control.Value(val1 / val2),
-                    env     = state.env,
-                    store   = state.store,
-                    kont    = state.kont
-                  ) 
-              case BinOp.Equals =>
-                val result = if val1 =~= val2 then TRUTHY else FALSY
-                CESKState(
-                  control = Control.Value(result),
-                  env     = state.env,
-                  store   = state.store,
-                  kont    = state.kont
-                )
-          }
-          case (val1 : ObjectVal, val2 : ObjectVal) => {
-            op match
-              case BinOp.Equals => 
-                val result = if val1.equals(val2) then TRUTHY else FALSY
-                CESKState(
-                  control = Control.Value(result),
-                  env     = state.env,
-                  store   = state.store,
-                  kont    = state.kont 
-                )
-              case _ => CESKState.constructErrorState(
-                  RuntimeError.InvalidVarType("Binop attempted on a non-numeric value.")
-                )
-          }
-          case (val1 : ObjectVal, val2 : NumVal) => {
-            op match
-              case BinOp.Equals =>
-                CESKState(
-                  control = Control.Value(FALSY),
-                  env     = state.env,
-                  store   = state.store,
-                  kont    = state.kont 
-                )
-              case _ => CESKState.constructErrorState(
-                  RuntimeError.InvalidVarType("Binop attempted on a non-numeric value.")
-                )
-          }
-          case (val1 : NumVal, val2 : ObjectVal) => {
-            op match
-              case BinOp.Equals =>
-                CESKState(
-                  control = Control.Value(FALSY),
-                  env     = state.env,
-                  store   = state.store,
-                  kont    = state.kont 
-                )
-              case _ => CESKState.constructErrorState(
-                  RuntimeError.InvalidVarType("Binop attempted on a non-numeric value.")
-                )
-          }
+        (state.lookupVar(lhs), op, state.lookupVar(rhs)) match 
+          // Addition
+          case (val1 : NumVal, BinOp.Add, val2 : NumVal) => 
+            CESKState(
+              control = Control.Value(val1 + val2),
+              env     = state.env,
+              store   = state.store,
+              kont    = state.kont
+            )
+          case (_, BinOp.Add, _) =>
+            CESKState.constructErrorState(
+              RuntimeError.InvalidVarType("Binop attempted on a non-numeric value.")
+            )
 
-      // Object Expressions
+          // Division
+          case (val1 : NumVal, BinOp.Div, val2 : NumVal) => 
+            if val2.isZero() then
+              CESKState.constructErrorState(
+                RuntimeError.DivisionByZero(f"Dividing by Zero: $val1 / $val2")
+              )
+            else
+              CESKState(
+                control = Control.Value(val1 / val2),
+                env     = state.env,
+                store   = state.store,
+                kont    = state.kont
+              )
+          case (_, BinOp.Div, _) =>
+            CESKState.constructErrorState(
+              RuntimeError.InvalidVarType("Binop attempted on a non-numeric value.")
+            )
+
+          // Equals
+          case (val1 : NumVal, BinOp.Equals, val2 : NumVal) =>
+            val result = if val1 =~= val2 then TRUTHY else FALSY
+            CESKState(
+              control = Control.Value(result),
+              env     = state.env,
+              store   = state.store,
+              kont    = state.kont
+            )
+          case (val1, BinOp.Equals, val2) =>
+            val result = if val1.equals(val2) then TRUTHY else FALSY
+            CESKState(
+              control = Control.Value(result),
+              env     = state.env,
+              store   = state.store,
+              kont    = state.kont 
+            )
+
+      // Object Creation and Inspection
       case (Control.Expr(Expr.NewInstance(cname, args)), _) =>
         val fieldVals = args.map(state.lookupVar(_))
         classDefs.getInstanceOfClass(cname, fieldVals) match
@@ -346,9 +324,25 @@ final class CESKMachine(prog: CleanProgram):
               env     = state.env,
               store   = state.store,
               kont    = state.kont
-            )
+            ) 
       case (Control.Expr(Expr.IsInstanceOf(x, cname)), _) =>
         state.lookupVar(x) match
+          case ObjectVal(lookupCname, _) => 
+            val result = if lookupCname == cname then TRUTHY else FALSY
+            CESKState(
+              control = Control.Value(result),
+              env     = state.env,
+              store   = state.store,
+              kont    = state.kont 
+            )
+          case ProxyVal(ObjectVal(lookupCname, _), _) => 
+            val result = if lookupCname == cname then TRUTHY else FALSY
+            CESKState(
+              control = Control.Value(result),
+              env     = state.env,
+              store   = state.store,
+              kont    = state.kont 
+            )
           case _: NumVal => 
             CESKState(
               control = Control.Value (FALSY),
@@ -356,15 +350,8 @@ final class CESKMachine(prog: CleanProgram):
               store   = state.store,
               kont    = state.kont 
             )
-          case ObjectVal(lookupCname, fieldVals) => 
-            CESKState(
-              control = Control.Value(if lookupCname == cname then TRUTHY else FALSY),
-              env     = state.env,
-              store   = state.store,
-              kont    = state.kont 
-            )
-
-      // Expr: Get Field
+          
+      // Field Retrieval
       case (Control.Expr(Expr.GetField(x, field)), _) =>
         state.lookupVar(x) match
           case _: NumVal => 
@@ -380,8 +367,19 @@ final class CESKMachine(prog: CleanProgram):
                   store   = state.store,
                   kont    = state.kont  
                 )
+          case prx : ProxyVal => 
+            prx.lookupConformingField(field, classDefs) match
+              case Left(err) =>
+                constructErrorState(err)
+              case Right(conformedVal) => 
+                CESKState(
+                  control = Control.Value(conformedVal),
+                  env     = state.env,
+                  store   = state.store,
+                  kont    = state.kont
+                )
 
-      // Expr: Method call
+      // Method call
       case (Control.Expr(Expr.CallMethod(instance, mname, args)), _) =>
         state.lookupVar(instance) match
           case _: NumVal => 
@@ -409,7 +407,7 @@ final class CESKMachine(prog: CleanProgram):
                   env     = newEnv,
                   kont    = state.kont.push(methodClosure)
                 )            
-                
+
       // case _ =>
       //   throw new UnreachableStateException(
       //     "Unknown state reached in CESK machine transition function:" + state

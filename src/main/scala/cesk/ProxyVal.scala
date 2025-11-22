@@ -8,8 +8,19 @@ final case class ProxyVal(
 	typ: CleanShapeType
 ):
 
-    def lookupField(field: String): Either[RuntimeError, CESKValue] =
-        this.obj.lookupField(field)
+    def conformToFieldType(field: String, v : CESKValue, classDefs: ClassDefs): Either[RuntimeError, CESKValue] =
+        for 
+            ftype        <- getFieldType(field)
+            conformedVal <- ProxyVal.conformToType(v, ftype, classDefs)
+        yield
+            conformedVal
+
+    def lookupConformingField(field: String, classDefs: ClassDefs): Either[RuntimeError, CESKValue] =
+        for
+            storedVal <- this.obj.lookupField(field)
+            conformed <- conformToFieldType(field, storedVal, classDefs)
+        yield
+            conformed
 
     def updateField(field: String, v: CESKValue): Unit =
         this.obj.updateField(field, v)
@@ -23,13 +34,14 @@ final case class ProxyVal(
             case Some(FieldType(_, fieldType)) => Right(fieldType) 
             case None => Left(RuntimeError.FieldNotFoundInProxy)
         
-    def conformToFieldType(field: String, v : CESKValue, classDefs: ClassDefs): Either[RuntimeError, CESKValue] =
-        for 
-            ftype        <- getFieldType(field)
-            conformedVal <- conformToType(v, ftype, classDefs)
-        yield
-            conformedVal
+    override def equals(that: Any): Boolean = that match
+        case ProxyVal(thatObj, thatTyp) => 
+            this.obj.equals(thatObj)
+            &&
+            this.typ == thatTyp
+        case _ => false
 
+object ProxyVal:
     def conformToType(v : CESKValue, expTyp : CleanType, classDefs: ClassDefs) : Either[RuntimeError, CESKValue] =
         (v, expTyp) match
             case (num : NumVal, Type.Number) => 
