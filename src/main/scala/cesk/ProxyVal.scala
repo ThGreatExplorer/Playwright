@@ -74,7 +74,7 @@ final case class ProxyVal(
 object ProxyVal:
     def conformToType(v : CESKValue, expTyp : CleanType, classDefs: ClassDefs) : Either[RuntimeError, CESKValue] =
         (v, expTyp) match
-            case (num : NumVal, Type.Number) => 
+            case (num : NumVal, Type.Number()) => 
                 Right(num)
 
             case (ProxyVal(obj, sh), expShape : CleanShapeType) =>
