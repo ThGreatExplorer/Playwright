@@ -77,9 +77,9 @@ object ProxyVal:
             case (num : NumVal, Type.Number()) => 
                 Right(num)
 
-            case (ProxyVal(obj, sh), expShape : CleanShapeType) =>
+            case (prx @ ProxyVal(obj, sh), expShape : CleanShapeType) =>
                 if sh == expShape then
-                    Right(v)
+                    Right(prx)
                 else 
                     Left(RuntimeError.ProxyValDoesntConformToProxyShape)
 

@@ -9,6 +9,40 @@ import main.AssignmentRunner._
 import main._
 
 class RunnerTests extends FunSuite {
+  
+  val casesA12 = List(
+    ("""
+    ((module
+      Point
+      (class Point (x y) (method delta (x) (def y (this --> y)) (x = 1.0) this)))
+    (timport Point (((x Number) (y Number)) ((delta (Number) Number))))
+    (timport Point (((x Number) (y Number)) ((delta (Number) Number))))
+    (def x 1.0)
+    (def point (new Point (x x)))
+    (point --> x = x)
+    (x = (point --> delta (x)))
+    x)
+    """,
+    Result.RuntimeError,
+    "\"run-time error\""
+    ),
+    (
+      """
+      ((module
+        Point
+        (class Point (x y) (method delta (x) (def y (this --> y)) (x = 1.0) (x + y))))
+      (timport Point (((x Number) (y Number)) ((delta (Number) Number))))
+      (timport Point (((x Number) (y Number)) ((delta (Number) Number))))
+      (def x 1.0)
+      (def point (new Point (x x)))
+      (point --> x = x)
+      (x = (point --> delta (x)))
+      x)
+      """,
+      Result.SuccNum(2.0),
+      "2.0"
+    )
+  )
 
   val casesA11 = List(
     (
@@ -670,6 +704,7 @@ class RunnerTests extends FunSuite {
   ))
 
   val runnerTestsByAssignment = List(
+    (12, mixedSound(_), casesA12),
     (11, mixedLinking(_), casesA11),
     (10, mixedSystem(_), casesA10),
     (9, typedSystem(_), casesA9),

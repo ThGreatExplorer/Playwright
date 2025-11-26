@@ -281,6 +281,67 @@ class CESKTests extends FunSuite {
     assertEquals(result, 3.0)
   }
 
+  // Proxy Test -- Test Field Access with Typed Classes
+  test("Test Field Access with Typed Classes") {
+    val pointClass = Class[Clean](
+      cname = "Point",
+      fields = List("x", "y"),
+      methods = List(),
+      shape = Some(Type.Shape[Clean](
+        List(
+          FieldType("x", Type.Number()),
+          FieldType("y", Type.Number()),
+        ),
+        List()
+      ))
+    )
+    val decls = List(
+      Decl[Clean]("px", Expr.Num(3.0)),
+      Decl[Clean]("py", Expr.Num(4.0)),
+      Decl[Clean]("p", Expr.NewInstance("Point", List("px", "py")))
+    )
+    val stmts = List(
+      Stmt.Assign[Clean]("px", Expr.Num(300.0))
+    )
+    val expr = Expr.GetField[Clean]("p", "x")
+    val prog = fullProgram(
+        List(pointClass), decls, stmts, expr
+      )
+    val machine = CESKMachine(prog)
+    val result = machine.run
+    assertEquals(result, 3.0)
+  }
+
+  test("Test Field Access with Typed Classes Violation") {
+    val pointClass = Class[Clean](
+      cname = "Point",
+      fields = List("x", "y"),
+      methods = List(),
+      shape = Some(Type.Shape[Clean](
+        List(
+          FieldType("x", Type.Number()),
+          FieldType("y", Type.Number()),
+        ),
+        List()
+      ))
+    )
+    val decls = List(
+      Decl[Clean]("px", Expr.Num(3.0)),
+      Decl[Clean]("py", Expr.Num(4.0)),
+      Decl[Clean]("p", Expr.NewInstance("Point", List("px", "py")))
+    )
+    val stmts = List(
+      Stmt.Assign[Clean]("px", Expr.Num(300.0))
+    )
+    val expr = Expr.GetField[Clean]("p", "z")
+    val prog = fullProgram(
+        List(pointClass), decls, stmts, expr
+      )
+    val machine = CESKMachine(prog)
+    val result = machine.run
+    assertEquals(result, RuntimeError.FieldNotFound)
+  }
+
   test("Object creation with wrong number of Fields") {
     val pointClass = Class[Clean](
       cname = "Point",
@@ -349,6 +410,109 @@ class CESKTests extends FunSuite {
     assertEquals(result, 15.0)
   }
 
+  test("Object method call for instance of Typed Class") {
+    val addMethod = Method[Clean](
+      mname = "add",
+      params = List("val"),
+      progb = ProgBlock(
+        decls = List(
+          Decl[Clean]("tmpBase", Expr.GetField[Clean]("this", "x"))
+        ),
+        stmts = List(),
+        expr = Expr.BinOpExpr("tmpBase", BinOp.Add, "val"))
+    )
+    val numberClass = Class[Clean](
+      cname = "Number",
+      fields = List("x"),
+      methods = List(addMethod),
+      shape = Some(
+        Type.Shape(
+          List(FieldType("x", Type.Number())),
+          List(MethodType("add", List(Type.Number()), Type.Number()))
+        ),
+      )
+    )
+    val decls = List(
+      Decl[Clean]("base", Expr.Num(10.0)),
+      Decl[Clean]("num", Expr.NewInstance("Number", List("base"))),
+      Decl[Clean]("increment", Expr.Num(5.0))
+    )
+    val expr = Expr.CallMethod[Clean]("num", "add", List("increment"))
+    val prog = programWithClasses(List(numberClass), decls, expr)
+    val machine = CESKMachine(prog)
+    val result = machine.run
+    assertEquals(result, 15.0)
+  }
+
+  test("Object method call for instance of Typed Class Violation") {
+    val addMethod = Method[Clean](
+      mname = "add",
+      params = List("val"),
+      progb = ProgBlock(
+        decls = List(
+          Decl[Clean]("tmpBase", Expr.GetField[Clean]("this", "x"))
+        ),
+        stmts = List(),
+        expr = Expr.BinOpExpr("tmpBase", BinOp.Add, "val"))
+    )
+    val numberClass = Class[Clean](
+      cname = "Number",
+      fields = List("x"),
+      methods = List(addMethod),
+      shape = Some(
+        Type.Shape(
+          List(FieldType("x", Type.Number())),
+          List(MethodType("add", List(Type.Number()), Type.Number()))
+        ),
+      )
+    )
+    val decls = List(
+      Decl[Clean]("base", Expr.Num(10.0)),
+      Decl[Clean]("num", Expr.NewInstance("Number", List("base"))),
+      Decl[Clean]("increment", Expr.Num(5.0))
+    )
+    val expr = Expr.CallMethod[Clean]("num", "add", List("num"))
+    val prog = programWithClasses(List(numberClass), decls, expr)
+    val machine = CESKMachine(prog)
+    val result = machine.run
+    assertEquals(result, RuntimeError.ValDoesntConformToExpType)
+  }
+
+  test("Object method call for instance of Typed Class Violation With Wrong Num Params") {
+    val addMethod = Method[Clean](
+      mname = "add",
+      params = List("val"),
+      progb = ProgBlock(
+        decls = List(
+          Decl[Clean]("tmpBase", Expr.GetField[Clean]("this", "x"))
+        ),
+        stmts = List(),
+        expr = Expr.BinOpExpr("tmpBase", BinOp.Add, "val"))
+    )
+    val numberClass = Class[Clean](
+      cname = "Number",
+      fields = List("x"),
+      methods = List(addMethod),
+      shape = Some(
+        Type.Shape(
+          List(FieldType("x", Type.Number())),
+          List(MethodType("add", List(Type.Number()), Type.Number()))
+        ),
+      )
+    )
+    val decls = List(
+      Decl[Clean]("base", Expr.Num(10.0)),
+      Decl[Clean]("num", Expr.NewInstance("Number", List("base"))),
+      Decl[Clean]("increment", Expr.Num(5.0))
+    )
+    val expr = Expr.CallMethod[Clean]("num", "add", List("increment", "base"))
+    val prog = programWithClasses(List(numberClass), decls, expr)
+    val machine = CESKMachine(prog)
+    val result = machine.run
+    assertEquals(result, RuntimeError.MethodCallDoesntMatchProxyMethodType)
+  }
+
+
   test("Object method call with wrong number of parameters") {
     val addMethod = Method[Clean](
       mname = "add",
@@ -398,6 +562,30 @@ class CESKTests extends FunSuite {
     assertEquals(result, 0.0)
   }
 
+  // test with Typed Class
+  test("IsInstanceOf returns True for Typed Class") {
+    val pointClass = Class[Clean](
+      cname = "Point",
+      fields = List("x"),
+      methods = List(),
+      shape = Some(Type.Shape(
+        List(
+          FieldType("x", Type.Number())
+        ),
+        List()
+      ))
+    )
+    val decls = List(
+      Decl[Clean]("val", Expr.Num(1.0)),
+      Decl[Clean]("p", Expr.NewInstance("Point", List("val")))
+    )
+    val expr = Expr.IsInstanceOf[Clean]("p", "Point")
+    val prog = programWithClasses(List(pointClass), decls, expr)
+    val machine = CESKMachine(prog)
+    val result = machine.run
+    assertEquals(result, 0.0)
+  }
+
   // Test Case 11: IsInstanceOf check - negative case
   test("IsInstanceOf returns false for incorrect type") {
     val pointClass = Class[Clean](
@@ -418,6 +606,32 @@ class CESKTests extends FunSuite {
     val result = machine.run
     assertEquals(result, 2.0)
   }
+
+  test("IsInstanceOf returns false for incorrect type") {
+    val pointClass = Class[Clean](
+      cname = "Point",
+      fields = List("x"),
+      methods = List(),
+      shape = Some(Type.Shape(
+        List(
+          FieldType("x", Type.Number())
+        ),
+        List()
+      ))
+    )
+    val decls = List(
+      Decl[Clean]("val", Expr.Num(1.0)),
+      Decl[Clean]("p", Expr.NewInstance("Point", List("val"))),
+      Decl[Clean]("lhs", Expr.IsInstanceOf[Clean]("p", "Circle")),
+      Decl[Clean]("rhs", Expr.IsInstanceOf[Clean]("val", "Circle")),
+    )
+    val expr = Expr.BinOpExpr[Clean]("lhs", BinOp.Add, "rhs")
+    val prog = programWithClasses(List(pointClass), decls, expr)
+    val machine = CESKMachine(prog)
+    val result = machine.run
+    assertEquals(result, 2.0)
+  }
+
 
   // Test Case 12: Assignment statement
   test("Variable assignment updates value") {
@@ -450,6 +664,59 @@ class CESKTests extends FunSuite {
     val result = machine.run
     assertEquals(result, 99.0)
   }
+
+  test("Field assignment updates object field Typed Class") {
+    val pointClass = Class[Clean](
+      cname = "Point",
+      fields = List("x", "y"),
+      methods = List(),
+      shape = Some(Type.Shape(
+        List(
+          FieldType("x", Type.Number()),
+          FieldType("y", Type.Number())
+        ),
+        List()
+      ))
+    )
+    val decls = List(
+      Decl[Clean]("px", Expr.Num(1.0)),
+      Decl[Clean]("py", Expr.Num(2.0)),
+      Decl[Clean]("p", Expr.NewInstance("Point", List("px", "py")))
+    )
+    val stmts = List(Stmt.FieldAssign[Clean]("p", "x", Expr.Num(99.0)))
+    val expr = Expr.GetField[Clean]("p", "x")
+    val prog = Program[Clean](clss = List(pointClass), progb = ProgBlock( decls = decls, stmts = stmts, expr = expr))
+    val machine = CESKMachine(prog)
+    val result = machine.run
+    assertEquals(result, 99.0)
+  }
+  
+  test("Field assignment updates object field Typed Class Violation") {
+    val pointClass = Class[Clean](
+      cname = "Point",
+      fields = List("x", "y"),
+      methods = List(),
+      shape = Some(Type.Shape(
+        List(
+          FieldType("x", Type.Number()),
+          FieldType("y", Type.Number())
+        ),
+        List()
+      ))
+    )
+    val decls = List(
+      Decl[Clean]("px", Expr.Num(1.0)),
+      Decl[Clean]("py", Expr.Num(2.0)),
+      Decl[Clean]("p", Expr.NewInstance("Point", List("px", "py")))
+    )
+    val stmts = List(Stmt.FieldAssign[Clean]("p", "x", Expr.NewInstance("Point", List("px", "py"))))
+    val expr = Expr.GetField[Clean]("p", "x")
+    val prog = Program[Clean](clss = List(pointClass), progb = ProgBlock( decls = decls, stmts = stmts, expr = expr))
+    val machine = CESKMachine(prog)
+    val result = machine.run
+    assertEquals(result, RuntimeError.ValDoesntConformToExpType)
+  }
+  
   
   test("Field assignment tries updates object field that does not exist") {
     val pointClass = Class[Clean](
