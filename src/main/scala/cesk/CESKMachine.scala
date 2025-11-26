@@ -391,14 +391,9 @@ final class CESKMachine(prog: CleanProgram):
               case Left(err) => 
                 constructErrorState(err)
               case Right(MethodDef(paramNames, methodFrame)) => 
-                val valLookupMap = 
-                  paramNames.zip(paramVals).toMap.updated("this", obj)
-                val (newEnv, newStore) = valLookupMap.foldLeft((Env(), state.store)) { 
-                    case ((envAcc, storeAcc), (paramName, paramVal)) =>
-                      val (updStore, newLoc) = storeAcc.insertValAtNewLoc(paramVal)
-                      val updEnv = envAcc.updatedEnv(paramName, newLoc)
-                      (updEnv, updStore)
-                  }
+                val (newEnv, newStore) = createMethodEnvAndStore(
+                  paramNames, paramVals, obj, Env(), state.store
+                )
 
                 val methodClosure = (methodFrame, state.env)
                 CESKState(
@@ -407,8 +402,54 @@ final class CESKMachine(prog: CleanProgram):
                   env     = newEnv,
                   kont    = state.kont.push(methodClosure)
                 )            
+          case proxy @ ProxyVal(obj, typ) => 
+            val paramVals = args.map(state.lookupVar(_))
+            proxy.checkMethod(mname, paramVals, classDefs) match
+              case Left(err) => 
+                constructErrorState(err)
+              case Right((expRType, MethodDef(paramNames, methodFrame))) =>
+                val (newEnv, newStore) = createMethodEnvAndStore(
+                  paramNames, paramVals, obj, Env(), state.store
+                )
+
+                val methodClosure = (methodFrame, state.env)
+
+                CESKState(
+                  control = Control.Search,
+                  store   = newStore,
+                  env     = newEnv,
+                  kont    = state.kont.push(expRType).push(methodClosure)
+                )
+
+      // handling Return Type from a method Call
+      case (Control.Value(v), rType: RangeT) =>
+        ProxyVal.conformToType(v, rType, classDefs) match
+          case Left(err) => 
+            constructErrorState(err)
+          case Right(conformedVal) => 
+            CESKState(
+              Control.Value(conformedVal),
+              state.env,
+              state.store,
+              state.kont.pop
+            )
 
       // case _ =>
       //   throw new UnreachableStateException(
       //     "Unknown state reached in CESK machine transition function:" + state
       //   )
+
+  private def createMethodEnvAndStore(
+    paramNames: List[String], 
+    paramVals: List[CESKValue],
+    obj: CESKValue,
+    baseEnv: Env,
+    baseStore: Store
+  ): (Env, Store) =
+    val valLookupMap = paramNames.zip(paramVals).toMap.updated("this", obj)
+    valLookupMap.foldLeft((baseEnv, baseStore)) { 
+      case ((envAcc, storeAcc), (paramName, paramVal)) =>
+        val (updStore, newLoc) = storeAcc.insertValAtNewLoc(paramVal)
+        val updEnv = envAcc.updatedEnv(paramName, newLoc)
+        (updEnv, updStore)
+  }

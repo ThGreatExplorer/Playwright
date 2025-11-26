@@ -170,7 +170,7 @@ type RangeT = CleanType
 trait KontStack:
   override def toString(): String
   def length : Int
-  def push(clo : Closure) : KontStack
+  def push(clo : Closure | RangeT) : KontStack
   def pop : KontStack
   def updateTopProgFrame(newProgFrame : ProgFrame) : KontStack
   def isEmpty : Boolean 
@@ -190,7 +190,7 @@ object KontStack:
 
   private class StackifiedList(underlying : List[Closure | RangeT]) extends KontStack {
     override def toString(): String = underlying.toString()
-    def push(clo : Closure) : KontStack = new StackifiedList(clo :: underlying)
+    def push(clo : Closure | RangeT) : KontStack = new StackifiedList(clo :: underlying)
     def pop : KontStack = new StackifiedList(underlying.tail)
     def updateTopProgFrame(newProgFrame : ProgFrame) : KontStack = 
       underlying.head match

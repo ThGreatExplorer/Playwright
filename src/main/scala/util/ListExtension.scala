@@ -30,6 +30,17 @@ extension [A](list: List[A])
                 b :: bs
         }
 
+    // Traverse for Either
+    def traverse[E, B](f: A => Either[E, B]): Either[E, List[B]] =
+        list.foldRight(Right(Nil): Either[E, List[B]]) { (a, acc) =>
+            for
+                bs <- acc
+                b <- f(a)
+            yield 
+                b :: bs
+        }
+
+
 extension (names : List[String])
     /**
       * Heavily utlized in Class validity checking for confirming that lists of

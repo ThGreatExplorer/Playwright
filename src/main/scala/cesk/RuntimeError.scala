@@ -17,3 +17,5 @@ enum RuntimeError:
   case FieldValsDontConformToProxyShape
   case MethodNamesDontConformToProxyShape
   case MethodParamsDontConformToProxyShape
+  case MethodNotFoundInProxy
+  case MethodCallDoesntMatchProxyMethodType
