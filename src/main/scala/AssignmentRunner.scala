@@ -55,6 +55,34 @@ enum Result:
 object AssignmentRunner: 
 
   /**
+    * Result printer for Assignment 12 — Mixed: Sound
+    * 
+    * @param input SExpr read from stdin
+    */
+  def mixedSound(input: SExpr): Result =
+    val pipeRes = 
+      for 
+        parsedSys      <- resOrCleanRawSys(Result.ParseError,           parseMixedSys(input))
+        sysNoDupMods   <- resOrCleanRawSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
+        sysNoDupMFPs   <- resOrCleanRawSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
+        annotatedSys   <- annotateModuleData(sysNoDupMFPs)
+        sysGoodImps    <- resOrCleanSys(Result.BadImport,            checkImportsSys(annotatedSys))
+        validSys       <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysGoodImps))
+        typecheckedSys <- resOrCleanSys(Result.TypeError,            typecheckSystem(validSys))
+      yield
+        typecheckedSys
+    
+    pipeRes match 
+      case Left(errRes)    => errRes
+      case Right(validSys) => 
+        val synSys = synthesizeSystem(validSys)
+        val classProg = linkProgram(synSys)
+
+        CESKMachine(classProg).run match
+          case n: NumVal       => Result.SuccNum(n)
+          case e: RuntimeError => Result.RuntimeError
+          case _ => throw new Exception("Should never return Object or Proxy now that our cesk machine is sound again")
+  /**
     * Result printer for Assignment 11 — Mixed: Linking
     * 
     * @param input SExpr read from stdin
