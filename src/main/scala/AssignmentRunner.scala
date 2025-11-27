@@ -13,7 +13,7 @@ import static.VCheckUndefined.{closedProg, closedSystem}
 import static.Typechecker.{typecheckSystem}
 import linker.Synthesizer.{synthesizeSystem, synthesizeAndGetMNames}
 import linker.SystemToClassLinker.{linkProgram}
-import cesk.{CESKMachine, RuntimeError, ObjectVal}
+import cesk.{CESKMachine, RuntimeError, ObjectVal, ProxyVal}
 
 enum Result:
   case Count(n : Int)
@@ -54,6 +54,35 @@ enum Result:
 
 object AssignmentRunner: 
 
+  /**
+    * Result printer for Assignment 12 — Mixed: Sound
+    * 
+    * @param input SExpr read from stdin
+    */
+  def mixedSound(input: SExpr): Result =
+    val pipeRes = 
+      for 
+        parsedSys      <- resOrCleanRawSys(Result.ParseError,           parseMixedSys(input))
+        sysNoDupMods   <- resOrCleanRawSys(Result.DupModuleDefs,        moduleDupsSys(parsedSys))
+        sysNoDupMFPs   <- resOrCleanRawSys(Result.DupMethodFieldParams, mfpDupsSys(sysNoDupMods))
+        annotatedSys   <- annotateModuleData(sysNoDupMFPs)
+        sysGoodImps    <- resOrCleanSys(Result.BadImport,            checkImportsSys(annotatedSys))
+        validSys       <- resOrCleanSys(Result.UndefinedVarError,    closedSystem(sysGoodImps))
+        typecheckedSys <- resOrCleanSys(Result.TypeError,            typecheckSystem(validSys))
+      yield
+        typecheckedSys
+    
+    pipeRes match 
+      case Left(errRes)    => errRes
+      case Right(validSys) => 
+        val synSys = synthesizeSystem(validSys)
+        val classProg = linkProgram(synSys)
+
+        CESKMachine(classProg).run match
+          case n: NumVal       => Result.SuccNum(n)
+          case e: RuntimeError => Result.RuntimeError
+          case _ => 
+            throw new Exception("Should never return Object or Proxy now that our cesk machine is sound again")
   /**
     * Result printer for Assignment 11 — Mixed: Linking
     * 
@@ -108,6 +137,8 @@ object AssignmentRunner:
           // Our typechecker does not allow this, but after introducing mixed modules, it is 
           // possible to violate this constraint
           case o: ObjectVal    => Result.SuccObj 
+          case _: ProxyVal     =>
+            throw new Exception("Should never happen: CESK returned a ProxyVal")
 
   /**
     * Result printer for Assignment 9 — Static Types
@@ -138,6 +169,9 @@ object AssignmentRunner:
             throw new UnreachablePatternMatch(
               "Should never happen: typed system returns object"
             )   
+          case _: ProxyVal     =>
+            throw new Exception("Should never happen: CESK returned a ProxyVal")
+
           
   /**
     * Result printer for Assignment 8 — Modules
@@ -187,6 +221,8 @@ object AssignmentRunner:
         CESKMachine(validProg).run match
           case n: NumVal    => Result.SuccNum(n)
           case o: ObjectVal => Result.SuccObj
+          case _: ProxyVal     =>
+            throw new Exception("Should never happen: CESK returned a ProxyVal")
           case _            => Result.RuntimeError
 
   /**
@@ -229,6 +265,9 @@ object AssignmentRunner:
               case n : NumVal => Result.SuccNum(n)
               case o : ObjectVal => Result.SuccObj
               case e : RuntimeError => Result.RuntimeError
+              case _: ProxyVal     =>
+                throw new Exception("Should never happen: CESK returned a ProxyVal")
+
 
   /**
     * Result printer for Assignment 4 — Core: Validity

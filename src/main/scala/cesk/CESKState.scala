@@ -65,8 +65,9 @@ object CESKConst:
 
  *****************************************************************************/
 
-// Our CESK Machine understands two types of runtime values: numbers and objects
-type CESKValue = NumVal | ObjectVal
+// Our CESK Machine understands three types of runtime values: numbers, objects
+// and proxies (i.e. object + shape)
+type CESKValue = NumVal | ObjectVal | ProxyVal
 
 // Locations corresponding to Values in Store. We want to have a (practically)
 // infinite set of possible locations such that we can always produce a fresh
@@ -161,15 +162,19 @@ final case class ProgFrame(
   expr: CleanExpr | Unit
 )
 
+// Starting with assignment 12, our stack also contains range types to ensure
+// the value returned from a method call conforms to an expected type
+type RangeT = CleanType
+
 // Kont Register is a Stack of Closures with the following interface
 trait KontStack:
   override def toString(): String
   def length : Int
-  def push(clo : Closure) : KontStack
+  def push(clo : Closure | RangeT) : KontStack
   def pop : KontStack
   def updateTopProgFrame(newProgFrame : ProgFrame) : KontStack
   def isEmpty : Boolean 
-  def topProgFrame : ProgFrame
+  def top : ProgFrame | RangeT
   def topEnv : Env 
 
 object KontStack:
@@ -183,29 +188,45 @@ object KontStack:
       val initStack = List(progClosure) 
       new StackifiedList(initStack)
 
-  private class StackifiedList(underlying : List[Closure]) extends KontStack {
+  private class StackifiedList(underlying : List[Closure | RangeT]) extends KontStack {
     override def toString(): String = underlying.toString()
-    def push(clo : Closure) : KontStack = new StackifiedList(clo :: underlying)
+    def push(clo : Closure | RangeT) : KontStack = new StackifiedList(clo :: underlying)
     def pop : KontStack = new StackifiedList(underlying.tail)
     def updateTopProgFrame(newProgFrame : ProgFrame) : KontStack = 
-      val (_, oldEnv) = underlying.head
-      val newClosure = (newProgFrame, oldEnv)
-      new StackifiedList(newClosure :: underlying.tail)
+      underlying.head match
+        case clo : Closure => 
+          val (_, oldEnv) = clo
+          val newClosure = (newProgFrame, oldEnv)
+          new StackifiedList(newClosure :: underlying.tail)
+
+        case rT : RangeT => 
+          throw new UnreachablePatternMatch(
+            "Should never happen: attemped to update topProgFrame, but got range type"
+          )       
   
     def isEmpty : Boolean = underlying.isEmpty
     def length : Int = underlying.length
 
-    def topProgFrame : ProgFrame = 
+    def top : ProgFrame | RangeT = 
       underlying.headOption match
-        case Some((pf, _)) => pf
+        case Some(clo : Closure) => val (pf, _) = clo; pf 
+
+        case Some(rT : RangeT) => rT
+
         // Boostrapping transition() at Top Level return expression evaluation 
         case None => CESKConst.DUMMYFRAME 
 
-    def topEnv : Env =  
+    def topEnv : Env = 
       underlying.headOption match
-        case Some((_, env)) => env
+        case Some(clo : Closure) => val (_, env) = clo; env 
+
         case None => 
           throw new UnreachablePatternMatch(
             "Should never happen: attemped to get topEnv from empty KontStack"
-          )     
+          ) 
+
+        case Some(rT : RangeT) => 
+          throw new UnreachablePatternMatch(
+            "Should never happen: attemped to get topEnv, but got range type"
+          )   
   }

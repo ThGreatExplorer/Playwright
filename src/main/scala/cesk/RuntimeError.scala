@@ -9,3 +9,13 @@ enum RuntimeError:
   case FieldNotFound
   case MethodCallWrongArgCount
   case ValNotAnObject
+
+  case FieldNotFoundInProxy
+  case ValDoesntConformToExpType
+  case ProxyValDoesntConformToProxyShape
+  case FieldNamesDontConformToProxyShape
+  case FieldValsDontConformToProxyShape
+  case MethodNamesDontConformToProxyShape
+  case MethodParamsDontConformToProxyShape
+  case MethodNotFoundInProxy
+  case MethodCallDoesntMatchProxyMethodType

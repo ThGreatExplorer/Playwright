@@ -30,6 +30,17 @@ extension [A](list: List[A])
                 b :: bs
         }
 
+    // Traverse for Either
+    def traverseEither[E, B](f: A => Either[E, B]): Either[E, List[B]] =
+        list.foldRight(Right(Nil): Either[E, List[B]]) { (a, acc) =>
+            for
+                bs <- acc
+                b <- f(a)
+            yield 
+                b :: bs
+        }
+
+
 extension (names : List[String])
     /**
       * Heavily utlized in Class validity checking for confirming that lists of
@@ -85,21 +96,19 @@ extension (mtypes : List[MethodType[Clean]])
 
 extension (modules : List[Module[Clean]])
     def getMDNames : List[String] = modules.map{ 
-        case Module.Typed(mname, _, _, _) => mname 
-        case Module.Untyped(mname, _, _) => mname
+        case Module(mname, _, _) => mname
     }
 
 extension (modules : List[Module[Clean]])
     def getClasses : List[Class[Clean]] = modules.map{ 
-        case Module.Typed(_, _, clas, _) => clas 
-        case Module.Untyped(_, _, clas) => clas
+        case Module(_, _, clas) => clas
     }
     
 // Class utils
 
 extension (clss : List[Class[Clean]])
     def getCNames : List[String] = clss.map{ 
-        case Class(cname, _, _) => cname 
+        case Class(cname, _, _, _) => cname 
     }
 
 // Method utils

@@ -29,25 +29,24 @@ object SystemToClassRenamerAST:
   def renameModules(modules: List[CleanModule], topLevelModule: ModuleDependency): List[CleanModule] =
     modules.map(
       module =>
-        topLevelModule.findModuleInDAG(module.moduleName) match
-          case Some(topLevelModuleDep) => 
-            renameModule(module, topLevelModuleDep.generateRenameMap())
-          case None => 
-            throw new Exception(f"Should never happen: the top level module is constructed from a trimmed system module with only reachable modules, so the top level module should always be able to reach this module\nBase Module: ${topLevelModule.dependencies}\nSystem Module:${module.moduleName}")              
+        module match
+          case Module(mname, imports, clas) => 
+            topLevelModule.findModuleInDAG(mname) match
+              case Some(topLevelModuleDep) => 
+                renameModule(module, topLevelModuleDep.generateRenameMap())
+              case None => 
+                throw new Exception(f"Should never happen: the top level module is constructed from a trimmed system module with only reachable modules, so the top level module should always be able to reach this module\nBase Module: ${topLevelModule.dependencies}\nSystem Module:${mname}")              
     )
 
   def renameModule(m: CleanModule, renameMap: Map[String, String]): CleanModule =
     m match
-      case Module.Typed(mname, imports, clas, shape) =>
-        Module.Typed(mname, imports, renameClass(clas, renameMap), shape)
-
-      case Module.Untyped(mname, imports, clas) =>
-        Module.Untyped(mname, imports, renameClass(clas, renameMap))
+      case Module(mname, imports, clas) =>
+        Module(mname, imports, renameClass(clas, renameMap))
     
   def renameClass(c: CleanClass, renameMap: Map[String, String]): CleanClass =
     c match
-      case Class(cname, fields, methods) => 
-        Class(renameMap(cname), fields, methods.map(renameMethod(_, renameMap)))
+      case Class(cname, fields, methods, shape) => 
+        Class(renameMap(cname), fields, methods.map(renameMethod(_, renameMap)), shape)
 
   def renameMethod(m: CleanMethod, renameMap: Map[String, String]): CleanMethod =
     m match

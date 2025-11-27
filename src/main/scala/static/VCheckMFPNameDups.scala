@@ -19,18 +19,11 @@ object VCheckMFPNameDups:
             ))
 
     def moduleDupsMFP(m: CleanModule): ModuleWE = WE.Node(m match
-        case Module.Typed(mname, imports, clas, shape) =>
-            Module.Typed(
+        case Module(mname, imports, clas) =>
+            Module(
                 WE.Node(mname), 
                 imports.map(importToWE), 
-                classDupsMFP(clas),
-                shapeDupsMFP(shape)
-            )
-        case Module.Untyped(mname, imports, clas) =>
-            Module.Untyped(
-                WE.Node(mname),
-                imports.map(untypedImportToWE),
-                classDupsMFP(clas)
+                classDupsMFP(clas), 
             )
     )
 
@@ -84,11 +77,16 @@ object VCheckMFPNameDups:
             ))
 
     def classDupsMFP(clss: CleanClass): ClassWE = clss match
-        case Class(cname, fields, methods) =>
+        case Class(cname, fields, methods, shape) =>
+            val shapeDupsWE = shape match
+                case None => None
+                case Some(shape) => Some(shapeDupsMFP(shape))
+            
             WE.Node(Class(
                 WE.Node(cname),
                 fields.identifyNameDupsWErr(DuplicateFieldName),
-                processMethodDups(methods)
+                processMethodDups(methods),
+                shapeDupsWE
             ))
 
     def processMethodDups(methods: List[CleanMethod]): List[MethodWE] =

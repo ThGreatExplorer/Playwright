@@ -3,7 +3,7 @@ package cesk
 import ast._
 import util.UnreachablePatternMatch
 import scala.collection.mutable.Map as MutableMap
-import util.{getMNames, getCNames}
+import util.{getMNames, getCNames, getMTypeNames}
 
 final case class MethodDef(
     params: List[Name],
@@ -18,22 +18,25 @@ object MethodDef:
 
 final case class ClassDef(
     fields: List[Name],
-    methods: Map[Name, MethodDef]
+    methods: Map[Name, MethodDef],
+    shape: Option[CleanShapeType] // can't guarantee that all classes have shapes, for example Class A in untyped module A 
+    // imported into untyped module B imported into top level prog wouldn't have a shape
 )
 
 object ClassDef:
     def apply(clas : CleanClass) : ClassDef = clas match
-        case Class(cname, fields, methods) => 
+        case Class(cname, fields, methods, shape) => 
             val methodDefs = methods.map(MethodDef(_))
             val methodMap = methods.getMNames.zip(methodDefs).toMap
 
-            ClassDef(fields,methodMap)
+            ClassDef(fields,methodMap, shape)
     
 
 trait ClassDefs:
     def getClassDef(className: String): ClassDef
     def getMethodDef(className: String, methodName: String): Either[RuntimeError, MethodDef]
-    def getInstanceOfClass(className : String, argVals : List[CESKValue]) : Either[RuntimeError, ObjectVal]
+    def getInstanceOfClass(className : String, argVals : List[CESKValue]) : Either[RuntimeError, CESKValue]
+    def methodsOfClassConformToTypes(className : String, mtypes : List[CleanMethodType]) : Either[RuntimeError, Unit]
     override def toString(): String
 
 object ClassDefs:
@@ -57,14 +60,37 @@ object ClassDefs:
 
         def getMethodDef(className: String, methodName: String): Either[RuntimeError, MethodDef] =
             getClassDef(className) match
-                case ClassDef(fields, methods) => 
+                case ClassDef(fields, methods, _) => 
                     methods.get(methodName).toRight(RuntimeError.MethodNotFound)
         
-        def getInstanceOfClass(className : String, argVals : List[CESKValue]) : Either[RuntimeError, ObjectVal] =
+        def getInstanceOfClass(className : String, argVals : List[CESKValue]) : Either[RuntimeError, CESKValue] =
             getClassDef(className) match
-                case ClassDef(fields, methods) =>
-                    if fields.lengthIs != argVals.length  then
-                        Left[RuntimeError, ObjectVal](RuntimeError.NewInstWrongFieldCount)
-                    else
-                        val fieldMap = MutableMap.from(fields.zip(argVals)) 
-                        Right[RuntimeError, ObjectVal](ObjectVal(className, fieldMap)) 
+                case ClassDef(fields, _, _) if fields.lengthIs != argVals.length =>
+                    Left(RuntimeError.NewInstWrongFieldCount)
+
+                case ClassDef(fields, methods, None) => 
+                    val fieldMap = MutableMap.from(fields.zip(argVals)) 
+                    val obj      = ObjectVal(className, fieldMap)
+                    Right(ObjectVal(className, fieldMap)) 
+
+                case ClassDef(fields, methods, Some(shape)) =>
+                    val fieldMap = MutableMap.from(fields.zip(argVals)) 
+                    val obj      = ObjectVal(className, fieldMap)
+                    ProxyVal.conformToType(obj, shape, this)
+
+        def methodsOfClassConformToTypes(className : String, mtypes : List[CleanMethodType]) : Either[RuntimeError, Unit] =
+            getClassDef(className) match
+                case ClassDef(_, methods, _) if mtypes.getMTypeNames.toSet != methods.keySet =>
+                    Left(RuntimeError.MethodNamesDontConformToProxyShape)
+
+                case ClassDef(_, methods, _) =>
+                    val conforms = 
+                        mtypes.forall{
+                            case MethodType(mname, paramTypes, _) => 
+                                methods(mname).params.lengthIs == paramTypes.length
+                        }
+                    
+                    if conforms then 
+                        Right(())
+                    else 
+                        Left(RuntimeError.MethodParamsDontConformToProxyShape)

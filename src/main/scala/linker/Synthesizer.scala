@@ -42,13 +42,13 @@ object Synthesizer:
   def synthesizeModules(mods: List[CleanModule], moduleData : ModuleData) : List[CleanModule] = 
 
     def synthesizeModule(m: CleanModule): (CleanModule, List[CleanModule]) = m match
-      case mod @ Module.Untyped(mname, imports, clas) => 
+      case mod @ Module(mname, imports, clas @ Class(cname, fields, methods, None)) => 
         (mod, Nil)
 
-      case Module.Typed(mname, imports, clas, shape) =>
+      case Module(mname, imports, clas @ Class(cname, fields, methods, Some(shape))) =>
         val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, mname, moduleData)
         (
-          Module.Typed[Clean](mname, updImports, clas, shape), 
+          Module[Clean](mname, updImports, clas), 
           newTypedCopiesOfMods
         )
 
@@ -84,15 +84,19 @@ object Synthesizer:
         val newTypedModName = s"$mname.into.$intoMName"
 
         moduleData.lookupModule(mname) match
-          case (e : ModuleDataEntry) if createdSoFar.exists(m => m.moduleName == newTypedModName) => 
+          case (e : ModuleDataEntry) if createdSoFar.exists(
+            m => 
+              m match 
+                case Module(mname, imports, clas) => 
+                  mname == newTypedModName
+          ) => 
             (Import.Untyped(newTypedModName), None)
 
-          case ModuleDataEntry(imports, currClss, None) => 
-            val newTypedMod: CleanModule = Module.Typed[Clean](
+          case ModuleDataEntry(imports, Class(cname, fields, methods, _), None) => 
+            val newTypedMod: CleanModule = Module[Clean](
               newTypedModName,
               imports,
-              currClss,
-              importShape
+              Class(cname, fields, methods, Some(importShape))
             )
             (Import.Untyped(newTypedModName), Some(newTypedMod))
 

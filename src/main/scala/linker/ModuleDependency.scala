@@ -204,17 +204,17 @@ object ModuleDependency:
         // Build dependencies first, then memoize to handle potential cycles
         val dependencies = imports.map { imp =>
           (importToModule(modulesInScopeMap(mname), imp), imp) match
-            case (Module.Typed(importedMname, importedImports, importedClas, importedShape), Import.Untyped(_)) =>
+            case (Module(importedMname, importedImports, importedClas @ Class(cname, fields, methods, Some(importedShape))), Import.Untyped(_)) =>
               (
                 buildDAG(importedMname, importedClas, Some(importedShape), modulesInScopeMap, importedImports, memoization),
                 None
               )
-            case (Module.Untyped(importedMname, importedImports, importedClas), Import.Typed(_, importedShape)) =>
+            case (Module(importedMname, importedImports, importedClas @ Class(cname, fields, methods, None)), Import.Typed(_, importedShape)) =>
               (
                 buildDAG(importedMname, importedClas, None, modulesInScopeMap, importedImports, memoization),
                 Some(importedShape)
               )
-            case (Module.Untyped(importedMname, importedImports, importedClas), Import.Untyped(_)) =>
+            case (Module(importedMname, importedImports, importedClas @ Class(cname, fields, methods, None)), Import.Untyped(_)) =>
               (
                 buildDAG(importedMname, importedClas, None, modulesInScopeMap, importedImports, memoization),
                 None
@@ -227,6 +227,11 @@ object ModuleDependency:
         result
 
   def importToModule(modules: Set[CleanModule], imp: CleanImport): CleanModule =
-    modules.find(module => module.moduleName == imp.importedModName) match
+    modules.find(
+      module => 
+        module match
+          case Module(mname, imports, clas) =>
+            mname == imp.importedModName
+    ) match
       case None => throw new Exception(f"Invalid import $imp in $modules")
       case Some(module) => module 
