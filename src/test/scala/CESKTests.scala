@@ -4,7 +4,8 @@ import munit.FunSuite
 import ast._
 import util.{UnreachableStateException, UnreachablePatternMatch}
 import cesk.{CESKMachine, Store, Env, KontStack, ProgFrame, RuntimeError}
-import cesk.CESKValue
+import cesk.{CESKValue, ProxyVal, ObjectVal}
+import scala.collection.mutable.Map as MutableMap
 import cesk.CESKConst
 
 class CESKTests extends FunSuite {
@@ -232,28 +233,39 @@ class CESKTests extends FunSuite {
       cname = "Point",
       fields = List("x", "y"),
       methods = List(),
+      shape = Some(Type.Shape[Clean](
+        List(
+          FieldType("x", Type.Number()),
+          FieldType("y", Type.Number()),
+        ),
+        List()
+      ))
+    )
+    val pointClassUntyped = Class[Clean](
+      cname = "PointUntyped",
+      fields = List("x", "y"),
+      methods = List(),
       shape = None
     )
     val decls = List(
       Decl[Clean]("px", Expr.Num(3.0)),
       Decl[Clean]("py", Expr.Num(4.0)),
       Decl[Clean]("pone", Expr.NewInstance("Point", List("px", "py"))),
-      Decl[Clean]("ptwo", Expr.NewInstance("Point", List("px", "py")))
+      Decl[Clean]("ptwo", Expr.NewInstance("PointUntyped", List("px", "py")))
     )
 
-    val expr = Expr.BinOpExpr[Clean]("pone", BinOp.Add, "pone")
-
-    def runAndAssertProg(expr : Expr[Clean], expectedResult : CESKValue | RuntimeError): Unit =
-      val prog = programWithClasses(List(pointClass), decls, expr)
+    def runAndAssertBinopErrorProg(expr : Expr[Clean]): Unit =
+      val prog = programWithClasses(List(pointClass, pointClassUntyped), decls, expr)
       val machine = CESKMachine(prog)
       val result = machine.run
-      assertEquals(result, expectedResult)
+      assertEquals(result, RuntimeError.InvalidVarType("Binop attempted on a non-numeric value."))
 
-    runAndAssertProg(expr, RuntimeError.InvalidVarType("Binop attempted on a non-numeric value."))
-    val expr2 = Expr.BinOpExpr[Clean]("pone", BinOp.Add, "px")
-    runAndAssertProg(expr2, RuntimeError.InvalidVarType("Binop attempted on a non-numeric value."))
-    val expr3 = Expr.BinOpExpr[Clean]("px", BinOp.Add, "pone")
-    runAndAssertProg(expr3, RuntimeError.InvalidVarType("Binop attempted on a non-numeric value."))
+    runAndAssertBinopErrorProg(Expr.BinOpExpr[Clean]("pone", BinOp.Add, "ptwo"))
+    runAndAssertBinopErrorProg(Expr.BinOpExpr[Clean]("pone", BinOp.Add, "px"))
+    runAndAssertBinopErrorProg(Expr.BinOpExpr[Clean]("px", BinOp.Add, "pone"))
+    runAndAssertBinopErrorProg(Expr.BinOpExpr[Clean]("ptwo", BinOp.Div, "pone"))
+    runAndAssertBinopErrorProg(Expr.BinOpExpr[Clean]("pone", BinOp.Div, "px"))
+    runAndAssertBinopErrorProg(Expr.BinOpExpr[Clean]("px", BinOp.Div, "pone"))
   }
 
   // Test Case 8: Object creation and field access
@@ -311,6 +323,48 @@ class CESKTests extends FunSuite {
     val result = machine.run
     assertEquals(result, 3.0)
   }
+
+  // Structural Equality of Proxies
+  test("Structural equality of Proxy Instances") {
+    val pointClass = Class[Clean](
+      cname = "Point",
+      fields = List("x", "y"),
+      methods = List(),
+      shape = Some(Type.Shape[Clean](
+        List(
+          FieldType("x", Type.Number()),
+          FieldType("y", Type.Number()),
+        ),
+        List()
+      ))
+    )
+    val pointClassUntyped = Class[Clean](
+      cname = "PointUntyped",
+      fields = List("x", "y"),
+      methods = List(),
+      shape = None
+    )
+    val decls = List(
+      Decl[Clean]("px", Expr.Num(3.0)),
+      Decl[Clean]("py", Expr.Num(4.0)),
+      Decl[Clean]("p1", Expr.NewInstance("Point", List("px", "py"))),
+      Decl[Clean]("p2", Expr.NewInstance("Point", List("py", "px"))),
+      Decl[Clean]("p3", Expr.NewInstance("PointUntyped", List("py", "px"))),
+      Decl[Clean]("res1", Expr.BinOpExpr[Clean]("p1", BinOp.Equals, "p2")),
+      Decl[Clean]("res2", Expr.BinOpExpr[Clean]("p1", BinOp.Equals, "p3"))
+    )
+    val prog =
+      fullProgram(
+        classes = List(pointClass, pointClassUntyped),
+        decls = decls, 
+        stmts = List(), 
+        expr = Expr.BinOpExpr[Clean]("res1", BinOp.Equals, "res2")
+      )
+    val machine = CESKMachine(prog)
+    val result = machine.run
+    assertEquals(result, CESKConst.TRUTHY)
+  }
+
 
   test("Test Field Access with Typed Classes Violation") {
     val pointClass = Class[Clean](
@@ -475,7 +529,7 @@ class CESKTests extends FunSuite {
     val prog = programWithClasses(List(numberClass), decls, expr)
     val machine = CESKMachine(prog)
     val result = machine.run
-    assertEquals(result, RuntimeError.ValDoesntConformToExpType)
+    assertEquals(result, RuntimeError.MethodCallDoesntMatchProxyMethodType)
   }
 
   test("Object method call for instance of Typed Class Violation With Wrong Num Params") {
@@ -716,8 +770,7 @@ class CESKTests extends FunSuite {
     val result = machine.run
     assertEquals(result, RuntimeError.ValDoesntConformToExpType)
   }
-  
-  
+    
   test("Field assignment tries updates object field that does not exist") {
     val pointClass = Class[Clean](
       cname = "Point",
@@ -736,6 +789,187 @@ class CESKTests extends FunSuite {
     val machine = CESKMachine(prog)
     val result = machine.run
     assertEquals(result, RuntimeError.FieldNotFound)
+  }
+
+  test("Objects fail to conform to Proxy types") {
+
+    def maketClassWithType(name : String, uclassType : CleanShapeType) = 
+      Class[Clean](
+        cname = "Maker" ++ name ++ ".into.Body",
+        fields = List(),
+        methods = List(
+          Method[Clean](
+            mname = "run",
+            params = List("val"),
+            progb = ProgBlock(
+              decls = List(),
+              stmts = List(),
+              expr = Expr.NewInstance("Untyped", List("val", "val")))
+          )
+        ),
+        shape = Some(Type.Shape(
+          List(),
+          List(
+            MethodType("run", List(Type.Number()), uclassType)
+          )
+        ))
+      )
+
+    val uClass = Class[Clean](
+      cname = "Untyped",
+      fields = List("x", "y"),
+      methods = List(
+        Method[Clean](
+          mname = "catch",
+          params = List("val"),
+          progb = ProgBlock(
+            decls = List(),
+            stmts = List(),
+            expr = Expr.Var("val"))
+        )
+      ),
+      shape = None
+    )
+
+    val uClassBadType1 : CleanShapeType= 
+      Type.Shape[Clean](
+        List(
+          FieldType("x", Type.Number()),
+          FieldType("y", Type.Number()),
+          FieldType("z", Type.Number())
+        ),
+        List(MethodType("catch", List(Type.Number()), Type.Number()))
+      )
+
+    val uClassBadType2 : CleanShapeType= 
+      Type.Shape[Clean](
+        List(
+          FieldType("x", Type.Number()),
+          FieldType("y", Type.Shape[Clean](Nil, Nil))
+        ),
+        List(MethodType("catch", List(Type.Number()), Type.Number()))
+      )
+
+    val uClassBadType3 : CleanShapeType= 
+      Type.Shape[Clean](
+        List(
+          FieldType("x", Type.Number()),
+          FieldType("y", Type.Number())
+        ),
+        List(MethodType("not a catch", List(Type.Number()), Type.Number()))
+      )
+
+    val uClassBadType4 : CleanShapeType= 
+      Type.Shape[Clean](
+        List(
+          FieldType("x", Type.Number()),
+          FieldType("y", Type.Number()),
+        ),
+        List(MethodType("catch", List(), Type.Number()))
+      )
+
+    val clss = List(
+      uClass, 
+      maketClassWithType("Bad1", uClassBadType1), 
+      maketClassWithType("Bad2", uClassBadType2), 
+      maketClassWithType("Bad3", uClassBadType3), 
+      maketClassWithType("Bad4", uClassBadType4), 
+    )
+   
+    val decls = List(
+      Decl[Clean]("px", Expr.Num(1.0)),
+      Decl[Clean]("pBad1", Expr.NewInstance("MakerBad1.into.Body", List())),
+      Decl[Clean]("pBad2", Expr.NewInstance("MakerBad2.into.Body", List())),
+      Decl[Clean]("pBad3", Expr.NewInstance("MakerBad3.into.Body", List())),
+      Decl[Clean]("pBad4", Expr.NewInstance("MakerBad4.into.Body", List()))
+    )
+
+    def runAndAssertConformError(objRef : String, expectedErr : RuntimeError) : Unit =
+      val prog = programWithClasses(clss, decls, Expr.CallMethod[Clean](objRef, "run", List("px")))
+      val machine = CESKMachine(prog)
+      val result = machine.run
+      assertEquals(result, expectedErr)
+
+    runAndAssertConformError("pBad1", RuntimeError.FieldNamesDontConformToProxyShape)
+    runAndAssertConformError("pBad2", RuntimeError.FieldValsDontConformToProxyShape)
+    runAndAssertConformError("pBad3", RuntimeError.MethodNamesDontConformToProxyShape)
+    runAndAssertConformError("pBad4", RuntimeError.MethodParamsDontConformToProxyShape)
+  }
+
+  test("Proxy to conforms an outer to Proxy type") {
+
+    val catchClassNumType : CleanShapeType= 
+      Type.Shape[Clean](
+        List(),
+        List(MethodType("catch", List(Type.Number()), Type.Number()))
+      )
+    
+    val catchClassDummyType : CleanShapeType= 
+      Type.Shape[Clean](
+        List(),
+        List(MethodType("catch", List(Type.Shape[Clean](Nil, Nil)), Type.Shape[Clean](Nil, Nil)))
+      )
+
+    val outerClass = 
+      Class[Clean](
+        cname = "Outer",
+        fields = List(),
+        methods = List(
+          Method[Clean](
+            mname = "run",
+            params = List("val"),
+            progb = ProgBlock(
+              decls = List(),
+              stmts = List(),
+              expr = Expr.Var("val"))
+          )
+        ),
+        shape = Some(Type.Shape(
+          List(),
+          List(
+            MethodType("run", List(catchClassNumType), catchClassNumType)
+          )
+        ))
+      )
+
+    def maketClassWithType(name : String, catchClassType : CleanShapeType) = 
+      Class[Clean](
+        cname = "Catch" ++ name,
+        fields = List(),
+        methods = List(
+          Method[Clean](
+            mname = "catch",
+            params = List("val"),
+            progb = ProgBlock(
+              decls = List(),
+              stmts = List(),
+              expr = Expr.Var("val"))
+          )
+        ),
+        shape = Some(catchClassType)
+      )
+
+    val clss = List(
+      outerClass,
+      maketClassWithType("Num", catchClassNumType), 
+      maketClassWithType("Obj", catchClassDummyType)
+    )
+   
+    val decls = List(
+      Decl[Clean]("pOuter", Expr.NewInstance("Outer", List())),
+      Decl[Clean]("pCatchNum", Expr.NewInstance("CatchNum", List())),
+      Decl[Clean]("pCatchObj", Expr.NewInstance("CatchObj", List()))
+    )
+
+    def runAndAssertConform(argVRef : String, expected : CESKValue | RuntimeError) : Unit =
+      val prog = programWithClasses(clss, decls, Expr.CallMethod[Clean]("pOuter", "run", List(argVRef)))
+      val machine = CESKMachine(prog)
+      val result = machine.run
+      assertEquals(result, expected)
+
+    runAndAssertConform("pCatchNum", ProxyVal(ObjectVal("CatchNum", MutableMap()), catchClassNumType))
+    runAndAssertConform("pCatchObj", RuntimeError.MethodCallDoesntMatchProxyMethodType)
+    // runAndAssertConform("pCatchObj", RuntimeError.ProxyValDoesntConformToProxyShape)
   }
 
   // Test Case 14: If-else conditional - true branch

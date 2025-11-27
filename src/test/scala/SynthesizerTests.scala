@@ -130,10 +130,8 @@ class SynthesizerTest extends FunSuite:
         assertEquals(result.length, 2)
         result(0) match
             case Module(mname, _, _) => assertEquals(mname, "ModA")
-            case _ => fail("Expected untyped module")
         result(1) match
             case Module(mname, _, _) => assertEquals(mname, "ModB")
-            case _ => fail("Expected untyped module")
     }
 
     test("synthesizeModules - typed module with typed import creates new module") {
@@ -150,7 +148,6 @@ class SynthesizerTest extends FunSuite:
         
         result(0) match
             case Module(mname, _, _) => assertEquals(mname, "ModA")
-            case _ => fail("Expected untyped module")
         
         result(1) match
             case m @ Module(mname, _, _) if m.isTyped => assertEquals(mname, "ModA.into.ModB")
