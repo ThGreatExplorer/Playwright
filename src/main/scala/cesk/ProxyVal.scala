@@ -1,7 +1,7 @@
 package cesk
 
 import ast._
-import util.{getFTypeNames, traverse}
+import util.{getFTypeNames, traverseEither}
 import cesk.ProxyVal.conformToType
 
 final case class ProxyVal(
@@ -9,61 +9,67 @@ final case class ProxyVal(
 	typ: CleanShapeType
 ):
 
-    def lookupMethod(mname: String): Either[RuntimeError, CleanMethodType] =
-        typ.methodTypes.find({case MethodType(name, paramTypes, returnType) => mname == name}) match
-            case Some(value) => Right(value)
-            case None => Left(RuntimeError.MethodNotFoundInProxy)
+    // Field Lookup & Assignment
 
-    def conformToMethodTypes(m: CleanMethodType, pVals: List[CESKValue], classDefs: ClassDefs): Either[RuntimeError, (CleanType, List[CESKValue])] = 
-        m match
-            case MethodType(mname, paramTypes, returnType) => 
-                if paramTypes.lengthIs != pVals.length then
-                    Left(RuntimeError.MethodCallDoesntMatchProxyMethodType)
-                else
-                    val conformedParams: Either[RuntimeError, List[CESKValue]] = 
-                    traverse(paramTypes.zip(pVals)) { case (pType, pVal) =>
-                        conformToType(pVal, pType, classDefs)
-                    }
-                    conformedParams match
-                        case Left(err) => Left(err)
-                        case Right(conformedPVals) => Right((returnType, conformedPVals))
-                    
-
-    def checkMethod(mname: String, pVals: List[CESKValue], classDefs: ClassDefs): Either[RuntimeError, (CleanType, MethodDef)] =
-        for
-            mtype                       <- this.lookupMethod(mname)
-            (rtype, conformedPVals)     <- this.conformToMethodTypes(mtype, pVals, classDefs)
-            checkedMethod               <- this.obj.checkMethod(classDefs, mname, conformedPVals)
-        yield
-            (rtype, checkedMethod)
-            
-
-    def conformToFieldType(field: String, v : CESKValue, classDefs: ClassDefs): Either[RuntimeError, CESKValue] =
-        for 
-            ftype        <- getFieldType(field)
-            conformedVal <- ProxyVal.conformToType(v, ftype, classDefs)
-        yield
-            conformedVal
-
-    def lookupConformingField(field: String, classDefs: ClassDefs): Either[RuntimeError, CESKValue] =
-        for
-            storedVal <- this.obj.lookupField(field)
-            conformed <- conformToFieldType(field, storedVal, classDefs)
-        yield
-            conformed
-
-    def updateField(field: String, v: CESKValue): Unit =
-        this.obj.updateField(field, v)
-
-    def getFieldType(field: String) : Either[RuntimeError, CleanType] = 
+    def getFieldType(field: String) : Either[RuntimeError, CleanFieldType] = 
         val ftypeOpt = this.typ
                            .fieldTypes
                            .find{case FieldType(fname, _) => fname == field}
 
-        ftypeOpt match
-            case Some(FieldType(_, fieldType)) => Right(fieldType) 
-            case None => Left(RuntimeError.FieldNotFoundInProxy)
+        ftypeOpt.toRight(RuntimeError.FieldNotFoundInProxy)
+
+    def lookupConformingField(field: String, classDefs: ClassDefs): Either[RuntimeError, CESKValue] =
+        for
+            storedVal    <- this.obj.lookupField(field)
+            ftype        <- getFieldType(field)
+            conformedVal <- ProxyVal.conformToType(storedVal, ftype.fieldType, classDefs)
+        yield
+            conformedVal
+
+    def conformToFieldType(field: String, v : CESKValue, classDefs: ClassDefs): Either[RuntimeError, CESKValue] =
+        for 
+            ftype        <- getFieldType(field)
+            conformedVal <- ProxyVal.conformToType(v, ftype.fieldType, classDefs)
+        yield
+            conformedVal
+
+    def updateField(field: String, v: CESKValue): Unit =
+        this.obj.updateField(field, v)
+
+    // Method Call
+
+    def getMethodType(mname: String): Either[RuntimeError, CleanMethodType] =
+        val mtypeOpt = this.typ
+                           .methodTypes
+                           .find{case MethodType(name, paramTypes, returnType) => mname == name}
         
+        mtypeOpt.toRight(RuntimeError.MethodNotFoundInProxy)
+
+    def conformArgsToMethodDomTypes(
+        pTypes: List[CleanType], aVals: List[CESKValue], classDefs: ClassDefs
+    ): Either[RuntimeError, List[CESKValue]] = 
+        if pTypes.lengthIs != aVals.length then
+            Left(RuntimeError.MethodCallDoesntMatchProxyMethodType)
+        else
+            val conformedParams: Either[RuntimeError, List[CESKValue]] = 
+            traverseEither(pTypes.zip(aVals)) { case (pType, aVal) =>
+                conformToType(aVal, pType, classDefs)
+            }
+            conformedParams match
+                case Left(_) => Left(RuntimeError.MethodCallDoesntMatchProxyMethodType)
+                case Right(conformedPVals) => Right(conformedPVals)
+                
+    def checkConformingMethod(
+        mname: String, aVals: List[CESKValue], classDefs: ClassDefs
+    ): Either[RuntimeError, (MethodDef, List[CESKValue], CleanType)] =
+        for
+            mtype              <- getMethodType(mname)
+            conformedAVals     <- conformArgsToMethodDomTypes(mtype.paramTypes, aVals, classDefs)
+            checkedMethod      <- this.obj.checkMethod(classDefs, mname, conformedAVals)
+        yield
+            (checkedMethod, conformedAVals, mtype.returnType)
+        
+    // Structural Equality
     override def equals(that: Any): Boolean = that match
         case ProxyVal(thatObj, thatTyp) => 
             this.obj.equals(thatObj)
@@ -99,16 +105,3 @@ object ProxyVal:
 
             case _ =>
                 Left(RuntimeError.ValDoesntConformToExpType)
-
-
-
-
-
-
-
-                
-            
-                
-                
-                
-         

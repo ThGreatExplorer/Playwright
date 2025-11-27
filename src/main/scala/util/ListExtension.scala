@@ -31,7 +31,7 @@ extension [A](list: List[A])
         }
 
     // Traverse for Either
-    def traverse[E, B](f: A => Either[E, B]): Either[E, List[B]] =
+    def traverseEither[E, B](f: A => Either[E, B]): Either[E, List[B]] =
         list.foldRight(Right(Nil): Either[E, List[B]]) { (a, acc) =>
             for
                 bs <- acc

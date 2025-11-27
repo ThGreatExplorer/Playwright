@@ -384,6 +384,7 @@ final class CESKMachine(prog: CleanProgram):
         state.lookupVar(instance) match
           case _: NumVal => 
             constructErrorState(RuntimeError.ValNotAnObject)
+
           case obj: ObjectVal =>
             val paramVals = args.map(state.lookupVar(_))
 
@@ -401,27 +402,28 @@ final class CESKMachine(prog: CleanProgram):
                   store   = newStore,
                   env     = newEnv,
                   kont    = state.kont.push(methodClosure)
-                )            
+                )    
+
           case proxy @ ProxyVal(obj, typ) => 
             val paramVals = args.map(state.lookupVar(_))
-            proxy.checkMethod(mname, paramVals, classDefs) match
+
+            proxy.checkConformingMethod(mname, paramVals, classDefs) match
               case Left(err) => 
                 constructErrorState(err)
-              case Right((expRType, MethodDef(paramNames, methodFrame))) =>
+              case Right((MethodDef(paramNames, methodFrame), conformingParamVals, rangeT)) =>
                 val (newEnv, newStore) = createMethodEnvAndStore(
-                  paramNames, paramVals, obj, Env(), state.store
+                  paramNames, conformingParamVals, obj, Env(), state.store
                 )
 
                 val methodClosure = (methodFrame, state.env)
-
                 CESKState(
                   control = Control.Search,
                   store   = newStore,
                   env     = newEnv,
-                  kont    = state.kont.push(expRType).push(methodClosure)
+                  kont    = state.kont.push(rangeT).push(methodClosure)
                 )
 
-      // handling Return Type from a method Call
+      // Returning from a proxied method call
       case (Control.Value(v), rType: RangeT) =>
         ProxyVal.conformToType(v, rType, classDefs) match
           case Left(err) => 
@@ -434,10 +436,10 @@ final class CESKMachine(prog: CleanProgram):
               state.kont.pop
             )
 
-      // case _ =>
-      //   throw new UnreachableStateException(
-      //     "Unknown state reached in CESK machine transition function:" + state
-      //   )
+      case _ =>
+        throw new UnreachableStateException(
+          "Unknown state reached in CESK machine transition function:" + state
+        )
 
   private def createMethodEnvAndStore(
     paramNames: List[String], 
@@ -446,7 +448,9 @@ final class CESKMachine(prog: CleanProgram):
     baseEnv: Env,
     baseStore: Store
   ): (Env, Store) =
-    val valLookupMap = paramNames.zip(paramVals).toMap.updated("this", obj)
+    val paramLookupMap = paramNames.zip(paramVals).toMap
+    val valLookupMap = Map("this" -> obj) ++ paramLookupMap
+
     valLookupMap.foldLeft((baseEnv, baseStore)) { 
       case ((envAcc, storeAcc), (paramName, paramVal)) =>
         val (updStore, newLoc) = storeAcc.insertValAtNewLoc(paramVal)
