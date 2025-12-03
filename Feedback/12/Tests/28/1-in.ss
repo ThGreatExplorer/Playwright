@@ -1,0 +1,15 @@
+((module Storage
+   (class Storage (value) (method getValue () (this --> value))))
+ (tmodule Wrapper
+   (timport Storage (((value Number)) ((getValue () Number))))
+   (class Wrapper (s)
+     (method unwrap ()
+       (def temp (this --> s))
+       (temp --> getValue ())))
+   (((s (((value Number)) ((getValue () Number))))) ((unwrap () Number))))
+ (import Wrapper)
+ (timport Storage (((value Number)) ((getValue () Number))))
+ (def ten 10.0)
+ (def s (new Storage (ten)))
+ (def w (new Wrapper (s)))
+ (w --> unwrap ()))

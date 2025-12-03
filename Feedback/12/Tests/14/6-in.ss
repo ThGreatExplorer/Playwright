@@ -1,0 +1,16 @@
+((tmodule M (class A ()
+                (method m (o)
+                    (def x 1.0)
+                    (o --> m (x))))
+    (() ((m ((() ((m (Number) Number)))) Number))))
+
+(module N (class B ()
+                (method m (o)
+                (def x 1.0)
+                (x + o))))
+
+(import M)
+(timport N (() ((m (Number) Number))))
+(def x (new A ()))
+(def y (new B ()))
+(x --> m (y)))

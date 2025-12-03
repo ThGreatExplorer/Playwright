@@ -1,0 +1,6 @@
+(
+    (module A (class A ()))
+    (timport A (() ()))
+    (timport A (() ()))
+    0.0
+)

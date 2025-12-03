@@ -1,0 +1,4 @@
+Total Score: 1055 / 1050
+-10 "incorrect Mixed blatant system (GRADE PENDING)"
+-10 "incorrect Mixed insidious system (GRADE PENDING)"
++15 "bonus points for bugs found in other students' xtr programs (Max 15)"

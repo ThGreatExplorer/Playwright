@@ -1,0 +1,25 @@
+(
+    (module a 
+        (class A ())
+    )
+    (tmodule b 
+        (timport a (() ()))
+        (class B ()
+            (method f (x)
+                (def x (new A ()))
+                (def result -420.0)
+                (if0 (x isa A)
+                    (result = 0.0)
+                    (result = 1.0)
+                )
+                result
+            )
+        )
+        (() ((f ((() ())) Number)))
+    )
+    (timport a (() ()))
+    (import b)
+    (def x (new A ()))
+    (def tester (new B ()))
+    (tester --> f (x))
+)
