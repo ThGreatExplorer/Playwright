@@ -1,4 +1,3 @@
 Total Score: 1055 / 1050
--10 "incorrect Mixed blatant system (GRADE PENDING)"
--10 "incorrect Mixed insidious system (GRADE PENDING)"
+-10 "incorrect Mixed insidious system: the returned value is never used in typed code in a way that triggers a boundary failure; it is immediately stored in untyped code"
 +15 "bonus points for bugs found in other students' xtr programs (Max 15)"
