@@ -1,1 +1,0 @@
-((def hundred 100.0) (def five 5.0) (def twenty 20.0) (def thirty 30.0) (def answer 0.0) (def success 555.0) (def failure -1.0) (def quotient (hundred / five)) (if0 (quotient == twenty) (block (def temp thirty) (if0 (temp == twenty) (answer = failure) (answer = success))) (answer = failure)) answer)

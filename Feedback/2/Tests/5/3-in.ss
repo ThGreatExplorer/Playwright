@@ -1,1 +1,0 @@
-((x = -1000.0) (if x (block (x / x) (y + y)) (block (x = x u))) y)

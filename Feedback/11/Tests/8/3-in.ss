@@ -1,6 +1,0 @@
-((module A (class A () (method makeA () 1.0)))
-   (module B (import A)
-     (class B () (method makeB () (def a (new A ())) (def b 1.0) (a + b))))
-   (timport B (() ((makeB () Number))))
-   (def a (new B ()))
-   a)

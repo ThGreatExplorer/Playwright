@@ -1,7 +1,0 @@
-((class Point (x y))
-(def six 6.0)
-(def twentyTwoPointTwo 22.2)
-(def eight 8.0)
-(def pOne (new Point (six twentyTwoPointTwo)))
-(def pTwo (new Point (eight twentyTwoPointTwo)))
-(pOne == pTwo))

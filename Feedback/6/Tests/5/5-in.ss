@@ -1,1 +1,0 @@
-((class c (fieldOne) (method methodOne () 0.0) (method methodTwo () 1.0) (method methodThree (paramOne paramTwo paramOne) 0.1)) 0.0)

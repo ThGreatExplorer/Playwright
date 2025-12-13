@@ -1,2 +1,0 @@
-Total Score: 265 / 250
-+15 "bonus points for bugs found in other students' xlink programs (Max 15)"

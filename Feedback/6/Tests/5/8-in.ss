@@ -1,1 +1,0 @@
-((def x 1.0) (new classOne (x)))

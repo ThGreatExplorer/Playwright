@@ -1,5 +1,0 @@
-((class While () (method w (other) (other --> w (this))))
- (class Repeat () (method w (other) (other --> w (this))))
- (def r (new Repeat ()))
- (def w (new While ()))
- (w --> w (r)))

@@ -1,4 +1,0 @@
-(testing /course/cs4400f25/ta4400/F25PL/Code/1/xcount)
-(testing /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./1/Tests-0/0-in.ss /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./1/Tests-0/0-out.ss)
-((/course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./1/Tests-0/0-in.ss /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./1/Tests-0/0-out.ss))
-((passed 1) (total 1) (partial-score 1))

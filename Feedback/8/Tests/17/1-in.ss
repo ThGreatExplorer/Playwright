@@ -1,1 +1,0 @@
-((module M ((import A)) (class C ())) 0.0)

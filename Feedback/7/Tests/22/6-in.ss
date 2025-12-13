@@ -1,6 +1,0 @@
-((class C (f))
- (def one 1.0)
- (def two 2.0)
- (def c (new C (one)))
- (c --> f = two)
- (c --> f))

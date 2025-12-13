@@ -1,1 +1,0 @@
-((class Test (x) (method getX () x)) 1.0)

@@ -1,5 +1,0 @@
-((class classone (a b c) 
-(method methodone (a b) (a + b))
-(method methodone (a b) (a + b)))
-(def a 0.0)
-(a + a))

@@ -1,6 +1,0 @@
-((module M (class C () (method tag () 10.0)))
-            (module K (class C () (method tag () 20.0)))
-            (import M)
-            (import K)
-            (def x (new C ()))
-            (x --> tag ()))

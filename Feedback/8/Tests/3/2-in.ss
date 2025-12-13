@@ -1,8 +1,0 @@
-((module ModBox (class Box (value)))
- (import ModBox)
- (def ten 10.0)
- (def box (new Box (ten)))
- (def alias box)
- (def twenty 20.0)
- (box --> value = twenty)
- (alias --> value))

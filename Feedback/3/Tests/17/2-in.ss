@@ -1,1 +1,0 @@
-((ten = 10.) (zero = 0.) (ten = (ten / zero)) ten)

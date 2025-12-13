@@ -1,1 +1,0 @@
-((def sophia 10.0) (new Person (sophia)))

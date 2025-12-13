@@ -1,1 +1,0 @@
-((class C (x x)) (def y 1.0) (def z 2.0) (def obj (new C (y z))) C)

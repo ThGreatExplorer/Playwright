@@ -1,6 +1,0 @@
-((module A (class Artist ()
-             (method draw () 777.0)))
- (import B)
- (def a (new Artist ()))
- (def x 0.0)
- x)

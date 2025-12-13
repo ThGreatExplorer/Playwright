@@ -1,5 +1,0 @@
-((module C (class Cowboy ()
-             (method draw (a a) 1.0)))
- (module C (class Cowboy ()
-             (method draw (a a) 1.0)))
- (draw isa draw))

@@ -1,1 +1,0 @@
-((def z -2.0) (def flag 0.0) (while0 flag (block (z = -3.0) (flag = 1.0))) z)

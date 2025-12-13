@@ -1,1 +1,0 @@
-((class C (x) (method m (a) (def zero 0.0) (if0 zero (if0 zero (a = 1.0) (zero = 4.0)) (zero = x)) a)) 0.0)

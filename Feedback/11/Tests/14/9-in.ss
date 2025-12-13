@@ -1,1 +1,0 @@
-((tmodule TypedApple (class Apple (redness)) (((redness Number)) ())) (timport TypedApple (((redness Number)) ())) 7.0)

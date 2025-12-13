@@ -1,6 +1,0 @@
-((module A (class foo ()))
- (module B (class foo (dup dup)))
- (module C (class foo () (method woah () 4.0) (method woah (meh) 2.0)))
- (module D (class foo () (method woah (pdup pdup) 100.0)))
- (def wow 0.0)
- wow)

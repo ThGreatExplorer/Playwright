@@ -1,6 +1,0 @@
-((def x 9.3) 
-(def y 2.1) 
-(if0 (x == y) 
-    (x = y) 
-    (block (def z 3.0) (x = z))) 
-x)

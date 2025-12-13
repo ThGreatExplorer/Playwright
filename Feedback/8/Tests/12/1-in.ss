@@ -1,8 +1,0 @@
-((module Test (class Test (x) (method getX () (this --> x))))
-    (import Class)
-    (def one 1.0)
-    (def instance (new Test (one)))
-    (if0 (instance isa Test)
-        (one = 2.0)
-        (instance --> x = 1.0))
-    instance)

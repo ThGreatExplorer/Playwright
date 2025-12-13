@@ -1,1 +1,0 @@
-((class hello (x)) (def x 8.0) (x = 4.0) (class jack ()) 4.0)

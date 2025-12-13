@@ -1,1 +1,0 @@
-((module isa (class A))(module B (import A)) 1.0)

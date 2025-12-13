@@ -1,1 +1,0 @@
-((class Fun ()) (def ret (new Gun ())) ret)

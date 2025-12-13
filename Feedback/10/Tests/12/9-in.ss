@@ -1,1 +1,0 @@
-((module UntypedA (class A ())) (module UntypedB (timport A (() ())) (class B ())) 3.3)

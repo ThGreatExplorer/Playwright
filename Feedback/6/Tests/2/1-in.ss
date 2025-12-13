@@ -1,1 +1,0 @@
-((class classA (fieldOne fieldTwo)) (class classA (fieldOne)) 1.0)

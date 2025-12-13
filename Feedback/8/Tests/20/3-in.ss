@@ -1,6 +1,0 @@
-((module MA (class C () (method val () 1.0)))
-(module MB (class C () (method val () 2.0)))
-(import MA)
-(import MB)
-(def o (new C ()))
-(o --> val ()))

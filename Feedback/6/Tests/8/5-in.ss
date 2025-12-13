@@ -1,1 +1,0 @@
-((class Hi (x y y z)) (class Bye (y z)) (def x 2.0) x)

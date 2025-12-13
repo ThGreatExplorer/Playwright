@@ -1,1 +1,0 @@
-((class Test) (def x 0.0) x)

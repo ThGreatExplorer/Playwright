@@ -1,1 +1,0 @@
-((module X (import X) (class Nope ())) 4.5)

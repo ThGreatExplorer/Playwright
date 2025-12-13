@@ -1,1 +1,0 @@
-((class A (x) (method m (a) -100.0) (method b (a) -100.0))  (def y 1.0) y)

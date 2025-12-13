@@ -1,5 +1,0 @@
-Tests Passed: 245/248
-Tests from the following groups failed:
-'(("25" "strong-bears" "1 failed")
-  ("15" "noble-stags" "1 failed")
-  ("4" "chill-sloths" "1 failed"))

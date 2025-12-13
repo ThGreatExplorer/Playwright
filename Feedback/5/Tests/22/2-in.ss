@@ -1,1 +1,0 @@
-((def x 1.0) (def y 2.0) (def z (x + y)) (y = z) (if0 x (x = 2.0) (block (y = x) (x = 2.0) (z = (x + y)) (z = (z + z)))) z)

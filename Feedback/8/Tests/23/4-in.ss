@@ -1,8 +1,0 @@
-((module A (class c ()))
- (import A)
- (module B (class c () (method m () 2.0)))
- (import C)
- (module C import D (class c ()))
- (import B)
- (def x 1.0)
- x)

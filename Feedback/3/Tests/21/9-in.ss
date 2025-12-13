@@ -1,1 +1,0 @@
-((Alice = 719.0) (Bob = 420.0) (Chris = (Alice + Bob)) (Kasey = 28.0) (if0 (Alice == Bob) (Kasey = 1.0) (Kasey = 0.0)) (Alice / Kasey))

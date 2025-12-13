@@ -1,1 +1,0 @@
-((def x (new Test ())) x)

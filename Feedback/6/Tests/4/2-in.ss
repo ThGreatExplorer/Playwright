@@ -1,1 +1,0 @@
-((class C () ) (block) 0.0)

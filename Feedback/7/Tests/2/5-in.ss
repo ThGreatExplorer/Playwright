@@ -1,1 +1,0 @@
-((class goodClass (fieldOne) (method goodMethod (paramOne paramTwo) (def x 1.0) (x = 2.0) x)) (def z 3.0) (def y (new goodClass (z))) (def field (y --> fieldOne)) (y --> fieldOne = (y --> goodMethod (z z))) (new goodClass (field)))

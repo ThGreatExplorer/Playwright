@@ -1,7 +1,0 @@
-((class C (v) 
-  (method getV () 3.0)
-  (method getVPlusOne () 
-    (this --> getV ())))
-(def ten 10.0)
-(def c (new C (ten)))
-(c --> getVPlusOne ()))

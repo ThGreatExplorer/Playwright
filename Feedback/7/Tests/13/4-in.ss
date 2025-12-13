@@ -1,1 +1,0 @@
-((class myClass ()) (class myClass()) 1.0)

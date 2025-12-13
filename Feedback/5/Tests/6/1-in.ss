@@ -1,8 +1,0 @@
-((def counter 0.0) 
- (def limit 3.0) 
- (def sum 0.0) 
- (def one 1.0) 
- (while0 (counter == limit) 
-         (block (sum = (sum + one)) 
-                (counter = (counter + one)))) 
- sum)

@@ -1,1 +1,0 @@
-((module A (class Again () (method getVal () 1.0))) (module B (class Again () (method getVal () 2.0) (method do () (def again (new Again ())) (again --> getVal ())))) (import B) (def againTwo (new Again ())) (againTwo --> do ()))

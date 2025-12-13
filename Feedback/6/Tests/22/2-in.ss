@@ -1,7 +1,0 @@
-((class C (f) (method m(p) 42.0))
-(def one 1.0)
-(def instance (new C (one)))
-(def field (instance --> f))
-(instance --> f = (instance --> m(one)))
-(one = (instance --> f))
-(one + field))

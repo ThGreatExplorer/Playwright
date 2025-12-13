@@ -1,1 +1,0 @@
-((module A (class X ())) (module A (class Y ())) (timport A (() ())) (def x (new X ())) 1.0)

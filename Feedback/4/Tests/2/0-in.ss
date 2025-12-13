@@ -1,5 +1,0 @@
-((def x 4.0)
- (def y x)
- (while0 y (block (def z 3.0) (y = x)))
- (if0 x (y = 3.0)
-      (block (def z 1.0) (while0 0.0 (block (def k x) (if0 7.0 (k = z) (k = y)))))) 4.0)

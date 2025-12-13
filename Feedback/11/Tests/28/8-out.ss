@@ -1,1 +1,0 @@
-[ "fact", "factfive", "fact.into.factfive" ]

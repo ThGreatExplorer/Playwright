@@ -1,1 +1,0 @@
-((class AppleClass (redness) (method changeRedness () (def this 17.0) (def one 1.0) (this + one))) (def rednessArg 13.5) (def apple (new AppleClass (rednessArg))) (apple --> changeRedness))

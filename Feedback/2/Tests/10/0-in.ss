@@ -1,1 +1,0 @@
-((banana = 17.0) (if0 banana (cactus = banana) (block (banana = banana) (dirt = banana))) (while0 (banana + cactus) (block (if0 (banana / Cat) (block (z = y)) (x = (y == z))))) -1000.0)

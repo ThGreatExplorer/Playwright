@@ -1,1 +1,0 @@
-["A", "B", "A.into.T", "B.into.T", "T"]

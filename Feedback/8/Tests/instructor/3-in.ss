@@ -1,7 +1,0 @@
-((module Counter (class Counter (count) (method getCount () (this --> count))))
- (import Counter)
- (def u 3.0)
- (def w 42.0)
- (def v 42.0)
- (while0 (w == v) (block (def c (new Counter (u))) (v = c)))
- (v --> getCount ()))

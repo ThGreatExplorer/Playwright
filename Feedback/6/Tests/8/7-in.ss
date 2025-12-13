@@ -1,1 +1,0 @@
-((class C () (method m (x) x)) (def o (new C ())) (def a 1.0) (o --> m a))

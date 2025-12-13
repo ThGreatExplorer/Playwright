@@ -1,7 +1,0 @@
-(testing /course/cs4400f25/ta4400/all-repos/students/rapid-jaguars/./9/xtypes)
-(testing /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/0-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/0-out.ss)
-(testing /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/2-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/2-out.ss)
-(results for test /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/0-in.ss pass)
-(results for test /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/2-in.ss pass)
-((/course/cs4400f25/ta4400/all-repos/students/9/???/Tests/0-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/0-out.ss) (/course/cs4400f25/ta4400/all-repos/students/9/???/Tests/2-in.ss /course/cs4400f25/ta4400/all-repos/students/9/???/Tests/2-out.ss))
-((passed 2) (total 2) (partial-score 2))

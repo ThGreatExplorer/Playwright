@@ -1,1 +1,0 @@
-((def a 1.0) (def b 2.0) (def c 3.0) (def d 4.0) (def e (a + b)) (c + e))

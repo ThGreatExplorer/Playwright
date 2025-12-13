@@ -1,5 +1,0 @@
-((module Z (class Z () (method v () 7.0)))
-(module Y (import Z) (class Y () (method makeZ () (def a (new Z ())) 0.0)))
-(module X (import Y) (class X () (method bad () (def a (new Z ())) 0.0)))
-(import X)
-0.0)

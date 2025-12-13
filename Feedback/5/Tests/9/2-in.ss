@@ -1,5 +1,0 @@
-((def x 1.0)
- (if0 x (x = 0.0)
-        (block (def x 2.0)
-               (x = x)))
- x)

@@ -1,8 +1,0 @@
-Total Score: 66 / 125
--5 "xcsk executed unsuccessfully"
--50 "instructor tests failed to pass student executable"
--15 "integration tests failed to pass oracle"
-+15 "bonus points for bugs found in other students' xcsk programs (Max 15)"
--3 "challenge: fails to mention how non-nesting determines evaluation order"
--1 "challenge: fails to mention that the chosen language is guaranteed to determ
-ine the result in the exact same order"

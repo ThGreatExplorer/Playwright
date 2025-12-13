@@ -1,1 +1,0 @@
-((def x 0.0) (while0 x (block (def y 1.0) (x = 1.0))) y)

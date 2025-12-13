@@ -1,7 +1,0 @@
-((class C ()
-   (method a (x)
-     x))
- (def o (new C ()))
- (def one 1.0)
- (def two 2.0)
- (o --> a (one two)))

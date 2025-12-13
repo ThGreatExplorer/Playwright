@@ -1,3 +1,0 @@
-Total Score: 415 / 420
-+15 "bonus points for bugs found in other students' xtypes programs (Max 15)"
--20 "instructor tests failed to pass student executable"

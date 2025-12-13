@@ -1,2 +1,0 @@
-Total Score: 575 / 560
-+15 "bonus points for bugs found in other students' xjs programs (Max 15)"

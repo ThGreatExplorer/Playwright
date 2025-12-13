@@ -1,1 +1,0 @@
-((class OneClass (fieldOne) (method twoMethod (paramOne paramOne) 2.0)) 1.0)

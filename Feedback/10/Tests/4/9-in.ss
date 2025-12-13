@@ -1,5 +1,0 @@
-((tmodule mod (class A ()) (() ()))
-              (import mod)
-              (def ten 10.0)
-              (def a (new A ()))
-              (ten isa A))

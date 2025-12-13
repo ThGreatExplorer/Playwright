@@ -1,1 +1,0 @@
-((class Hello () (method Hi () (def x 1.0) x) (method Hello () (def z 2.0) z) (method Hi () (def y 3.0) y)) (class Bye ()) (def x (new Hello ())) x)

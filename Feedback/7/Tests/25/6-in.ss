@@ -1,1 +1,0 @@
-((class A ()) (def a (new A ())) (def result 0.0) (if0 a (result = 0.1) (result = 0.2)) result)

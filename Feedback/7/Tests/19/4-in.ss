@@ -1,5 +1,0 @@
-((class Point (x y))
-(def x 1.0)
-(def point (new Point (x x)))
-(point --> z = 3.0)
-x)

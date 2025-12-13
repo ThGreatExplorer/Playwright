@@ -1,1 +1,0 @@
-((class A (x) (method f 0.0)) 0.0)

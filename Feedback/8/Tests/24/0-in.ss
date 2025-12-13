@@ -1,6 +1,0 @@
-((module Geometry (class Point (x y)))
- (import Geometry)
- (def a 3.0)
- (def b 4.0)
- (def p (new Point (a b)))
- (p --> x))

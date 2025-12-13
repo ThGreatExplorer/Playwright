@@ -1,1 +1,0 @@
-((class A (x) (method m () (def this this) (this isa A))) 10.0)

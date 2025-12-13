@@ -1,1 +1,0 @@
-((class Test () (method testMethod (x x) 1.0)) 1.0)

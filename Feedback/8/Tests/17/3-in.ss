@@ -1,1 +1,0 @@
-((module M (class C () (method m x 0.0))) 0.0)

@@ -1,1 +1,0 @@
-((class Hello ()) (def x (new Hello ())) x)

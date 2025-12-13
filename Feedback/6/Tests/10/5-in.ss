@@ -1,1 +1,0 @@
-((def x (class A () )) x)

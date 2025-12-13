@@ -1,6 +1,0 @@
-((class Calculator (base)
-               (method add (val) (def b (this --> base)) (b + val)))
-             (def ten 10.0)
-             (def calc (new Calculator (ten)))
-             (def x 5.0)
-             (calc --> add (x)))

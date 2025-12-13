@@ -1,6 +1,0 @@
-((module Test (class Test ()))
-    (timport Test (() ()))
-    (timport Test (((x Number)) ()))
-    (def x 1.0)
-    (def test (new Test ()))
-    test)

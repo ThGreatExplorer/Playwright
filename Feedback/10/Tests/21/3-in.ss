@@ -1,3 +1,0 @@
-((def x 1.0)
- (x = (new undeclaredClass ()))
- x)

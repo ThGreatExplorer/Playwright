@@ -1,1 +1,0 @@
-((module UntypedA (class A () (method getObject (x) (new A ())))) (timport UntypedA (() ((getObject (Number) Number)))) (def a (new A ())) (def one 1.0) (def ignore (a --> getObject (one))) 1.0)

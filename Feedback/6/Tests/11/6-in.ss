@@ -1,1 +1,0 @@
-((class CatClass () (method pet () (def x 1.0) (x = y) x)) 3.0)

@@ -1,1 +1,0 @@
-((class CatClass () (method meow () 1.0)) (def cat (new CatClass ())) (cat isa CatClass))

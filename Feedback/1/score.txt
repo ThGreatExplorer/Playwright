@@ -1,2 +1,0 @@
-Total Score: 36 / 25
-+11 "bonus points for bugs found in other students' xcount programs (Max 15)"

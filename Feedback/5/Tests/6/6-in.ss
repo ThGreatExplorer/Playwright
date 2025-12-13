@@ -1,8 +1,0 @@
-((x = 5.0) 
- (y = 5.0) 
- (diff = (x + y)) 
- (z = 10.0) 
- (divisor = (diff + z)) 
- (zero = 0.0) 
- (result = (x / divisor)) 
- result)

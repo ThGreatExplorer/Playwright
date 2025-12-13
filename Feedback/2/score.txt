@@ -1,3 +1,0 @@
-Total Score: 55 / 45
--5 "integration tests failed to pass oracle"
-+15 "bonus points for bugs found in other students' xparse programs (Max 15)"

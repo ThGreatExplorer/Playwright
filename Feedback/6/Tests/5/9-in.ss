@@ -1,1 +1,0 @@
-((class c () (method mOne (pOne) 1.0)) (def x 1.0) (def y 0.0) (x = (new c)) (x --> mOne y))

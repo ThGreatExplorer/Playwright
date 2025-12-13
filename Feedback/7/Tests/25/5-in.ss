@@ -1,1 +1,0 @@
-((class Counter (x) (method incr () (def one 1.0) (def thisx (this --> x)) (this --> x = (thisx + one)) thisx)) (def zero 0.0) (def cnt (new Counter (zero))) (def temp 0.0) (temp = (cnt --> incr ())) (temp = (cnt --> incr ())) (temp = (cnt --> incr ())) temp)

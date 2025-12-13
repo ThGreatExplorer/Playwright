@@ -1,1 +1,0 @@
-["blank", "blank.into.Point", "Point", "boing"]

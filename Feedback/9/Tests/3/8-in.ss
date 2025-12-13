@@ -1,1 +1,0 @@
-((tmodule Ex (class Ex (a) (method m () 0.0)) (((a Number))  ((m () Number)))) (tmodule ExTwo (import Ex) (class ExTwo (x) (method m (y) (this --> x = y) 0.0)) (((x Number)) ((m ( (((a Number))  ((m () Number))) ) Number)))) (import ExTwo) (import Ex) (def one 1.0) (def ex (new Ex (one))) (def exTwo (new ExTwo (one))) (exTwo --> m (ex)))

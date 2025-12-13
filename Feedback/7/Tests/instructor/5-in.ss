@@ -1,8 +1,0 @@
-((class Cowboy () (method draw () 1.0))
- (class Artist () (method draw () 666.0))
- (def a (new Artist ()))
- (def c (new Cowboy ()))
- (def x 0.0)
- (if0 1.0 (x = a) (x = c))
- (x = (x --> draw ()))
- x)

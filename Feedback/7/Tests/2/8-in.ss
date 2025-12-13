@@ -1,1 +1,0 @@
-((class classA (fieldOne)) (def field 1.0) (def a (new classA (field))) (a --> this))

@@ -1,6 +1,0 @@
-((class Box (v)
-   (method get () (this --> v)))
- (def v 7.0)
- (def o (new Box (v)))
- (o --> v = 9.0)
- (o --> v))

@@ -1,1 +1,0 @@
-((class Test (x x)) 1.0)

@@ -1,6 +1,0 @@
-((module A (import B)
-   (class Foo (x)))
- (module B (class Bar (y)))
- (import A)
- (def val 5.0)
- val)

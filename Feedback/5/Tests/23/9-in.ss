@@ -1,8 +1,0 @@
-((def a 100.0)
- (def b 10.0)
- (def c 5.0)
- (def temp 0.0)
- (def result 0.0)
- (temp = (a / b))
- (result = (temp + c))
- result)

@@ -1,1 +1,0 @@
-((class newClass (x x)) 1.9)

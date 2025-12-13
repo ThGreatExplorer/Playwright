@@ -1,1 +1,0 @@
-((module MTmod (class mtClass ())) (tmodule tmOne (timport MTmod (() ())) (timport MTmod (((x Number)) ())) (class none ()) (() ())) (timport MTmod (() ())) (timport MTmod (((x Number)) ())) 1.0)

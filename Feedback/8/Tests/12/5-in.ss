@@ -1,6 +1,0 @@
-((module Test (import Other) (class Test (x) (method getX () (this --> x))))
- (module Other (class X ()))
-    (import Test)
-    (def x 1.0)
-    (def test (new Test (x)))
-    (test --> getX (x)))

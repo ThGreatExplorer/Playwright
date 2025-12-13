@@ -1,1 +1,0 @@
-((tmodule tmodOne (class classOne ()) (() ())) (tmodule tmodTwo (class classTwo ()) (() ())) (import tmodOne) (import tmodTwo) (def a (new classOne ())) (def b (new classTwo ())) (a == b))

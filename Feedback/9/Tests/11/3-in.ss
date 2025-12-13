@@ -1,5 +1,0 @@
-((tmodule Test (class Test ()) (() ()))
-    (import Test)
-    (def x 1.0)
-    (def test (new Test ()))
-    test)

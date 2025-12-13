@@ -1,5 +1,0 @@
-((class Foo ()
-  (method m () 1.0))
-(class Foo ()
-  (method n () 2.0))
-3.0)

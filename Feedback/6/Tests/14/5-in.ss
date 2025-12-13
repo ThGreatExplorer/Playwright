@@ -1,1 +1,0 @@
-((class C () (method m (this) (x + this))) 1.0)

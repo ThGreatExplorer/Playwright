@@ -1,1 +1,0 @@
-((def a 1.0) (def b 0.0) (while0 b (block (a = (a / b)))) (a = (a + b)) a)

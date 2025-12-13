@@ -1,1 +1,0 @@
-((class C () (method m (p) (def x p) x)) 0.0)

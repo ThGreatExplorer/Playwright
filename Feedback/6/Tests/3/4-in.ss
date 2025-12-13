@@ -1,1 +1,0 @@
-((class C (x) (method m (param) param)) param)

@@ -1,1 +1,0 @@
-((def a 1.0) (def ba 1.0) (def bb 2.0) (def bc 4.0) (def one 1.0) (def n 0.0) (if0 (a == ba) (block (n = (n + one)) (a = (a + a))) (a = 0.0)) (if0 (a == bb) (block (n = (n + one)) (a = (a + a))) (a = 0.0)) (if0 (a == bc) (block (n = (n + one)) (a = (a + a))) (a = 0.0)) (n / a))

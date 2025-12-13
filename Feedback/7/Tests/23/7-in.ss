@@ -1,5 +1,0 @@
-((class C ()
-   (method self () this)
-   )
-   (def c (new C ()))
-   (c --> self()))

@@ -1,1 +1,0 @@
-((a = 1.0) (ba = 1.0) (bb = 2.0) (bc = 4.0) (one = 1.0) (n = 0.0) (if0 (a == ba) (block (n = (n + one)) (a = (a + a))) (a = 0.0)) (if0 (a == bb) (block (n = (n + one)) (a = (a + a))) (a = 0.0)) (if0 (a == bc) (block (n = (n + one)) (a = (a + a))) (a = 0.0)) (n / a))

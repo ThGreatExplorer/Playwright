@@ -1,1 +1,0 @@
-((class this (this) (method this () 1.0)) (def that 1.0) (def this (new this (that))) (def thisOfThis this) (thisOfThis isa this))

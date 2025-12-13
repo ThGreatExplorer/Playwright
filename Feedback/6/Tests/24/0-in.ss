@@ -1,6 +1,0 @@
-((class Counter (count)
-  (method inc ()
-    (this --> count)))
-(def initVal 5.0)
-(def c (new Counter (initVal)))
-(c --> count))
