@@ -1,7 +1,6 @@
 package linker
 
 import ast._
-import main.main
 import util.{getClasses}
 import linker.ModuleDependency
 import ast.Type.Shape

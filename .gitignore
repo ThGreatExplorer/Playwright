@@ -19,7 +19,7 @@ local.sbt
 .bsp
 
 # VS Code
-.vscode/
+.vscode/settings.json
 
 # Metals
 .bloop/
@@ -30,3 +30,10 @@ metals.sbt
 .idea
 .idea_modules
 /.worksheet/
+
+# ts
+node_modules
+tsconfig.tsbuildinfo
+
+#out
+out

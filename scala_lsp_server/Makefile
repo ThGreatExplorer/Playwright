@@ -11,8 +11,13 @@ init:
 	done
 
 jar: 
-	sbt -DEXECUTABLE=$(EXE).jar -DHW="hw$(DIR)" assembly
+	sbt -DEXECUTABLE=$(EXE).jar -DHW="hw$(DIR)" 'set assembly / mainClass := Some("main.BackendRunner")' assembly
 	cp target/scala-3.7.2/$(EXE).jar $(DIR)/Other/$(EXE).jar
+
+lsp-jar:
+	mkdir -p out
+	sbt -DEXECUTABLE=lsp-server.jar 'set assembly / mainClass := Some("main.ServerRunner")' assembly
+	cp target/scala-3.7.2/lsp-server.jar out/lsp-server.jar
 
 test: jar
 	make coverage

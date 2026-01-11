@@ -7,7 +7,6 @@ import util.{UnreachablePatternMatch, UnreachableStateException}
 import util.{=~=, isZero}
 import cesk.CESKConst._
 import cesk.CESKState.constructErrorState
-import main.main
 
 final class CESKMachine(prog: CleanProgram):
 

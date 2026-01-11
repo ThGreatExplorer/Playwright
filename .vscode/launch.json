@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "configurations": [  
+    // {
+    //   "args": [
+    //     "--extensionDevelopmentPath=${workspaceFolder}"
+    //   ],
+    //   "name": "Launch Extension",
+    //   "outFiles": [
+    //     "${workspaceFolder}/out/**/*.js"
+    //   ],
+    //   "preLaunchTask": "npm",
+    //   "request": "launch",
+    //   "type": "extensionHost"
+    // },
+    {
+      // Shows up in the Run/Debug dropdown.
+      "name": "Launch Client",
+      // Required to start an Extension Development Host window.
+      "type": "extensionHost",
+      "request": "launch",
+      // "preLaunchTask": "npm run compile",
+      // Uses your current VS Code executable.
+      // "runtimeExecutable": "${execPath}",
+      // Points VS Code at your extension root (the package.json for the extension).
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/ts_lsp_client"
+      ],
+      // Maps compiled JS output for debugging.
+      "outFiles": [
+        "${workspaceFolder}/ts_lsp_client/out/**/*.js"
+      ]
+    }
+  ]
+}

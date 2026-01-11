@@ -11,6 +11,26 @@ lazy val root = project
     scalaVersion               := scala3Version,
     assembly / assemblyJarName := executable,
 
+    assembly / assemblyMergeStrategy := {
+      case PathList("META-INF", "versions", _, "module-info.class") =>
+        MergeStrategy.discard
+
+      case "reference.conf" =>
+        MergeStrategy.concat
+
+      case PathList("META-INF", xs @ _*) =>
+        xs.map(_.toLowerCase) match {
+          case ("manifest.mf" :: Nil)               => MergeStrategy.discard
+          case name :: Nil if name.endsWith(".sf")  => MergeStrategy.discard
+          case name :: Nil if name.endsWith(".dsa") => MergeStrategy.discard
+          case name :: Nil if name.endsWith(".rsa") => MergeStrategy.discard
+          case _                                    => MergeStrategy.first
+        }
+
+      case x =>
+        MergeStrategy.first
+    },
+
     // sbt-coverage
     coverageExcludedPackages := "sexprs",
     coverageFailOnMinimum := true,
