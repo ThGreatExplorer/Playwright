@@ -18,7 +18,6 @@ class TestLanguageServer extends LanguageServer {
   @volatile private var initializeReceived = false
   @volatile private var initializedReceived = false
   @volatile private var shutdownRequested = false
-  private val logPrefix = "[lsp-server]"
 
   /** The initialize request is sent as the first request from the client to the
     * server.
@@ -43,7 +42,7 @@ class TestLanguageServer extends LanguageServer {
   override def initialize(
       params: InitializeParams
   ): CompletableFuture[InitializeResult] = {
-    System.err.println(s"$logPrefix initialize request received")
+    ServerLogger.log("initialize request received")
     if (shutdownRequested) {
       return errorFuture(
         ResponseErrorCode.InvalidRequest.getValue,
@@ -64,7 +63,7 @@ class TestLanguageServer extends LanguageServer {
 
     // Return result
     val result = new InitializeResult(capabilities)
-    System.err.println(s"$logPrefix initialize response sent")
+    ServerLogger.log("initialize response sent")
     CompletableFuture.completedFuture(result)
   }
 
@@ -75,12 +74,12 @@ class TestLanguageServer extends LanguageServer {
     * register capabilities.
     */
   override def initialized(params: InitializedParams): Unit = {
-    System.err.println(s"$logPrefix initialized notification received")
+    ServerLogger.log("initialized notification received")
     if (!initializeReceived || initializedReceived) {
       return
     }
     initializedReceived = true
-    System.err.println(s"$logPrefix initialized state set")
+    ServerLogger.log("initialized state set")
   }
 
   /** The shutdown request is sent from the client to the server. It asks the
@@ -89,7 +88,7 @@ class TestLanguageServer extends LanguageServer {
     * that asks the server to exit.
     */
   override def shutdown(): CompletableFuture[AnyRef] = {
-    System.err.println(s"$logPrefix shutdown request received")
+    ServerLogger.log("shutdown request received")
     if (!initializeReceived) {
       return errorFuture(ResponseErrorCode.ServerNotInitialized.getValue, "Shutdown before initialize.")
     }
@@ -100,16 +99,16 @@ class TestLanguageServer extends LanguageServer {
       )
     }
     shutdownRequested = true
-    System.err.println(s"$logPrefix shutdown response sent")
+    ServerLogger.log("shutdown response sent")
     CompletableFuture.completedFuture(null)
   }
 
   /** A notification to ask the server to exit its process.
     */
   override def exit(): Unit = {
-    System.err.println(s"$logPrefix exit notification received")
+    ServerLogger.log("exit notification received")
     val exitCode = if (shutdownRequested) 0 else 1
-    System.err.println(s"$logPrefix exiting with code $exitCode")
+    ServerLogger.log(s"exiting with code $exitCode")
     System.exit(exitCode)
   }
 

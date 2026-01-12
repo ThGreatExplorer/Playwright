@@ -92,6 +92,9 @@ class TestTextDocumentService extends TextDocumentService {
   override def didOpen(params: DidOpenTextDocumentParams): Unit =
     val doc = params.getTextDocument
     openDocuments(doc.getUri) = doc
+    ServerLogger.log(
+      s"didOpen uri=${doc.getUri} version=${doc.getVersion}"
+    )
 
     // TODO: Add validation (parsing + validity checking + type-checking), this will require updating AST to track position
     // TODO: Add indexing, which will be a pass that traverses the AST that creates a map (for each symbol: variable, function, class, etc.) to ASTNode + source position with scoping? Design this appropriately
@@ -99,17 +102,49 @@ class TestTextDocumentService extends TextDocumentService {
 
   // The document change notification is sent from the client to the server to signal changes to a text document.
   override def didChange(params: DidChangeTextDocumentParams): Unit =
-    ()
+    val docId = params.getTextDocument
+    val changes = params.getContentChanges
+    if (changes != null && !changes.isEmpty) {
+      val newText = changes.get(changes.size - 1).getText
+      openDocuments.get(docId.getUri).foreach { existing =>
+        val updated = new TextDocumentItem(
+          existing.getUri,
+          existing.getLanguageId,
+          docId.getVersion,
+          newText
+        )
+        openDocuments(docId.getUri) = updated
+        ServerLogger.log(
+          s"didChange uri=${docId.getUri} version=${docId.getVersion}"
+        )
+      }
+    }
 
   // The document close notification is sent from the client to the server when the document got closed in the client.
   override def didClose(params: DidCloseTextDocumentParams): Unit =
     val uri = params.getTextDocument.getUri
     openDocuments.remove(uri)
+    ServerLogger.log(s"didClose uri=$uri")
     ()
 
   // The document save notification is sent from the client to the server when the document is saved in the client.
   override def didSave(params: DidSaveTextDocumentParams): Unit =
-    ()
+    val docId = params.getTextDocument
+    val text = params.getText
+    if (text != null) {
+      openDocuments.get(docId.getUri).foreach { existing =>
+        val updated = new TextDocumentItem(
+          existing.getUri,
+          existing.getLanguageId,
+          existing.getVersion,
+          text
+        )
+        openDocuments(docId.getUri) = updated
+        ServerLogger.log(
+          s"didSave uri=${docId.getUri} version=${existing.getVersion}"
+        )
+      }
+    }
     
   // TODO: Implement this validate text document
   private def validateTextDocument(): Unit =

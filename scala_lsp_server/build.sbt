@@ -43,6 +43,7 @@ lazy val root = project
     Wart.StringPlusAny, Wart.Any, Wart.Equals, Wart.IterableOps, Wart.MutableDataStructures,
     Wart.Nothing),
     wartremoverExcluded += baseDirectory.value / "src" / "main" / "scala" / "sexprs",
+    wartremoverExcluded += baseDirectory.value / "src" / "main" / "scala" / "server",
     libraryDependencies += "org.scalameta" %% "munit" % "1.0.0" % Test,
     libraryDependencies += "org.eclipse.lsp4j" % "org.eclipse.lsp4j" % "0.24.0",
   )

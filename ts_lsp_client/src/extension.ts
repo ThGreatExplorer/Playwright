@@ -7,6 +7,7 @@ import {
   LanguageClientOptions,
   ServerOptions,
   StreamInfo,
+  State,
   Trace,
 } from "vscode-languageclient/node";
 
@@ -16,6 +17,7 @@ let traceChannel = window.createOutputChannel("Toy LSP Trace");
 
 export function activate(context: ExtensionContext) {
   outputChannel.appendLine("[client] activating extension");
+  context.subscriptions.push(outputChannel, traceChannel);
   const serverJar = context.asAbsolutePath(
     path.join("..", "scala_lsp_server", "out", "lsp-server.jar")
   );
@@ -71,12 +73,20 @@ export function activate(context: ExtensionContext) {
   // Start the client. This will also launch the server
   outputChannel.appendLine("[client] starting language client");
   client.start();
-  client
-    .setTrace(Trace.Verbose)
-    .then(() => outputChannel.appendLine("[client] trace enabled"))
-    .catch((error) =>
-      outputChannel.appendLine(`[client] trace enable failed: ${error}`)
+  const traceDisposable = client.onDidChangeState((event) => {
+    outputChannel.appendLine(
+      `[client] state changed: ${State[event.newState]}`
     );
+    if (event.newState === State.Running) {
+      client
+        .setTrace(Trace.Verbose)
+        .then(() => outputChannel.appendLine("[client] trace enabled"))
+        .catch((error) =>
+          outputChannel.appendLine(`[client] trace enable failed: ${error}`)
+        );
+    }
+  });
+  context.subscriptions.push(traceDisposable);
 }
 
 export function deactivate(): Thenable<void> | undefined {
