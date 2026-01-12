@@ -27,6 +27,7 @@ class Lexer(reader: java.io.Reader) {
    */
   private var _currentLine: Int = 1
   private var _currentCol: Int  = 0
+  private var _lastCharWasNewLine: Boolean = false
 
   /*
    * nextChar reads the next char in the reader and convert it into a char.
@@ -54,9 +55,11 @@ class Lexer(reader: java.io.Reader) {
 
     val res = _currentChar.toChar
     if (isNewLine(res)) {
+      _lastCharWasNewLine = true
       _currentLine += 1
       _currentCol = 0
     } else {
+      _lastCharWasNewLine = false
       _currentCol += 1
     }
     res
@@ -181,7 +184,13 @@ class Lexer(reader: java.io.Reader) {
       }
     }
 
-    res.setPos(currentPosition)
+    if (res == null) null
+    else {
+      val endPosition =
+        if (_lastCharWasNewLine) Position(_currentLine, _currentCol)
+        else Position(_currentLine, _currentCol + 1)
+      res.setRange(currentPosition, endPosition)
+    }
   }
 
   /*

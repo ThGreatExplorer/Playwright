@@ -1,7 +1,7 @@
 package test
 
 import munit.FunSuite
-import main.MainFuncs
+import main.BackendFuncs
 import ast._
 import ast.ValidityErrNodes._
 import ast.ConverterToClean.progToClean
@@ -33,7 +33,7 @@ class ValidityTest extends FunSuite {
             val progType = if isErrExpected then "Well-formed Invalid" else "Well-formed Valid"
             val testName = s"$progType Prog: validity pipeline for input: $inputStr"
             test(testName) {
-                val inputSexp = MainFuncs.readSexp(inputStr)
+                val inputSexp = BackendFuncs.readSexp(inputStr)
 
                 val pipeRes = 
                     for 
@@ -59,7 +59,7 @@ class ValidityTest extends FunSuite {
             val progType = if isErrExpected then "Well-formed Invalid" else "Well-formed Valid"
             val testName = s"$progType System: validity pipeline for input: $inputStr"
             test(testName){
-                val inputSexp = MainFuncs.readSexp(inputStr)
+                val inputSexp = BackendFuncs.readSexp(inputStr)
 
                 val pipeRes = 
                     for 

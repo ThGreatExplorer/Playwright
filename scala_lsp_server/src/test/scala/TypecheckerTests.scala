@@ -1,6 +1,6 @@
 package test
 
-import main.MainFuncs
+import main.BackendFuncs
 import static._
 import ast._
 import munit.FunSuite
@@ -12,7 +12,7 @@ class TypecheckerTests extends FunSuite {
   TypecheckerTests.testCases.zip(TypecheckerTests.expectedTestCaseResults)foreach{ 
     case (inputStr, WE.Node(System(expectedMods, expectedImps, expectedProgB, _))) =>
       test(inputStr) {
-        val inputSexp = MainFuncs.readSexp(inputStr)  
+        val inputSexp = BackendFuncs.readSexp(inputStr)  
         val pipeRes =         
           for 
             parsedProg <- rawSystemToClean(Parser.parseTypedSys(inputSexp))

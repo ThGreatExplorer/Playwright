@@ -13,21 +13,28 @@ case class Position(line: Int, col: Int) extends Ordered[Position] {
 
 }
 
-trait Positioned {
+case class Range(start: Position, end: Position)
 
-  private var _pos: Option[Position] = None
+trait Ranged {
 
-  def setPos(pos: Position): this.type = {
-    _pos = Some(pos)
+  private var _range: Option[Range] = None
+
+  def setRange(start: Position, end: Position): this.type = {
+    _range = Some(Range(start, end))
     this
   }
 
-  def setPos(that: Positioned): this.type = {
-    _pos = Some(that.getPos)
+  def setRange(range: Range): this.type = {
+    _range = Some(range)
     this
   }
 
-  def getPos: Position = {
-    _pos.get
+  def setRange(that: Ranged): this.type = {
+    _range = Some(that.getRange)
+    this
+  }
+
+  def getRange: Range = {
+    _range.get
   }
 }

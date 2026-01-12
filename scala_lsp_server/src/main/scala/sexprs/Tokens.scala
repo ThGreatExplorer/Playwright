@@ -2,7 +2,7 @@ package sexprs
 
 object Tokens {
 
-  sealed trait Token extends Positioned
+  sealed trait Token extends Ranged
 
   /*
    * Need to be case class since each instance is different because of their positions

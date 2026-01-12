@@ -1,7 +1,7 @@
 package test
 
 import munit.FunSuite
-import main.MainFuncs
+import main.BackendFuncs
 import static.Parser
 import ast._
 import ast.ParseErrNodes._
@@ -11,19 +11,19 @@ import ast.ConverterToClean.rawSystemToClean
 class ParserTests extends FunSuite {
   
   def processTypedSysParse(input : String) : (RawSystemWE, Boolean) =
-    val inputSexp = MainFuncs.readSexp(input);
+    val inputSexp = BackendFuncs.readSexp(input);
     val system    = Parser.parseTypedSys(inputSexp); 
     val hasError  = rawSystemToClean(system).isEmpty;
     (system, hasError)
 
   def processProgParse(input : String) : (ProgramWE, Boolean) = 
-    val inputSexp = MainFuncs.readSexp(input);
+    val inputSexp = BackendFuncs.readSexp(input);
     val prog      = Parser.parseProg(inputSexp); 
     val hasError  = progToClean(prog).isEmpty;
     (prog, hasError)
 
   def processSysParse(input : String) : (RawSystemWE, Boolean) = 
-    val inputSexp = MainFuncs.readSexp(input);
+    val inputSexp = BackendFuncs.readSexp(input);
     val system    = Parser.parseMixedSys(inputSexp); 
     val hasError  = rawSystemToClean(system).isEmpty;
     (system, hasError)

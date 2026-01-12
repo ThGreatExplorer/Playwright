@@ -63,11 +63,14 @@ class Parser(lexer: Lexer) {
           val buffer = new scala.collection.mutable.ListBuffer[SExpr]
           while (peekToken != CParen()) {
             if (peekToken == null)
-              throw new EOFBeforeMatchingParenthesisException(tok.getPos)
+              throw new EOFBeforeMatchingParenthesisException(tok.getRange.start)
             buffer.append(this.parse)
           }
-          eat(CParen())
-          SList(buffer.toList)
+          val closeTok = nextToken
+          assert(closeTok == CParen())
+          val list = SList(buffer.toList)
+          list.setRange(tok.getRange.start, closeTok.getRange.end)
+          list
         }
         case IntLit(d)    => SInt(d)
         case StringLit(s) => SString(s)
@@ -80,9 +83,12 @@ class Parser(lexer: Lexer) {
           }
         case QualifiedSymbol(o, s) => SQualifiedSymbol(o.map(SSymbol.apply), SSymbol(s))
         case DoubleLit(d)          => SDouble(d)
-        case CParen()              => throw new UnexpectedTokenException(CParen(), tok.getPos)
+        case CParen()              => throw new UnexpectedTokenException(CParen(), tok.getRange.start)
       }
-      expr.setPos(tok)
+      if (tok != OParen()) {
+        expr.setRange(tok.getRange)
+      }
+      expr
     }
   }
 

@@ -3,7 +3,7 @@ package test
 package test
 
 import munit.FunSuite
-import main.MainFuncs
+import main.BackendFuncs
 import static.Parser
 import ast._
 import ast.ConverterToClean.progToClean
@@ -24,7 +24,7 @@ class RunnerTests extends FunSuite {
       """
 
     test("Debug launch") {
-        val inputSexp = MainFuncs.readSexp(input)
+        val inputSexp = BackendFuncs.readSexp(input)
         val result    = runnerFun(inputSexp)
         val outString = result.outputString
         assertEquals(outString, "413.0")

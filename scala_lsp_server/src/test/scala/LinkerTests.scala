@@ -5,7 +5,7 @@ import ast.ConverterToClean.{rawSystemToClean, systemToClean}
 import static.Parser
 import static.{VCheckTLDups, VCheckMFPNameDups, VCheckUndefined}
 import static.ModuleData
-import main.MainFuncs
+import main.BackendFuncs
 import main.AssignmentRunner
 import linker.{SystemToClassLinker, ModuleDependency}
 
@@ -18,7 +18,7 @@ class LinkerTests extends FunSuite {
   
     case (inputStr, (expectedDepGraph, expectedAST)) =>
       test(inputStr) {
-        val inputSexp = MainFuncs.readSexp(inputStr)  
+        val inputSexp = BackendFuncs.readSexp(inputStr)  
         val pipeRes =         
           for 
             parsedProg <- rawSystemToClean(Parser.parseMixedSys(inputSexp))

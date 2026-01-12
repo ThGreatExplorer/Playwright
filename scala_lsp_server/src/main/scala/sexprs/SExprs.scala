@@ -4,7 +4,7 @@ import annotation.tailrec
 
 object SExprs {
 
-  sealed trait SExpr extends Positioned
+  sealed trait SExpr extends Ranged
 
   case class SList(sexprs: List[SExpr]) extends SExpr
   object SList {
