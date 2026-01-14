@@ -1,7 +1,8 @@
-package test
+package test.backend
 
 import munit.FunSuite
 import ast._
+import test.backend.AstRangeDefaults.*
 import static.ModuleData
 import linker._
  import util.getMDNames

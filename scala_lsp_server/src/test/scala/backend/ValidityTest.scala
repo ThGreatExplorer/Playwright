@@ -1,8 +1,9 @@
-package test
+package test.backend
 
 import munit.FunSuite
 import main.BackendFuncs
 import ast._
+import test.backend.AstRangeDefaults.*
 import ast.ValidityErrNodes._
 import ast.ConverterToClean.progToClean
 import static.Parser

@@ -1,9 +1,10 @@
-package test
+package test.backend
 
 import munit.FunSuite
 import main.BackendFuncs
 import static.Parser
 import ast._
+import test.backend.AstRangeDefaults.*
 import ast.ConverterToClean.progToClean
 import main.AssignmentRunner._
 import main._

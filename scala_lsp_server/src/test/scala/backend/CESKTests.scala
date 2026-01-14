@@ -1,7 +1,8 @@
-package test
+package test.backend
 
 import munit.FunSuite
 import ast._
+import test.backend.AstRangeDefaults.*
 import util.{UnreachableStateException, UnreachablePatternMatch}
 import cesk.{CESKMachine, Store, Env, KontStack, ProgFrame, RuntimeError}
 import cesk.{CESKValue, ProxyVal, ObjectVal}

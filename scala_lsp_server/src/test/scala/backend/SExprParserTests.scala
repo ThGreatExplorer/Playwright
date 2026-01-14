@@ -1,4 +1,4 @@
-package test
+package test.backend
 
 import munit.FunSuite
 import sexprs.{Parser, Position, Range}

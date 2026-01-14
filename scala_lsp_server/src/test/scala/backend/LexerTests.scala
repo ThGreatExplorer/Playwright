@@ -1,7 +1,7 @@
 // For more information on writing tests, see
 // https://scalameta.org/munit/docs/getting-started.html
 
-package test
+package test.backend
 
 import munit.FunSuite
 import sexprs.Tokens._
