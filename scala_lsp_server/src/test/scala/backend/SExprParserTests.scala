@@ -1,5 +1,7 @@
 package test.backend
 
+import test.backend.AstRangeDefaults.*
+
 import munit.FunSuite
 import sexprs.{Parser, Position, Range}
 import sexprs.SExprs._

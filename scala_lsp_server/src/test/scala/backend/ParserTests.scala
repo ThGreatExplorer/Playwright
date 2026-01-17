@@ -138,7 +138,7 @@ object ParserTests:
             expr = WE.Node(Expr.Num(4.0))
           )
         ))
-      )
+      , DummyRange)
   )
 )
 
@@ -161,7 +161,7 @@ object ParserTests:
             expr = WE.Node(Expr.Num(4.0))
           )
         ))
-      )
+      , DummyRange)
     ),
     (
       """(
@@ -254,7 +254,7 @@ object ParserTests:
             expr = WE.Node(Expr.Num(4.0))
           )
         ))
-      )
+      , DummyRange)
     )
   )
 
@@ -272,7 +272,7 @@ object ParserTests:
           ))),
           expr = WE.Node(Expr.Var(WE.Node("bar")))
         ))
-      ))
+      ), DummyRange)
     ),
     (
       """(
@@ -387,7 +387,7 @@ object ParserTests:
             )
           )
         ))
-      )
+      , DummyRange)
     ),
     (
       """(
@@ -431,7 +431,7 @@ object ParserTests:
             expr = WE.Node(Expr.Num(4.0))
           )
         ))
-      )
+      , DummyRange)
     )
   )
 
@@ -478,7 +478,7 @@ object ParserTests:
             expr = WE.Node(Expr.Num(4.0))
           )
         ))
-      )
+      , DummyRange)
     )
   )
 
@@ -495,7 +495,7 @@ object ParserTests:
           ))),
           expr = WE.Node(Expr.Var(WE.Node("bar")))
         ))
-      ))
+      ), DummyRange)
     ),
     (
       """((if0 bar (block (baz = 1.0)) (block (qux = -2.3))) foo)""",
@@ -527,7 +527,7 @@ object ParserTests:
             )
           )),
           expr = WE.Node(Expr.Var(WE.Node("foo")))
-        ))))
+        ))), DummyRange)
     ),
     (
       """((while0 10.0 (block (foo = 10.0) (bar = -5.5))) (foo == bar))""",
@@ -558,7 +558,7 @@ object ParserTests:
             BinOp.Equals, 
             WE.Node("bar")
           )))
-      )))
+      )), DummyRange)
     ),
     (
       """((foo = (bar + baz)) (if0 qux (block (baz = 1.0)) (block (foo = -0.5))) bar)""",
@@ -599,7 +599,7 @@ object ParserTests:
           ),
           expr = WE.Node(Expr.Var(WE.Node("bar")))
         )
-      )))
+      )), DummyRange)
     ),
     (
       """(
@@ -706,7 +706,7 @@ object ParserTests:
             )
           )
         ))
-      )
+      , DummyRange)
     ), 
   )
 
@@ -733,7 +733,7 @@ object ParserTests:
             WE.Err(StmtMalformed)
           ),
           expr = WE.Err(ExprMalformed) )
-      )))
+      )), DummyRange)
     ),
     (
       """
@@ -747,7 +747,7 @@ object ParserTests:
             WE.Err(AssignRhsMalformed)
           ),
           expr = WE.Node(Expr.Var(WE.Err(NameIsKeyword))))
-      )))
+      )), DummyRange)
     ),
     (
       "()",
@@ -774,7 +774,7 @@ object ParserTests:
             WE.Node("x"),
             BinOp.Add,
             WE.Node("y"))))
-      )))
+      )), DummyRange)
     ),
     (
       """((while0 10.0 (block )) (foo == bar))""",
@@ -793,7 +793,7 @@ object ParserTests:
             BinOp.Equals, 
             WE.Node("bar")
           ))
-      ))))
+      ))), DummyRange)
     ),
     (
       "a",
@@ -807,7 +807,7 @@ object ParserTests:
           decls = List(),
           stmts = List(),
           expr = WE.Err(ExprBadOperand))
-      )))
+      )), DummyRange)
     ),
     (
       "((1.0 == 1.0))",
@@ -821,7 +821,7 @@ object ParserTests:
             BinOp.Equals,
             WE.Err(NotAName)
           )))
-      )))
+      )), DummyRange)
     ),
     (
       "((def x 1.0) (x = 0.0) (def y x) y)",
@@ -843,7 +843,7 @@ object ParserTests:
           ),
           expr = WE.Node(Expr.Var(WE.Node("y")))
         )
-      )))
+      )), DummyRange)
     ),
     (
       """((def x 0.0) (while0 x (x + 1.0)) (foo == bar))""",
@@ -868,7 +868,7 @@ object ParserTests:
             BinOp.Equals, 
             WE.Node("bar")
           )))
-      )))
+      )), DummyRange)
     ),
     (
       "((while0 0.3 (block (def x -3.0))) 1.0)",
@@ -884,7 +884,7 @@ object ParserTests:
           ),
           expr = WE.Node(Expr.Num(1.0))
         )
-      )))
+      )), DummyRange)
     ),
     (
       "((while0 ) 1.0)",
@@ -897,7 +897,7 @@ object ParserTests:
           ),
           expr = WE.Node(Expr.Num(1.0))
         )
-      )))
+      )), DummyRange)
     ),
     (
       """(
@@ -933,7 +933,7 @@ object ParserTests:
             )
           )
         ))
-      )
+      , DummyRange)
     ),
     (
       """
@@ -1032,7 +1032,7 @@ object ParserTests:
             )
           )
        ))
-      )
+      , DummyRange)
     ),
     (
       """
@@ -1060,6 +1060,6 @@ object ParserTests:
             stmts = List(),
             expr = WE.Node(Expr.Num(2.0)))
        ))
-      )
+      , DummyRange)
     )
   )

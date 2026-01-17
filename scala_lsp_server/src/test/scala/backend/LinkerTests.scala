@@ -1,5 +1,7 @@
 package test.backend
 
+import test.backend.AstRangeDefaults.DummyRange
+
 import munit.FunSuite
 import ast.ConverterToClean.{rawSystemToClean, systemToClean}
 import static.Parser
@@ -31,7 +33,7 @@ class LinkerTests extends FunSuite {
 
         pipeRes match
           case None => throw new Exception("Passed invalid test case for Linker")
-          case Some(sys @ ast.System(modules, imports, progb, _)) =>
+          case Some(sys @ ast.System(modules, imports, progb, _, _)) =>
             val baseModule = SystemToClassLinker.generateTopLevelModule(modules, imports)
             val renamedSys = SystemToClassLinker.renameClassesUsingDependencyGraph(sys)
             assertEquals(baseModule.toString().strip(), expectedDepGraph.strip())
