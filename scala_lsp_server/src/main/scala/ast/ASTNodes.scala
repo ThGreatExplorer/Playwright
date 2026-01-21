@@ -14,6 +14,7 @@
  *****************************************************************************/
 
 package ast
+import sexprs.Range
 import static.ModuleData
 
 type Clean[+A] = A
@@ -31,7 +32,8 @@ enum WE[+A]:
 final case class RawSystem[Node[_]](
     modules: List[Node[Module[Node]]],
     imports: List[Node[Import[Node]]],
-    progb:   Node[ProgBlock[Node]]
+    progb:   Node[ProgBlock[Node]],
+    range:   Range
 )
 type CleanRawSystem = Clean[RawSystem[Clean]]
 type RawSystemWE    = WE[RawSystem[WE]]
@@ -43,7 +45,8 @@ final case class System[Node[_]](
     progb:   Node[ProgBlock[Node]],
     // Map for quick global look ups of Module-related Data, helps to avoid rediscovering
     // module-class name-type association as well as scoped information 
-    moddata: ModuleData
+    moddata: ModuleData,
+    range:   Range
 )
 type CleanSystem = Clean[System[Clean]]
 type SystemWE    = WE[System[WE]]
@@ -54,12 +57,13 @@ type SystemWE    = WE[System[WE]]
 final case class Module[Node[_]](
     mname: Node[Name],
     imports: List[Node[Import[Node]]], 
-    clas: Node[Class[Node]]
+    clas: Node[Class[Node]],
+    range: Range
 )
 
 extension (m: CleanModule)
     def isTyped: Boolean = m match
-        case Module(_, _, Class(_, _, _, shape)) => 
+        case Module(_, _, Class(_, _, _, shape, _), _) => 
             shape.isDefined
 
 type CleanModule = Clean[Module[Clean]]
@@ -68,8 +72,8 @@ type ModuleWE    = WE[Module[WE]]
 //  MixedImport ::= (import ModuleName)
 //          | (timport ModuleName Shape)
 enum Import[Node[_]]:
-    case Untyped(mname: Node[Name]) 
-    case Typed  (mname: Node[Name], shape: Node[Type.Shape[Node]])
+    case Untyped(mname: Node[Name], range: Range) 
+    case Typed  (mname: Node[Name], shape: Node[Type.Shape[Node]], range: Range)
 type CleanImport = Clean[Import[Clean]]
 type ImportWE    = WE[Import[WE]]
 
@@ -79,8 +83,8 @@ type UntypedImportWE    = WE[Import.Untyped[WE]]
 // Import utils
 extension (imported: Clean[Import[Clean]])
     def importedModName: String = imported match
-        case Import.Typed(mname, _) => mname
-        case Import.Untyped(mname) => mname
+        case Import.Typed(mname, _, _) => mname
+        case Import.Untyped(mname, _) => mname
 
 /******************************************************************************
   Class AST
@@ -89,7 +93,8 @@ extension (imported: Clean[Import[Clean]])
 // Program     ::= (Class^* Declaration^* Statement^* Expression)
 final case class Program[Node[_]](
     clss:  List[Node[Class[Node]]],
-    progb: Node[ProgBlock[Node]]
+    progb: Node[ProgBlock[Node]],
+    range: Range
 )
 
 type CleanProgram = Clean[Program[Clean]]
@@ -100,7 +105,8 @@ final case class Class[Node[_]](
     cname:   Node[Name], 
     fields:  List[Node[Name]], 
     methods: List[Node[Method[Node]]],
-    shape: Option[Node[Type.Shape[Node]]]
+    shape: Option[Node[Type.Shape[Node]]],
+    range: Range
 )
 
 type CleanClass = Clean[Class[Clean]]
@@ -111,7 +117,8 @@ type ClassWE    = WE[Class[WE]]
 final case class Method[Node[_]](
     mname:  Node[Name], 
     params: List[Node[Name]], 
-    progb:  Node[ProgBlock[Node]]
+    progb:  Node[ProgBlock[Node]],
+    range:  Range
 )
 
 type CleanMethod = Clean[Method[Clean]]
@@ -126,7 +133,8 @@ type MethodWE    = WE[Method[WE]]
 final case class ProgBlock[Node[_]](
     decls: List[Node[Decl[Node]]], 
     stmts: List[Node[Stmt[Node]]], 
-    expr:  Node[Expr[Node]]
+    expr:  Node[Expr[Node]],
+    range: Range
 )
 
 type CleanProgBlock = Clean[ProgBlock[Clean]]
@@ -135,7 +143,8 @@ type ProgBlockWE    = WE[ProgBlock[WE]]
 // Declaration ::= (def Variable Expression)
 final case class Decl[Node[_]](
     varDecl: Node[Name],
-    rhs: Node[Expr[Node]]
+    rhs: Node[Expr[Node]],
+    range: Range
 )
 
 type CleanDecl = Clean[Decl[Clean]]
@@ -146,10 +155,10 @@ type DeclWE    = WE[Decl[WE]]
 //                | (while0 Expression Block)
 //                | (Variable --> FieldName = Expression)
 enum Stmt[Node[_]]:
-    case Assign(lhs: Node[VarRef], rhs: Node[Expr[Node]])
-    case Ifelse(guard: Node[Expr[Node]], tbranch: Node[StmtBlock[Node]], ebranch: Node[StmtBlock[Node]])
-    case While(guard: Node[Expr[Node]], body: Node[StmtBlock[Node]])
-    case FieldAssign(instance: Node[VarRef], field: Node[Name], rhs: Node[Expr[Node]])
+    case Assign(lhs: Node[VarRef], rhs: Node[Expr[Node]], range: Range)
+    case Ifelse(guard: Node[Expr[Node]], tbranch: Node[StmtBlock[Node]], ebranch: Node[StmtBlock[Node]], range: Range)
+    case While(guard: Node[Expr[Node]], body: Node[StmtBlock[Node]], range: Range)
+    case FieldAssign(instance: Node[VarRef], field: Node[Name], rhs: Node[Expr[Node]], range: Range)
 
 type CleanStmt = Clean[Stmt[Clean]]
 type StmtWE    = WE[Stmt[WE]]
@@ -157,10 +166,11 @@ type StmtWE    = WE[Stmt[WE]]
 //   Block      ::= Statement
 //                | (block Declaration^* Statement^+)
 enum StmtBlock[Node[_]]:
-    case One(stmt: Node[Stmt[Node]])
+    case One(stmt: Node[Stmt[Node]], range: Range)
     case Many(
         decls: List[Node[Decl[Node]]], 
-        stmts: List[Node[Stmt[Node]]]
+        stmts: List[Node[Stmt[Node]]],
+        range: Range
     )
 
 type CleanStmtBlock = Clean[StmtBlock[Clean]]
@@ -176,13 +186,13 @@ type StmtBlockWE    = WE[StmtBlock[WE]]
 //                | (Variable --> MethodName (Variable^*))
 //                | (Variable isa ClassName)
 enum Expr[Node[_]]:
-    case Num(n: NumVal)
-    case Var(x: Node[VarRef])
-    case BinOpExpr(lhs: Node[VarRef], op: BinOp, rhs: Node[VarRef])
-    case NewInstance(cname: Node[Name], args: List[Node[VarRef]])
-    case GetField(instance: Node[VarRef], field: Node[Name])
-    case CallMethod(instance: Node[VarRef], method: Node[Name], args: List[Node[VarRef]])
-    case IsInstanceOf(instance: Node[VarRef], cname: Node[Name])
+    case Num(n: NumVal, range: Range)
+    case Var(x: Node[VarRef], range: Range)
+    case BinOpExpr(lhs: Node[VarRef], op: BinOp, rhs: Node[VarRef], range: Range)
+    case NewInstance(cname: Node[Name], args: List[Node[VarRef]], range: Range)
+    case GetField(instance: Node[VarRef], field: Node[Name], range: Range)
+    case CallMethod(instance: Node[VarRef], method: Node[Name], args: List[Node[VarRef]], range: Range)
+    case IsInstanceOf(instance: Node[VarRef], cname: Node[Name], range: Range)
 
 enum BinOp:
     case Add, Div, Equals

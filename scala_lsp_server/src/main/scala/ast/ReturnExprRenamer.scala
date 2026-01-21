@@ -13,33 +13,36 @@ object ExprRenamer:
         vars.map(originalName => (originalName, uniquifyName(originalName))).toMap
 
     def getAllVars(e : CleanExpr) : Set[String] = e match
-        case Expr.Num(n) => Set()
+        case Expr.Num(_, _) => Set()
             
-        case Expr.Var(x) => Set(x)
+        case Expr.Var(x, _) => Set(x)
             
-        case Expr.BinOpExpr(lhs, op, rhs) => Set(lhs, rhs) 
+        case Expr.BinOpExpr(lhs, _, rhs, _) => Set(lhs, rhs) 
             
-        case Expr.NewInstance(cname, args) => args.toSet
+        case Expr.NewInstance(_, args, _) => args.toSet
 
-        case Expr.GetField(instance, field) => Set(instance)
+        case Expr.GetField(instance, _, _) => Set(instance)
             
-        case Expr.CallMethod(instance, method, args) => args.toSet.incl(instance)
+        case Expr.CallMethod(instance, _, args, _) => args.toSet.incl(instance)
             
-        case Expr.IsInstanceOf(instance, cname) => Set(instance)
+        case Expr.IsInstanceOf(instance, _, _) => Set(instance)
 
     def renameVars(e : CleanExpr, renameMap : Map[String, String]) : CleanExpr = e match
-        case Expr.Num(n) => Expr.Num(n)
+        case Expr.Num(n, range) => Expr.Num(n, range)
             
-        case Expr.Var(x) => Expr.Var(renameMap(x))
+        case Expr.Var(x, range) => Expr.Var(renameMap(x), range)
             
-        case Expr.BinOpExpr(lhs, op, rhs) => Expr.BinOpExpr(renameMap(lhs), op, renameMap(rhs))
+        case Expr.BinOpExpr(lhs, op, rhs, range) =>
+            Expr.BinOpExpr(renameMap(lhs), op, renameMap(rhs), range)
             
-        case Expr.NewInstance(cname, args) => Expr.NewInstance(cname, args.map(renameMap(_)))
+        case Expr.NewInstance(cname, args, range) =>
+            Expr.NewInstance(cname, args.map(renameMap(_)), range)
 
-        case Expr.GetField(instance, field) => Expr.GetField(renameMap(instance), field)
+        case Expr.GetField(instance, field, range) =>
+            Expr.GetField(renameMap(instance), field, range)
             
-        case Expr.CallMethod(instance, method, args) => 
-            Expr.CallMethod(renameMap(instance), method, args.map(renameMap(_)))
+        case Expr.CallMethod(instance, method, args, range) =>
+            Expr.CallMethod(renameMap(instance), method, args.map(renameMap(_)), range)
             
-        case Expr.IsInstanceOf(instance, cname) => 
-            Expr.IsInstanceOf(renameMap(instance), cname)
+        case Expr.IsInstanceOf(instance, cname, range) =>
+            Expr.IsInstanceOf(renameMap(instance), cname, range)

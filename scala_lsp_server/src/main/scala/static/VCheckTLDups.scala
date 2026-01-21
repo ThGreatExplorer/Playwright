@@ -11,11 +11,12 @@ object VCheckTLDups:
     // Module Valididty
 
     def moduleDupsSys(s: CleanRawSystem): RawSystemWE = s match
-        case RawSystem(modules, imports, progb) => 
+        case RawSystem(modules, imports, progb, range) => 
             WE.Node(RawSystem(
                 moduleDupsModules(modules),
                 imports.map(importToWE),
-                progBlockToWE(progb)
+                progBlockToWE(progb),
+                range
             ))
 
     def moduleDupsModules(modules: List[CleanModule]): List[ModuleWE] =  
@@ -24,21 +25,23 @@ object VCheckTLDups:
         val modulesAndNamesWE = modules.zip(moduleNamesWE) 
 
         modulesAndNamesWE.map{ 
-            case (Module(_, imports, clas), mnameWE) => 
+            case (Module(_, imports, clas, range), mnameWE) => 
                 WE.Node(Module(
                     mnameWE,
                     imports.map(importToWE),
                     classToWE(clas),
+                    range
                 ))
         }
 
     // Class Valididty (for backward compability with Assignment 7: Class)
 
     def classDupsProg(p: CleanProgram): ProgramWE = p match
-        case Program(classes, progb) => 
+        case Program(classes, progb, range) => 
             WE.Node(Program(
                 classDupsClasses(classes),
-                progBlockToWE(progb)
+                progBlockToWE(progb),
+                range
             ))
 
     def classDupsClasses(clss: List[CleanClass]): List[ClassWE] =  
@@ -47,11 +50,12 @@ object VCheckTLDups:
         val clssAndNamesWE = clss.zip(classNamesWE) 
 
         clssAndNamesWE.map{ 
-            case (Class(_, fields, methods, shape), cnameWE) => 
+            case (Class(_, fields, methods, shape, range), cnameWE) => 
                 WE.Node(Class(
                     cnameWE,
                     fields.map(WE.Node(_)),
                     methods.map(methodToWE),
-                    optionalShapeToWE(shape)
+                    optionalShapeToWE(shape),
+                    range
                 ))
         }

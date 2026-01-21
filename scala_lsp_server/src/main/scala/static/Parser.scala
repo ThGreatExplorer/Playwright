@@ -5,12 +5,18 @@ import annotation.tailrec
 import ast._
 import ast.ParseErrNodes._
 import sexprs.SExprs._
+import sexprs.Range
 import util.ExampleKeyword as Keyword
 import util.ExampleKeyword.isKeyword
 import util.{NumTypeLit, takeWhileKWPrefixes}
 import java.awt.RenderingHints.Key
 
 object Parser:
+    private def rangeOf(sexp: SExpr): Range =
+        sexp.getRange
+
+    private def rangeSpan(sexprs: List[SExpr]): Range =
+        Range(sexprs.head.getRange.start, sexprs.last.getRange.end)
 
     /** Parses the given sexpr into a System AST to the best of its ability.
       * If grammar is invalid, an error node is inserted instead.
@@ -27,7 +33,8 @@ object Parser:
             WE.Node(RawSystem(
                 modules.map(parseMixedModule),
                 imports.map(parseMixedImport),
-                parseProgBlock(rest1)
+                parseProgBlock(rest1),
+                rangeOf(sexpr)
             ))
         case _ => WE.Err(SystemNotAList)
 
@@ -41,7 +48,8 @@ object Parser:
             WE.Node(RawSystem(
                 tmodules.map(parseMixedModule).map(errIfUntypedMod),
                 imports.map(parseMixedImport),
-                parseProgBlock(rest1)
+                parseProgBlock(rest1),
+                rangeOf(sexpr)
             ))
         case _ => WE.Err(SystemNotAList)
 
@@ -59,7 +67,8 @@ object Parser:
             val (classes, rest) = elems.takeWhileKWPrefixes(Keyword.Class)
             WE.Node(Program(
                 classes.map(parseClass(_, None)),
-                parseProgBlock(rest)
+                parseProgBlock(rest),
+                rangeOf(sexpr)
             ))
 
         case _ => WE.Err(ProgNotAList)
@@ -77,6 +86,7 @@ object Parser:
                         parseModuleName(moduleName),
                         imports.map(parseMixedImport),
                         parseClass(clss, Some(parseShape(shape))),
+                        rangeOf(sexp)
                     ))
                 case _ => WE.Err(ModuleMalformed) 
         case SList(SSymbol(Keyword.Module.value) :: moduleName :: rest0) =>
@@ -88,32 +98,34 @@ object Parser:
                     WE.Node(Module(
                         parseModuleName(moduleName),
                         imports.map(parseUntypedImport),
-                        parseClass(clss, None)
+                        parseClass(clss, None),
+                        rangeOf(sexp)
                     ))
                 case _ => WE.Err(ModuleMalformed)
         case _ => WE.Err(ModuleMalformed)
 
     // Special helper for A9. Only considers typed modules as well-formed
     def errIfUntypedMod(mod: ModuleWE) : ModuleWE = mod match
-        case WE.Node(Module(_, _, WE.Node(Class(cname, fields, methods, None)))) => WE.Err(ModuleMalformed) 
-        case typedMod @ WE.Node(Module(_, _, WE.Node(Class(cname, fields, methods, Some(shape))))) => typedMod
+        case WE.Node(Module(_, _, WE.Node(Class(cname, fields, methods, None, _)), _)) => WE.Err(ModuleMalformed) 
+        case typedMod @ WE.Node(Module(_, _, WE.Node(Class(cname, fields, methods, Some(shape), _)), _)) => typedMod
         case e => e
 
     def parseMixedImport(sexp: SExpr): ImportWE = sexp match
         //  Import ::= (import ModuleName)
         case SList(SSymbol(Keyword.Import.value) :: importName :: Nil) =>
-            WE.Node(Import.Untyped(parseName(importName)))
+            WE.Node(Import.Untyped(parseName(importName), rangeOf(sexp)))
         case SList(SSymbol(Keyword.TImport.value) :: importName :: shape :: Nil) =>
             WE.Node(Import.Typed(
                 parseName(importName),
-                parseShape(shape)
+                parseShape(shape),
+                rangeOf(sexp)
             ))
         case _ =>
             WE.Err(ImportMalformed)
     
     def parseUntypedImport(sexp: SExpr): WE[Import.Untyped[WE]] = sexp match
         case SList(SSymbol(Keyword.Import.value) :: importName :: Nil) =>
-            WE.Node(Import.Untyped(parseName(importName)))
+            WE.Node(Import.Untyped(parseName(importName), rangeOf(sexp)))
         case _ =>
             WE.Err(ImportMalformed)
     
@@ -121,7 +133,7 @@ object Parser:
     // Type helpers
 
     def parseType(sexp: SExpr): TypeWE = sexp match
-        case SSymbol(NumTypeLit) => WE.Node(Type.Number())
+        case SSymbol(NumTypeLit) => WE.Node(Type.Number(rangeOf(sexp)))
         case _                   => parseShape(sexp)
 
     def parseShape(sexp: SExpr): ShapeTypeWE = sexp match
@@ -129,6 +141,7 @@ object Parser:
             WE.Node(Type.Shape(
                 fieldTypes.map(parseFieldType),
                 methodTypes.map(parseMethodType),
+                rangeOf(sexp)
             ))
         case _ => WE.Err(ShapeMalformed)
     
@@ -136,7 +149,8 @@ object Parser:
         case SList(fname :: fType :: Nil) => 
             WE.Node(FieldType(
                 parseName(fname),
-                parseType(fType)
+                parseType(fType),
+                rangeOf(sexp)
             ))
         case _ => WE.Err(FieldTypeMalformed)
     
@@ -145,7 +159,8 @@ object Parser:
             WE.Node(MethodType(
                 parseName(mname),
                 paramTypes.map(parseType),
-                parseType(returnType)
+                parseType(returnType),
+                rangeOf(sexp)
             ))
         case _ => WE.Err(MethodTypeMalformed)
 
@@ -158,7 +173,8 @@ object Parser:
                 parseName(className),
                 fieldnames.map(parseName),
                 methods.map(parseMethod),
-                shape
+                shape,
+                rangeOf(sexp)
             ))
         case _ => WE.Err(ClassMalformed)
 
@@ -168,7 +184,8 @@ object Parser:
             WE.Node(Method(
                 parseName(methodName),
                 params.map(parseName),
-                parseProgBlock(rest)
+                parseProgBlock(rest),
+                rangeOf(sexp)
             ))
         case _ => WE.Err(MethodMalformed)
 
@@ -183,7 +200,8 @@ object Parser:
                 WE.Node(ProgBlock(
                     decls.map(parseDecl),
                     stmts.map(parseStmt),
-                    parseExpr(expr)
+                    parseExpr(expr),
+                    rangeSpan(sexprs)
                 ))
             case _ =>  WE.Err(ProgBlockNoExpr)
 
@@ -192,7 +210,8 @@ object Parser:
         case SList(SSymbol(Keyword.Def.value) :: lhs :: rhs :: Nil) =>
             WE.Node(Decl(
                 parseName(lhs),
-                parseExpr(rhs)
+                parseExpr(rhs),
+                rangeOf(sexp)
             ))
         case _ => WE.Err(DeclMalformed)
 
@@ -204,7 +223,8 @@ object Parser:
         case SList(name :: SSymbol(Keyword.Assign.value) :: expr :: Nil) =>
             WE.Node(Stmt.Assign(
                 parseVarRef(name), 
-                parseExpr(expr)
+                parseExpr(expr),
+                rangeOf(sexpr)
             ))
         case SList(name :: SSymbol(Keyword.Assign.value) :: _) =>
             WE.Err(AssignRhsMalformed)
@@ -214,7 +234,8 @@ object Parser:
             WE.Node(Stmt.Ifelse(
                 parseExpr(grd),
                 parseBlock(thn),
-                parseBlock(els)
+                parseBlock(els),
+                rangeOf(sexpr)
             ))
         case SList(SSymbol(Keyword.If.value) :: _) =>
             WE.Err(IfelseMalformed)
@@ -223,7 +244,8 @@ object Parser:
         case SList(SSymbol(Keyword.While.value) :: grd :: body :: Nil) =>
             WE.Node(Stmt.While(
                 parseExpr(grd),
-                parseBlock(body)
+                parseBlock(body),
+                rangeOf(sexpr)
             ))
         case SList(SSymbol(Keyword.While.value) :: _) =>
             WE.Err(WhileMalformed)
@@ -233,7 +255,8 @@ object Parser:
             WE.Node(Stmt.FieldAssign(
                 parseVarRef(variable),
                 parseName(fieldName),
-                parseExpr(expr)
+                parseExpr(expr),
+                rangeOf(sexpr)
             ))
 
         case _ => WE.Err(StmtMalformed)
@@ -250,48 +273,52 @@ object Parser:
                 case (decls, stmts) => 
                     WE.Node(StmtBlock.Many(
                         decls.map(parseDecl),
-                        stmts.map(parseStmt)
+                        stmts.map(parseStmt),
+                        rangeOf(sexpr)
                     ))
         }
             
         // One: Statement
         case _ => 
-            WE.Node(StmtBlock.One(parseStmt(sexpr)))
+            WE.Node(StmtBlock.One(parseStmt(sexpr), rangeOf(sexpr)))
 
     def parseExpr(sexpr: SExpr): ExprWE = sexpr match
         // Num: the set of GoodNumbers comprises all inexact numbers
         //      (doubles) between -1000.0 and +1000.0, inclusive.
         case SDouble(n) => 
-            WE.Node(Expr.Num(n))
+            WE.Node(Expr.Num(n, rangeOf(sexpr)))
 
         // Var: the set of Variables consists of all symboSls, minus keywords
         case SSymbol(s) => 
-            WE.Node(Expr.Var(parseVarRef(sexpr)))
+            WE.Node(Expr.Var(parseVarRef(sexpr), rangeOf(sexpr)))
 
         //  (new ClassName (Variable^*))
         case SList(SSymbol(Keyword.New.value) :: className :: SList(variables) :: Nil) =>
             WE.Node(Expr.NewInstance(
                 parseName(className),
-                variables.map(parseVarRef)
+                variables.map(parseVarRef),
+                rangeOf(sexpr)
             ))
         
         //  (Variable --> FieldName)
         case SList(variable :: SSymbol(Keyword.Accessor.value) :: fieldName :: Nil) =>
-            WE.Node(Expr.GetField(parseVarRef(variable), parseName(fieldName)))
+            WE.Node(Expr.GetField(parseVarRef(variable), parseName(fieldName), rangeOf(sexpr)))
 
         //  (Variable --> MethodName (Variable^*))
         case SList(variable :: SSymbol(Keyword.Accessor.value) :: methodName :: SList(variables) :: Nil) =>
             WE.Node(Expr.CallMethod(
                 parseVarRef(variable),
                 parseName(methodName),
-                variables.map(parseVarRef)
+                variables.map(parseVarRef),
+                rangeOf(sexpr)
             ))
 
         //  (Variable isa ClassName)
         case SList(variable :: SSymbol(Keyword.IsA.value) :: className :: Nil) =>
             WE.Node(Expr.IsInstanceOf(
                 parseVarRef(variable),
-                parseName(className)
+                parseName(className),
+                rangeOf(sexpr)
             ))
 
         // Binops
@@ -301,9 +328,9 @@ object Parser:
         case SList(sexp1 :: SSymbol(op) :: sexp2 :: Nil) => {
             val (v1 : VarRefWE, v2 : VarRefWE) = (parseVarRef(sexp1), parseVarRef(sexp2))
             op match
-                case Keyword.Plus.value     =>  WE.Node(Expr.BinOpExpr(v1, BinOp.Add, v2))
-                case Keyword.Div.value      =>  WE.Node(Expr.BinOpExpr(v1, BinOp.Div, v2))
-                case Keyword.Eq.value       =>  WE.Node(Expr.BinOpExpr(v1, BinOp.Equals, v2))
+                case Keyword.Plus.value     =>  WE.Node(Expr.BinOpExpr(v1, BinOp.Add, v2, rangeOf(sexpr)))
+                case Keyword.Div.value      =>  WE.Node(Expr.BinOpExpr(v1, BinOp.Div, v2, rangeOf(sexpr)))
+                case Keyword.Eq.value       =>  WE.Node(Expr.BinOpExpr(v1, BinOp.Equals, v2, rangeOf(sexpr)))
                 case _                      =>  WE.Err(ExprBadOperand)
         }
         
@@ -329,4 +356,3 @@ object Parser:
                 else WE.Err(ModuleNamedBody)
         
         
-

@@ -7,7 +7,7 @@ import util.getMDNames
 object Synthesizer:
 
   def synthesizeSystem(sys: CleanSystem): CleanSystem = sys match
-    case System(modules, imports, progb, moduleData) => 
+    case System(modules, imports, progb, moduleData, range) => 
 
       val updModules = synthesizeModules(modules, moduleData)
       val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, ModuleData.TLModuleName, moduleData)
@@ -16,12 +16,13 @@ object Synthesizer:
         updModules ::: newTypedCopiesOfMods,
         updImports,
         progb, 
-        moduleData
+        moduleData,
+        range
       )
 
   // Special entry point for Assignment 11
   def synthesizeAndGetMNames(sys: CleanSystem): List[String] = sys match
-    case System(modules, imports, progb, moduleData) => 
+    case System(modules, imports, progb, moduleData, _) => 
       
       val updModules = synthesizeModules(modules, moduleData)
       val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, ModuleData.TLModuleName, moduleData)
@@ -42,13 +43,13 @@ object Synthesizer:
   def synthesizeModules(mods: List[CleanModule], moduleData : ModuleData) : List[CleanModule] = 
 
     def synthesizeModule(m: CleanModule): (CleanModule, List[CleanModule]) = m match
-      case mod @ Module(mname, imports, clas @ Class(cname, fields, methods, None)) => 
+      case mod @ Module(mname, imports, clas @ Class(cname, fields, methods, None, _), _) => 
         (mod, Nil)
 
-      case Module(mname, imports, clas @ Class(cname, fields, methods, Some(shape))) =>
+      case Module(mname, imports, clas @ Class(cname, fields, methods, Some(shape), _), range) =>
         val (newTypedCopiesOfMods, updImports) = synthesizeImports(imports, mname, moduleData)
         (
-          Module[Clean](mname, updImports, clas), 
+          Module[Clean](mname, updImports, clas, range),
           newTypedCopiesOfMods
         )
 
@@ -78,27 +79,28 @@ object Synthesizer:
   ): (List[CleanModule], List[CleanImport]) =
 
     def synthesizeImport(imp: CleanImport, createdSoFar : List[CleanModule]): (CleanImport, Option[CleanModule]) = imp match
-      case Import.Untyped(mname) => (Import.Untyped(mname), None)
+      case Import.Untyped(mname, range) => (Import.Untyped(mname, range), None)
 
-      case Import.Typed(mname, importShape) =>
+      case Import.Typed(mname, importShape, range) =>
         val newTypedModName = s"$mname.into.$intoMName"
 
         moduleData.lookupModule(mname) match
           case (e : ModuleDataEntry) if createdSoFar.exists(
             m => 
               m match 
-                case Module(mname, imports, clas) => 
+                case Module(mname, imports, clas, _) => 
                   mname == newTypedModName
           ) => 
-            (Import.Untyped(newTypedModName), None)
+            (Import.Untyped(newTypedModName, range), None)
 
-          case ModuleDataEntry(imports, Class(cname, fields, methods, _), None) => 
+          case ModuleDataEntry(imports, Class(cname, fields, methods, _, classRange), None) => 
             val newTypedMod: CleanModule = Module[Clean](
               newTypedModName,
               imports,
-              Class(cname, fields, methods, Some(importShape))
+              Class(cname, fields, methods, Some(importShape), classRange),
+              range
             )
-            (Import.Untyped(newTypedModName), Some(newTypedMod))
+            (Import.Untyped(newTypedModName, range), Some(newTypedMod))
 
           case _ => 
             throw new Exception(s"Should never happen: Typed import of Typed module $imp | $mname")

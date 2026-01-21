@@ -17,7 +17,30 @@ object Typechecker:
         def isConsistentWith(that : CleanType) : Boolean =
             this match
                 case Top => true
-                case Concrete(t) => t == that
+                case Concrete(t) => sameType(t, that)
+
+    private def sameType(a: CleanType, b: CleanType): Boolean =
+        (a, b) match
+            case (Type.Number(_), Type.Number(_)) => true
+            case (Type.Shape(af, am, _), Type.Shape(bf, bm, _)) =>
+                af.lengthIs == bf.lengthIs &&
+                am.lengthIs == bm.lengthIs &&
+                af.zip(bf).forall { case (x, y) => sameFieldType(x, y) } &&
+                am.zip(bm).forall { case (x, y) => sameMethodType(x, y) }
+            case _ => false
+
+    private def sameFieldType(a: CleanFieldType, b: CleanFieldType): Boolean =
+        (a, b) match
+            case (FieldType(af, at, _), FieldType(bf, bt, _)) =>
+                af == bf && sameType(at, bt)
+
+    private def sameMethodType(a: CleanMethodType, b: CleanMethodType): Boolean =
+        (a, b) match
+            case (MethodType(am, ap, ar, _), MethodType(bm, bp, br, _)) =>
+                am == bm &&
+                ap.lengthIs == bp.lengthIs &&
+                ap.zip(bp).forall { case (x, y) => sameType(x, y) } &&
+                sameType(ar, br)
 
     object Inferred:
         def apply(t : CleanType) : Inferred.Concrete = Inferred.Concrete(t)
@@ -28,7 +51,7 @@ object Typechecker:
     // Top Level entry point
 
     def typecheckSystem(s: CleanSystem): SystemWE = WE.Node( s match
-        case System[Clean](modules, imports, progb, moduleData) =>
+        case System[Clean](modules, imports, progb, moduleData, range) =>
 
             val typecheckedModules = typecheckModules(modules, moduleData)
             // Classes in scope constructed based on the sequence of modules 
@@ -36,13 +59,14 @@ object Typechecker:
             // Variables obey lexical scope, so we begin with an empty Map from variables to Types
             val tVars : TVarsMap = Map.empty
 
-            val topLevelExpectedReturnType : CleanType = Type.Number()
+            val topLevelExpectedReturnType : CleanType = Type.Number(progb.range)
 
             System(
                 typecheckedModules,
                 typecheckedImports,
                 typecheckProgBWithExpType(progb, topLevelExpectedReturnType, sClasses, tVars), 
-                moduleData
+                moduleData,
+                range
             )
     )
 
@@ -65,10 +89,10 @@ object Typechecker:
     def typecheckModules(mods: List[CleanModule], moduleData : ModuleData) : List[ModuleWE] = 
 
         def typecheckOneModule(module: CleanModule) : ModuleWE = module match
-            case m @ Module(mname, imports, Class[Clean](cname, fields, methods, None)) => 
+            case m @ Module(mname, imports, Class[Clean](cname, fields, methods, None, _), _) => 
                 ConverterToWE.moduleToWE(m) 
 
-            case m @ Module(mname, imports, clas @ Class[Clean](cname, field, methods, Some(shape))) =>
+            case m @ Module(mname, imports, clas @ Class[Clean](cname, field, methods, Some(shape), _), range) =>
                 val (typecheckedImports, sClasses) = typecheckImports(imports, moduleData.scopedAt(mname))
 
                 val updatedSClasses = sClasses.updated(clas.cname, shape)
@@ -77,6 +101,7 @@ object Typechecker:
                     WE.Node(mname),
                     typecheckedImports,
                     typecheckClass(clas, updatedSClasses), 
+                    range
                 ))
 
         def typecheckModulesLoop(
@@ -109,12 +134,12 @@ object Typechecker:
 
             case Nil => importedClasses
 
-            case (imp @ Import.Untyped(mname)) :: tail =>
+            case (imp @ Import.Untyped(mname, _)) :: tail =>
                 val (cname, shape) = moduleData.lookupTypedCNameAndShape(mname) 
                 val updImportedSoFar = importedClasses.updated(cname, shape)
                 collectSClassesMapLoop(tail, updImportedSoFar)
 
-            case (imp @ Import.Typed(mname, shape)) :: tail => 
+            case (imp @ Import.Typed(mname, shape, _)) :: tail => 
                 val cname = moduleData.lookupUntypedCName(mname) 
                 val updImportedSoFar = importedClasses.updated(cname, shape)
                 collectSClassesMapLoop(tail, updImportedSoFar)
@@ -129,16 +154,16 @@ object Typechecker:
     def typecheckClass(cls : CleanClass, sClasses: SClassesMap) : ClassWE = 
         val thisShape = sClasses(cls.cname)
         (cls, thisShape) match
-            case (Class(_, fields, _, _), Shape(fieldTypes, _)) if fields.lengthIs != fieldTypes.length => 
+            case (Class(_, fields, _, _, _), Shape(fieldTypes, _, _)) if fields.lengthIs != fieldTypes.length => 
                 WE.Err(ShapeTypeWrongNumberOfFields)
 
-            case (Class(_, _, methods, _), Shape(_, methodTypes)) if methods.lengthIs != methodTypes.length => 
+            case (Class(_, _, methods, _, _), Shape(_, methodTypes, _)) if methods.lengthIs != methodTypes.length => 
                 WE.Err(ShapeTypeWrongNumberOfMethods) 
 
-            case (Class(cname, fields, methods, shape), Shape(fieldTypes, methodTypes)) => 
+            case (Class(cname, fields, methods, shape, range), Shape(fieldTypes, methodTypes, _)) => 
                 // According to simplification, we expect fields to appear in the same order
                 val fieldsWE = fields.zip(fieldTypes).map{
-                        case (fnameInDef, FieldType(fnameInTyp, _)) if fnameInDef != fnameInTyp => 
+                        case (fnameInDef, FieldType(fnameInTyp, _, _)) if fnameInDef != fnameInTyp => 
                             WE.Err(ShapeTypeFieldTypeMismatch)
                         case (fname, _) => 
                             WE.Node(fname)
@@ -158,19 +183,20 @@ object Typechecker:
                     WE.Node(cname),
                     fieldsWE,
                     methodsWE,
-                    shapeWE
+                    shapeWE,
+                    range
                 ))
 
     def typecheckMethodWithMethodType(
         m: CleanMethod, expectedMtype: CleanMethodType, sClasses: SClassesMap, tVarThis : CleanType
     ): MethodWE = (m, expectedMtype) match
-        case (Method(mname, _, _), MethodType(mtname, _, _)) if mname != mtname =>
+        case (Method(mname, _, _, _), MethodType(mtname, _, _, _)) if mname != mtname =>
             WE.Err(ShapeTypeMethodNameMismatch)
 
-        case (Method(_, params, _), MethodType(_, paramTypes, _)) if params.lengthIs != paramTypes.length =>
+        case (Method(_, params, _, _), MethodType(_, paramTypes, _, _)) if params.lengthIs != paramTypes.length =>
             WE.Err(ShapeTypeMethodWrongNumberOfParams)
 
-        case (Method(mname, params, progb), MethodType(_, paramTypes, retType)) =>
+        case (Method(mname, params, progb, range), MethodType(_, paramTypes, retType, _)) =>
             val paramITypes = paramTypes.map(Inferred(_))
             val paramTVars: TVarsMap = params.zip(paramITypes).toMap
             val initTVars = Map("this" -> Inferred(tVarThis)) ++ paramTVars
@@ -178,7 +204,8 @@ object Typechecker:
             WE.Node(Method(
                 WE.Node(mname),
                 params.map(WE.Node(_)),
-                typecheckProgBWithExpType(progb, retType, sClasses, initTVars)
+                typecheckProgBWithExpType(progb, retType, sClasses, initTVars),
+                range
             ))
                             
     // Core helpers
@@ -186,14 +213,15 @@ object Typechecker:
     def typecheckProgBWithExpType(
         progb: CleanProgBlock, expRetType : CleanType, sClasses: SClassesMap, tVars: TVarsMap
     ): ProgBlockWE = WE.Node(progb match
-        case ProgBlock(decls, stmts, expr) =>
+        case ProgBlock(decls, stmts, expr, range) =>
 
             val (typecheckedDecls, extTVars) = typecheckDeclsAndExtendTVars(decls, sClasses, tVars)
            
             ProgBlock(
                 typecheckedDecls,
                 stmts.map(typecheckStmt(_, sClasses, extTVars)),
-                typecheckExprWithExpType(expr, expRetType, sClasses, extTVars)
+                typecheckExprWithExpType(expr, expRetType, sClasses, extTVars),
+                range
             )
     )
             
@@ -215,7 +243,7 @@ object Typechecker:
     def typecheckOneDecl(
         decl: CleanDecl, sClasses: SClassesMap, tVars: TVarsMap
     ): (DeclWE, TVarsMap) = decl match
-        case Decl(varDecl, rhs) =>
+        case Decl(varDecl, rhs, range) =>
             inferExprType(rhs, sClasses, tVars) match
                 case Right(inferredType) => 
                     (
@@ -225,105 +253,115 @@ object Typechecker:
 
                 case Left(exprWE) => 
                     (
-                        WE.Node(Decl( WE.Node(varDecl), exprWE )),  
+                        WE.Node(Decl( WE.Node(varDecl), exprWE, range )),  
                         tVars.updated(varDecl, Inferred.Top)
                     )
                         
     def typecheckStmt(
         stmt: CleanStmt, sClasses: SClassesMap, tVars: TVarsMap
     ): StmtWE = WE.Node(stmt match
-        case assign @ Stmt.Assign(id, rhs) => 
+        case assign @ Stmt.Assign(id, rhs, _) => 
             typecheckStmtAssign(assign, sClasses, tVars)
 
-        case ifelse @ Stmt.Ifelse(guard, tbranch, ebranch) =>
+        case ifelse @ Stmt.Ifelse(guard, tbranch, ebranch, _) =>
             typecheckStmtIfelse(ifelse, sClasses, tVars)
             
-        case whileStmt @ Stmt.While(guard, body) =>
+        case whileStmt @ Stmt.While(guard, body, _) =>
             typecheckStmtWhile(whileStmt, sClasses, tVars)
 
-        case fieldAssign @ Stmt.FieldAssign(varRef, fname, rhs) =>
+        case fieldAssign @ Stmt.FieldAssign(varRef, fname, rhs, _) =>
             typecheckStmtFieldAssign(fieldAssign, sClasses, tVars)
     )
 
     def typecheckStmtAssign(assign: Clean[Stmt.Assign[Clean]], sClasses: SClassesMap, tVars: TVarsMap): Stmt.Assign[WE] = 
         assign match
-            case Stmt.Assign(id, rhs) => 
+            case Stmt.Assign(id, rhs, range) => 
                 tVars(id) match
                     case Inferred.Concrete(expectedExprType) => 
                         Stmt.Assign(
                             WE.Node(id), 
-                            typecheckExprWithExpType(rhs, expectedExprType, sClasses, tVars)
+                            typecheckExprWithExpType(rhs, expectedExprType, sClasses, tVars),
+                            range
                         )
                     case Inferred.Top => 
                         Stmt.Assign(
                             WE.Node(id), 
-                            typecheckExpr(rhs, sClasses, tVars)
+                            typecheckExpr(rhs, sClasses, tVars),
+                            range
                         )
 
     def typecheckStmtIfelse(ifelse: Clean[Stmt.Ifelse[Clean]], sClasses: SClassesMap, tVars: TVarsMap): Stmt.Ifelse[WE] = 
         ifelse match
-            case Stmt.Ifelse(guard, tbranch, ebranch) =>
+            case Stmt.Ifelse(guard, tbranch, ebranch, range) =>
                 Stmt.Ifelse(
                     typecheckExpr(guard, sClasses, tVars), 
                     typecheckSBlock(tbranch, sClasses, tVars), 
-                    typecheckSBlock(ebranch, sClasses, tVars) 
+                    typecheckSBlock(ebranch, sClasses, tVars),
+                    range
                 )
 
     def typecheckStmtWhile(whileStmt: Clean[Stmt.While[Clean]], sClasses: SClassesMap, tVars: TVarsMap): Stmt.While[WE] = 
         whileStmt match
-            case Stmt.While(guard, body) =>
+            case Stmt.While(guard, body, range) =>
                 Stmt.While(
                     typecheckExpr(guard, sClasses, tVars), 
-                    typecheckSBlock(body, sClasses, tVars)
+                    typecheckSBlock(body, sClasses, tVars),
+                    range
                 )
 
     def typecheckStmtFieldAssign(fieldAssign: Clean[Stmt.FieldAssign[Clean]], sClasses: SClassesMap, tVars: TVarsMap): Stmt.FieldAssign[WE] = 
         fieldAssign match
-            case Stmt.FieldAssign(varRef, fname, rhs) =>
+            case Stmt.FieldAssign(varRef, fname, rhs, range) =>
                 tVars(varRef) match
-                    case Inferred.Concrete(s @ Shape(_, _)) =>
+                    case Inferred.Concrete(s @ Shape(_, _, _)) =>
                         ShapeUtils.getFieldType(s, fname) match
                             case Left(nameWE) => 
                                 Stmt.FieldAssign(
                                     WE.Node(varRef),
                                     nameWE,
-                                    typecheckExpr(rhs, sClasses, tVars)
+                                    typecheckExpr(rhs, sClasses, tVars),
+                                    range
                                 )
                             case Right(expectedFieldType) => 
                                 Stmt.FieldAssign(
                                     WE.Node(varRef),
                                     WE.Node(fname),
-                                    typecheckExprWithExpType(rhs, expectedFieldType, sClasses, tVars)
+                                    typecheckExprWithExpType(rhs, expectedFieldType, sClasses, tVars),
+                                    range
                                 )
                     
                     case Inferred.Top => 
                         Stmt.FieldAssign(
                             WE.Node(varRef),
                             WE.Node(fname),
-                            typecheckExpr(rhs, sClasses, tVars)
+                            typecheckExpr(rhs, sClasses, tVars),
+                            range
                         )
 
                     case _ =>
                         Stmt.FieldAssign(
                             WE.Err(ExpectedShapeType),
                             WE.Node(fname),
-                            typecheckExpr(rhs, sClasses, tVars)
+                            typecheckExpr(rhs, sClasses, tVars),
+                            range
                         )
                                  
     def typecheckSBlock(
         b: CleanStmtBlock, sClasses: SClassesMap, tVars: TVarsMap
     ) : StmtBlockWE =  WE.Node( b match
-        case StmtBlock.One(stmt) => 
+        case StmtBlock.One(stmt, range) => 
             StmtBlock.One(
-                typecheckStmt(stmt, sClasses, tVars)
+                typecheckStmt(stmt, sClasses, tVars),
+                range
             )
 
-        case StmtBlock.Many(decls, stmts) => 
+        case StmtBlock.Many(decls, stmts, range) => 
             val (typecheckedDecls, extTVars) = typecheckDeclsAndExtendTVars(decls, sClasses, tVars)
 
             StmtBlock.Many(
                 typecheckedDecls, 
-                stmts.map(typecheckStmt(_, sClasses, extTVars))
+                stmts.map(typecheckStmt(_, sClasses, extTVars)),
+                range
             )
     )           
     
@@ -349,37 +387,38 @@ object Typechecker:
 
             case Left(exprWE) => exprWE
 
+    // The inferred types will have the Range of the expression they describe.
     def inferExprType(
         expr: CleanExpr, sClasses: SClassesMap, tVars: TVarsMap
     ): Either[ExprWE, Inferred] = expr match
-        case Expr.Num(n) => Right(Inferred(Type.Number()))
+        case Expr.Num(n, range) => Right(Inferred(Type.Number(range)))
 
-        case Expr.Var(varRef) => Right(tVars(varRef))                    
+        case Expr.Var(varRef, _) => Right(tVars(varRef))                    
 
-        case binOp @ Expr.BinOpExpr(lhs, op, rhs) =>
+        case binOp @ Expr.BinOpExpr(lhs, op, rhs, _) =>
             inferExprTypeBinOpExpr(binOp, tVars)
 
-        case newInst @ Expr.NewInstance(cname, args) =>
+        case newInst @ Expr.NewInstance(cname, args, _) =>
             inferExprTypeNewInst(newInst, sClasses, tVars)
 
-        case isInstance @ Expr.IsInstanceOf(varRef, cname) =>      
+        case isInstance @ Expr.IsInstanceOf(varRef, cname, _) =>      
             inferExprTypeIsInstanceOf(isInstance, tVars)
 
-        case getField @ Expr.GetField(varRef, fname) =>
+        case getField @ Expr.GetField(varRef, fname, _) =>
             inferExprTypeGetField(getField, tVars)
 
-        case callMethod @ Expr.CallMethod(varRef, mname, args) =>
+        case callMethod @ Expr.CallMethod(varRef, mname, args, _) =>
             inferExprTypeCallMethod(callMethod, tVars)
     
     def inferExprTypeBinOpExpr(binOp: Clean[Expr.BinOpExpr[Clean]], tVars: TVarsMap): Either[ExprWE, Inferred] = 
         binOp match
-            case Expr.BinOpExpr(lhs, op, rhs) => 
+            case Expr.BinOpExpr(lhs, op, rhs, range) => 
                 (tVars(lhs), op, tVars(rhs)) match
                         case (_, BinOp.Equals, _) => 
-                            Right(Inferred(Type.Number()))
+                            Right(Inferred(Type.Number(range)))
 
-                        case (Inferred.Concrete(Type.Number()), _, Inferred.Concrete(Type.Number())) => 
-                            Right(Inferred(Type.Number()))
+                        case (Inferred.Concrete(Type.Number(_)), _, Inferred.Concrete(Type.Number(_))) => 
+                            Right(Inferred(Type.Number(range)))
 
                         case (Inferred.Top, _, _) => 
                             Right(Inferred.Top)
@@ -392,17 +431,17 @@ object Typechecker:
 
     def inferExprTypeNewInst(newInst: Clean[Expr.NewInstance[Clean]], sClasses: SClassesMap, tVars: TVarsMap): Either[ExprWE, Inferred] = 
         newInst match
-            case Expr.NewInstance(cname, args) => 
+            case Expr.NewInstance(cname, args, range) => 
                 val expectedShape = sClasses(cname)
 
                 expectedShape match
-                    case Shape(fieldTypes, _) if args.lengthIs != fieldTypes.length => 
+                    case Shape(fieldTypes, _, _) if args.lengthIs != fieldTypes.length => 
                         Left(WE.Err(NewInstanceWrongNumberOfFields))
                         
-                    case Shape(fieldTypes, _) => 
+                    case Shape(fieldTypes, _, _) => 
                         // TODO, this same logic is used in matchingClass function
                         val argsTypematchFields = args.zip(fieldTypes).forall{
-                            case (argVarRef, FieldType(_, fieldType)) => 
+                            case (argVarRef, FieldType(_, fieldType, _)) => 
                                 tVars(argVarRef).isConsistentWith(fieldType)
                         }
 
@@ -411,53 +450,58 @@ object Typechecker:
                         else 
                             Left(WE.Err(NewInstanceFieldWrongType))
 
-    def inferExprTypeIsInstanceOf(isInstance: Clean[Expr.IsInstanceOf[Clean]], tVars: TVarsMap): Either[ExprWE, Inferred] = 
-    isInstance match
-        case Expr.IsInstanceOf(varRef, cname) =>
-            // sClasses(cname) will always succeed because we know class is in scope                 
-            tVars(varRef) match
-                case Inferred.Concrete(Shape(_, _)) => Right(Inferred(Type.Number()))
-        
-                case Inferred.Top => Right(Inferred.Top)
+    def inferExprTypeIsInstanceOf(isInstance: Clean[Expr.IsInstanceOf[Clean]], tVars: TVarsMap): Either[ExprWE, Inferred] =
+        isInstance match
+            case Expr.IsInstanceOf(varRef, cname, range) =>
+                // sClasses(cname) will always succeed because we know class is in scope                 
+                tVars(varRef) match
+                    case Inferred.Concrete(Shape(_, _, _)) => Right(Inferred(Type.Number(range)))
 
-                case _ => Left(
-                    WE.Node(Expr.IsInstanceOf(
-                        WE.Err(ExpectedShapeType), 
-                        WE.Node(cname))
-                    ))
+                    case Inferred.Top => Right(Inferred.Top)
+
+                    case _ => Left(
+                        WE.Node(Expr.IsInstanceOf(
+                            WE.Err(ExpectedShapeType), 
+                            WE.Node(cname),
+                            range
+                        ))
+                    )
 
     def inferExprTypeGetField(getField: Clean[Expr.GetField[Clean]], tVars: TVarsMap): Either[ExprWE, Inferred] = 
         getField match
-            case Expr.GetField(varRef, fname) =>
+            case Expr.GetField(varRef, fname, range) =>
                 tVars(varRef) match
-                    case Inferred.Concrete(s @ Shape(_, _)) => 
+                    case Inferred.Concrete(s @ Shape(_, _, _)) => 
                         ShapeUtils.getFieldType(s, fname) match
                             case Right(typ) => 
                                 Right(Inferred(typ))
                             case Left(nameWE) => 
-                                Left(WE.Node(Expr.GetField(WE.Node(varRef), nameWE))) 
+                                Left(WE.Node(Expr.GetField(WE.Node(varRef), nameWE, range))) 
 
                     case Inferred.Top => Right(Inferred.Top)
 
                     case _ => Left(
                         WE.Node(Expr.GetField(
                             WE.Err(ExpectedShapeType), 
-                            WE.Node(fname))
+                            WE.Node(fname),
+                            range
                         ))
+                    )
 
     def inferExprTypeCallMethod(callMethod: Clean[Expr.CallMethod[Clean]], tVars: TVarsMap): Either[ExprWE, Inferred] = 
         callMethod match
-            case Expr.CallMethod(varRef, mname, args) =>
+            case Expr.CallMethod(varRef, mname, args, range) =>
                 tVars(varRef) match
 
-                    case Inferred.Concrete(s @ Shape(_, _)) =>
+                    case Inferred.Concrete(s @ Shape(_, _, _)) =>
                         ShapeUtils.getMethodType(s, mname) match
 
                             case Left(nameWE) => 
                                 Left(WE.Node(Expr.CallMethod(
                                     WE.Node(varRef),
                                     nameWE,
-                                    args.map(WE.Node(_))
+                                    args.map(WE.Node(_)),
+                                    range
                                 )))
 
                             case Right((paramTypes, _)) if args.lengthIs != paramTypes.length => 
@@ -481,27 +525,29 @@ object Typechecker:
                         WE.Node(Expr.CallMethod(
                             WE.Err(ExpectedShapeType), 
                             WE.Node(mname),
-                            args.map(WE.Node(_))
-                        )))
+                            args.map(WE.Node(_)),
+                            range
+                        ))
+                    )
 
 object ShapeUtils:
 
     def getFieldType(s : CleanShapeType, targetFName: String) : Either[NameWE, CleanType] = s match
-        case Type.Shape(fieldTypes, methodTypes) =>
+        case Type.Shape(fieldTypes, methodTypes, _) =>
             val optTargetFtype = fieldTypes.find(ftype => ftype.fname == targetFName)
 
             optTargetFtype match
-                case Some(FieldType(fname, typ)) => 
+                case Some(FieldType(fname, typ, _)) => 
                     Right(typ)
                 case None =>
                     Left(WE.Err(FieldDoesNotExist))
 
     def getMethodType(s : CleanShapeType, targetMName: String) : Either[NameWE, (List[CleanType], CleanType)] = s match
-        case Type.Shape(fieldTypes, methodTypes) =>
+        case Type.Shape(fieldTypes, methodTypes, _) =>
             val optTargetMtype = methodTypes.find(mtype => mtype.mname == targetMName)
 
             optTargetMtype match
-                case Some(MethodType(mname, paramTypes, retType)) =>
+                case Some(MethodType(mname, paramTypes, retType, _)) =>
                     Right((paramTypes, retType))
                 case None =>
                     Left(WE.Err(CallMethodDoesNotExist))

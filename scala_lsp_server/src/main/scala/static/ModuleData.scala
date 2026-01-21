@@ -11,7 +11,7 @@ final case class ModuleDataEntry(
 
 object ModuleDataEntry:
     def apply(m : CleanModule) : (String, ModuleDataEntry) = m match
-        case Module(mname, imps, clas @ Class(cname, fields, methods, shape)) => 
+        case Module(mname, imps, clas @ Class(cname, fields, methods, shape, _), _) => 
             mname -> ModuleDataEntry(imps, clas, shape)
 
 trait ScopedModuleData:
@@ -63,7 +63,7 @@ object ScopedModuleData:
         */
         def lookupModuleCName(moduleName: String): String =
             this.lookupModule(moduleName) match
-                case ModuleDataEntry(_, Class[Clean](cname, _, _,_), _) => cname
+                case ModuleDataEntry(_, Class[Clean](cname, _, _, _, _), _) => cname
 
         /**
          * Should be enforced by a path type dependency (but isn't yet) that this method should not be called until
@@ -91,7 +91,7 @@ object ScopedModuleData:
         */
         def lookupTypedCNameAndShape(moduleName: String): (String, CleanShapeType) =
             this.lookupModule(moduleName) match
-                case ModuleDataEntry(_, Class[Clean](cname, _, _, _), Some(shape)) => (cname, shape)
+                case ModuleDataEntry(_, Class[Clean](cname, _, _, _, _), Some(shape)) => (cname, shape)
                 case _ =>   
                     // Technically unnecessary throw but it will help us catch env errors early
                     throw new UnreachablePatternMatch(
@@ -111,7 +111,7 @@ object ScopedModuleData:
         */
         def lookupUntypedCName(moduleName: String): String =
             this.lookupModule(moduleName) match
-                case ModuleDataEntry(_, Class[Clean](cname, _, _, _), None) => cname
+                case ModuleDataEntry(_, Class[Clean](cname, _, _, _, _), None) => cname
                 case _ =>   
                     // Technically unnecessary throw but it will help us catch env errors early
                     throw new UnreachablePatternMatch(
@@ -130,8 +130,8 @@ object ModuleData:
     val TLModuleName = "Body"
 
     def processSystem(sys : CleanRawSystem): CleanSystem = sys match
-        case RawSystem(modules, imports, progb) => 
-            System(modules, imports, progb, apply(modules))
+        case RawSystem(modules, imports, progb, range) => 
+            System(modules, imports, progb, apply(modules), range)
 
     def apply(modules : List[CleanModule]): ModuleData = 
         val modDataEntries = modules.map(ModuleDataEntry(_))

@@ -183,7 +183,7 @@ object KontStack:
 
   // Special constructor called from load 
   def constructWithTL(initProg : CleanProgram): KontStack = initProg match
-    case Program[Clean](_, ProgBlock(decls, stmts, expr)) =>
+    case Program[Clean](_, ProgBlock(decls, stmts, expr, _), _) =>
       val progClosure  = (ProgFrame(decls, stmts, expr), Env())
       val initStack = List(progClosure) 
       new StackifiedList(initStack)

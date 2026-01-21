@@ -1,6 +1,6 @@
 package sexprs
 
-case class Position(line: Int, col: Int) extends Ordered[Position] {
+final case class Position(line: Int, col: Int) extends Ordered[Position] {
 
   def compare(that: Position) = {
     val ld = this.line - that.line
@@ -13,7 +13,7 @@ case class Position(line: Int, col: Int) extends Ordered[Position] {
 
 }
 
-case class Range(start: Position, end: Position)
+final case class Range(start: Position, end: Position)
 
 trait Ranged {
 

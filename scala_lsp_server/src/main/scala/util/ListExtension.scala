@@ -84,36 +84,36 @@ extension (names : List[String])
 
 extension (ftypes : List[FieldType[Clean]])
     def getFTypeNames : List[String] = ftypes.map{ 
-        case FieldType(fname, _) => fname 
+        case FieldType(fname, _, _) => fname 
     }
 
 extension (mtypes : List[MethodType[Clean]])
     def getMTypeNames : List[String] = mtypes.map{ 
-        case MethodType(mname, _, _) => mname 
+        case MethodType(mname, _, _, _) => mname 
     }
 
 // Module utils
 
 extension (modules : List[Module[Clean]])
     def getMDNames : List[String] = modules.map{ 
-        case Module(mname, _, _) => mname
+        case Module(mname, _, _, _) => mname
     }
 
 extension (modules : List[Module[Clean]])
     def getClasses : List[Class[Clean]] = modules.map{ 
-        case Module(_, _, clas) => clas
+        case Module(_, _, clas, _) => clas
     }
     
 // Class utils
 
 extension (clss : List[Class[Clean]])
     def getCNames : List[String] = clss.map{ 
-        case Class(cname, _, _, _) => cname 
+        case Class(cname, _, _, _, _) => cname 
     }
 
 // Method utils
 
 extension (methods : List[Method[Clean]])
     def getMNames : List[String] = methods.map{ 
-        case Method(mname, _, _) => mname 
+        case Method(mname, _, _, _) => mname 
     }

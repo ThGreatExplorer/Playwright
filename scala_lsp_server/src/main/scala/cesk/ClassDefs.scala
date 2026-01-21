@@ -12,7 +12,7 @@ final case class MethodDef(
 
 object MethodDef:
     def apply(method : CleanMethod) : MethodDef = method match
-        case Method(_, params, ProgBlock(decls, stmts, expr)) => 
+        case Method(_, params, ProgBlock(decls, stmts, expr, _), _) => 
             MethodDef(params, ProgFrame(decls, stmts, expr))
     
 
@@ -25,7 +25,7 @@ final case class ClassDef(
 
 object ClassDef:
     def apply(clas : CleanClass) : ClassDef = clas match
-        case Class(cname, fields, methods, shape) => 
+        case Class(cname, fields, methods, shape, _) => 
             val methodDefs = methods.map(MethodDef(_))
             val methodMap = methods.getMNames.zip(methodDefs).toMap
 
@@ -86,7 +86,7 @@ object ClassDefs:
                 case ClassDef(_, methods, _) =>
                     val conforms = 
                         mtypes.forall{
-                            case MethodType(mname, paramTypes, _) => 
+                            case MethodType(mname, paramTypes, _, _) => 
                                 methods(mname).params.lengthIs == paramTypes.length
                         }
                     

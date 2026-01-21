@@ -12,7 +12,7 @@ object VCheckUndefined:
     // Top Level entry points
 
     def closedSystem(s: CleanSystem): SystemWE = WE.Node(s match
-        case System[Clean](modules, imports, progb, moduleData) =>
+        case System[Clean](modules, imports, progb, moduleData, range) =>
 
             val moduleData = ModuleData(modules)
 
@@ -26,12 +26,13 @@ object VCheckUndefined:
                 validatedModules,
                 validatedImports,
                 closedProgBlock(progb, clssInScope, varsInScope), 
-                moduleData
+                moduleData,
+                range
             )
         )
 
     def closedProg(p: CleanProgram): ProgramWE = WE.Node(p match
-        case Program[Clean](clss, progb) =>
+        case Program[Clean](clss, progb, range) =>
             // The scope of a ClassName is the entire program
             val clssInScope = clss.getCNames.toSet
             // Variables obey lexical scope, so we begin with an empty environment
@@ -39,7 +40,8 @@ object VCheckUndefined:
 
             Program(
                 clss.map(closedClass(_, clssInScope)),
-                closedProgBlock(progb, clssInScope, varsInScope)
+                closedProgBlock(progb, clssInScope, varsInScope),
+                range
             )
         )
 
@@ -56,12 +58,13 @@ object VCheckUndefined:
     def closedModules(mods: List[CleanModule], moduleData : ModuleData) : List[ModuleWE] = 
 
         def checkOneMod(m : CleanModule) : ModuleWE = m match
-            case Module(mname, imports, clas) => 
+            case Module(mname, imports, clas, range) => 
                 val (validatedImports, clssInScope) = closedImports(imports, moduleData.scopedAt(mname))
                 WE.Node(Module(
                     WE.Node(mname),
                     validatedImports,
                     closedClass(clas, clssInScope),
+                    range
                 ))
 
         def closedModulesLoop(
@@ -93,21 +96,22 @@ object VCheckUndefined:
             case (i : CleanImport) if !moduleData.contains(i.importedModName) => 
                 WE.Err(ModuleNotDeclared)
 
-            case Import.Untyped(mname) =>
-                WE.Node(Import.Untyped(stringToWE(mname)))
+            case Import.Untyped(mname, range) =>
+                WE.Node(Import.Untyped(stringToWE(mname), range))
 
-            case Import.Typed(mname, shape) =>
+            case Import.Typed(mname, shape, range) =>
                 WE.Node(Import.Typed(
                     stringToWE(mname), 
-                    shapeToWE(shape)
+                    shapeToWE(shape),
+                    range
                 ))
 
         val validatedImports = imports.map(closedImportName(_))
         val clssInScope   =
             validatedImports
             .flatMap{
-                case WE.Node(Import.Untyped(WE.Node(mname)))  => Some(mname)
-                case WE.Node(Import.Typed(WE.Node(mname), _)) => Some(mname)
+                case WE.Node(Import.Untyped(WE.Node(mname), _))  => Some(mname)
+                case WE.Node(Import.Typed(WE.Node(mname), _, _)) => Some(mname)
                 case WE.Err(e) => None
                 case _         => None
             }
@@ -119,37 +123,40 @@ object VCheckUndefined:
     // Class helpers
 
     def closedClass(cls : CleanClass, clssInScope: Set[String]) : ClassWE = WE.Node(cls match
-        case Class(cname, fields, methods, shape) => 
+        case Class(cname, fields, methods, shape, range) => 
             Class(
                 WE.Node(cname),
                 fields.map(WE.Node(_)),
                 methods.map(closedMethod(_, clssInScope.incl(cname))),
-                optionalShapeToWE(shape)
+                optionalShapeToWE(shape),
+                range
             )
         )
     
     def closedMethod(mth : CleanMethod, clssInScope: Set[String]) : MethodWE = WE.Node( mth match
-        case Method(mname, params, pblock) => 
+        case Method(mname, params, pblock, range) => 
             // Parameters are implicitly declared before the method body with "this"
             val varsInScope : Set[String] = ("this" :: params).toSet
 
             Method(
                 WE.Node(mname),
                 params.map(WE.Node(_)),
-                closedProgBlock(pblock, clssInScope, varsInScope)
+                closedProgBlock(pblock, clssInScope, varsInScope),
+                range
             )
         )
 
     // Core helpers
 
     def closedProgBlock(pb: CleanProgBlock, clssInScope: Set[String], varsInScope: Set[String]) : ProgBlockWE = WE.Node( pb match
-        case ProgBlock(decls, stmts, expr) => 
+        case ProgBlock(decls, stmts, expr, range) => 
             val (validatedDecls, extVarsInScope) = closedDecls(decls, clssInScope, varsInScope)
 
             ProgBlock(
                 validatedDecls,
                 stmts.map(closedStmt(_,  clssInScope, extVarsInScope)),
-                closedExpr(expr, clssInScope, extVarsInScope)
+                closedExpr(expr, clssInScope, extVarsInScope),
+                range
             )
     )
 
@@ -170,10 +177,11 @@ object VCheckUndefined:
 
             case Nil => (declsSoFar.reverse, dvarsSoFar)
 
-            case Decl(name, rhs) :: tail => 
+            case Decl(name, rhs, range) :: tail => 
                 val processedDecl = WE.Node(Decl(
                     WE.Node(name),
-                    closedExpr(rhs, clssInScope, dvarsSoFar)
+                    closedExpr(rhs, clssInScope, dvarsSoFar),
+                    range
                 ))
 
                 closedDeclsLoop(tail, processedDecl :: declsSoFar, dvarsSoFar.incl(name))
@@ -181,81 +189,91 @@ object VCheckUndefined:
         closedDeclsLoop(decls, Nil, varsInScope)
 
     def closedStmt(stmt: CleanStmt, clssInScope : Set[String], varsInScope: Set[String]): StmtWE = WE.Node( stmt match
-        case Stmt.Assign(id, rhs) => 
+        case Stmt.Assign(id, rhs, range) => 
             Stmt.Assign(
                 closedVarRef(id, varsInScope), 
-                closedExpr(rhs, clssInScope, varsInScope)
+                closedExpr(rhs, clssInScope, varsInScope),
+                range
             )
 
-        case Stmt.Ifelse(guard, tbranch, ebranch) =>
+        case Stmt.Ifelse(guard, tbranch, ebranch, range) =>
             Stmt.Ifelse(
                 closedExpr(guard, clssInScope, varsInScope), 
                 closedSBlock(tbranch, clssInScope, varsInScope), 
-                closedSBlock(ebranch, clssInScope, varsInScope) 
+                closedSBlock(ebranch, clssInScope, varsInScope),
+                range
             )
 
-        case Stmt.While(guard, body) =>
+        case Stmt.While(guard, body, range) =>
             Stmt.While(
                 closedExpr(guard, clssInScope, varsInScope),
-                closedSBlock(body, clssInScope, varsInScope)
+                closedSBlock(body, clssInScope, varsInScope),
+                range
             )
 
-        case Stmt.FieldAssign(instance, fname, rhs) =>
+        case Stmt.FieldAssign(instance, fname, rhs, range) =>
             Stmt.FieldAssign(
                 closedVarRef(instance, varsInScope), 
                 WE.Node(fname),
-                closedExpr(rhs, clssInScope, varsInScope)
+                closedExpr(rhs, clssInScope, varsInScope),
+                range
             )
         )
         
     def closedSBlock(b: CleanStmtBlock, clssInScope : Set[String], varsInScope: Set[String]): StmtBlockWE = WE.Node( b match
-        case StmtBlock.One(stmt) => 
-            StmtBlock.One(closedStmt(stmt, clssInScope, varsInScope))
+        case StmtBlock.One(stmt, range) => 
+            StmtBlock.One(closedStmt(stmt, clssInScope, varsInScope), range)
 
-        case StmtBlock.Many(decls, stmts) => 
+        case StmtBlock.Many(decls, stmts, range) => 
             val (processedDecls, extVarsInScope) = closedDecls(decls, clssInScope, varsInScope)
             StmtBlock.Many(
                 processedDecls, 
-                stmts.map(closedStmt(_, clssInScope, extVarsInScope))
+                stmts.map(closedStmt(_, clssInScope, extVarsInScope)),
+                range
             )
         )
             
     def closedExpr(e: CleanExpr, clssInScope : Set[String], varsInScope: Set[String]): ExprWE = WE.Node(e match
-        case Expr.Num(n) => Expr.Num(n)
+        case Expr.Num(n, range) => Expr.Num(n, range)
 
-        case Expr.Var(x) => 
-            Expr.Var(closedVarRef(x, varsInScope))
+        case Expr.Var(x, range) => 
+            Expr.Var(closedVarRef(x, varsInScope), range)
 
-        case Expr.BinOpExpr(lhs, op, rhs) => 
+        case Expr.BinOpExpr(lhs, op, rhs, range) => 
             Expr.BinOpExpr(
                 closedVarRef(lhs, varsInScope), 
                 op,
-                closedVarRef(rhs, varsInScope)
+                closedVarRef(rhs, varsInScope),
+                range
             )
         
-        case Expr.NewInstance(cname, args) =>
+        case Expr.NewInstance(cname, args, range) =>
             Expr.NewInstance(
                 closedClassNameRef(cname, clssInScope),
-                args.map(closedVarRef(_, varsInScope))
+                args.map(closedVarRef(_, varsInScope)),
+                range
             )
 
-        case Expr.IsInstanceOf(instance, cname) =>
+        case Expr.IsInstanceOf(instance, cname, range) =>
             Expr.IsInstanceOf(
                 closedVarRef(instance, varsInScope),
-                closedClassNameRef(cname, clssInScope)
+                closedClassNameRef(cname, clssInScope),
+                range
             )
 
-        case Expr.GetField(instance, fname) =>
+        case Expr.GetField(instance, fname, range) =>
             Expr.GetField(
                 closedVarRef(instance, varsInScope),
-                WE.Node(fname)
+                WE.Node(fname),
+                range
             )
         
-        case Expr.CallMethod(instance, mname, args) =>
+        case Expr.CallMethod(instance, mname, args, range) =>
             Expr.CallMethod(
                 closedVarRef(instance, varsInScope),
                 WE.Node(mname),
-                args.map(closedVarRef(_, varsInScope))
+                args.map(closedVarRef(_, varsInScope)),
+                range
             )
         
     )

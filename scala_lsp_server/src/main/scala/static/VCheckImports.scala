@@ -12,7 +12,7 @@ object VCheckImports:
     // Top Level entry point
 
     def checkImportsSys(sys: CleanSystem): SystemWE = WE.Node(sys match
-        case System[Clean](modules, imports, progb, moduleData) =>
+        case System[Clean](modules, imports, progb, moduleData, range) =>
 
             val moduleData = ModuleData(modules)
 
@@ -20,7 +20,8 @@ object VCheckImports:
                 checkImportsModules(modules, moduleData),
                 checkMixedImports(imports, moduleData.atTopLevel),
                 progBlockToWE(progb), 
-                moduleData
+                moduleData,
+                range
             )
     )
 
@@ -31,18 +32,20 @@ object VCheckImports:
     def checkImportsModules(mods: List[CleanModule], moduleData : ModuleData) : List[ModuleWE] = 
 
         def checkImportsOneMod(m : CleanModule) : ModuleWE = m match
-            case Module(mname, imports, clas @ Class[Clean](cname, fields, methods, None)) => 
+            case Module(mname, imports, clas @ Class[Clean](cname, fields, methods, None, _), range) => 
                 WE.Node(Module(
                     WE.Node(mname),
                     imports.map(importToWE(_)),
-                    classToWE(clas)
+                    classToWE(clas),
+                    range
                 ))
 
-            case Module(mname, imports, clas @ Class[Clean](cname, fields, methods, Some(shape))) => 
+            case Module(mname, imports, clas @ Class[Clean](cname, fields, methods, Some(shape), _), range) => 
                 WE.Node(Module(
                     WE.Node(mname),
                     checkMixedImports(imports, moduleData.scopedAt(mname)),
                     classToWE(clas),
+                    range
                 ))
 
         def checkImportsModsLoop(
@@ -70,17 +73,17 @@ object VCheckImports:
             val mname = imp.importedModName
             (imp, moduleData.lookupModuleShape(mname)) match
                 // Untyped import of a typed module into a typed module
-                case (Import.Untyped(mname), Some(shape)) => 
+                case (Import.Untyped(mname, _), Some(shape)) => 
                     (importToWE(imp), importedSoFar.updated(mname, shape))
                 // Untyped import of an untyped module into a typed module
-                case (Import.Untyped(_), None) =>
+                case (Import.Untyped(_, _), None) =>
                     (WE.Err(UntypedModImportedWithoutTImport), importedSoFar)
                 
                 // Typed import of a typed module into a typed module
-                case (Import.Typed(_, _), Some(shape)) => 
+                case (Import.Typed(_, _, _), Some(shape)) => 
                     (WE.Err(TypedModTImported), importedSoFar)
                 // Typed import of an untyped module into a typed module 
-                case (Import.Typed(mname, importedShape), None) => 
+                case (Import.Typed(mname, importedShape, _), None) => 
                     importedSoFar.get(mname) match
                         // Not seen before
                         case None => 

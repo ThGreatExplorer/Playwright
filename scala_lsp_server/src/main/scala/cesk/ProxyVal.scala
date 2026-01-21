@@ -14,7 +14,7 @@ final case class ProxyVal(
     def getFieldType(field: String) : Either[RuntimeError, CleanFieldType] = 
         val ftypeOpt = this.typ
                            .fieldTypes
-                           .find{case FieldType(fname, _) => fname == field}
+                           .find{case FieldType(fname, _, _) => fname == field}
 
         ftypeOpt.toRight(RuntimeError.FieldNotFoundInProxy)
 
@@ -41,7 +41,7 @@ final case class ProxyVal(
     def getMethodType(mname: String): Either[RuntimeError, CleanMethodType] =
         val mtypeOpt = this.typ
                            .methodTypes
-                           .find{case MethodType(name, paramTypes, returnType) => mname == name}
+                           .find{case MethodType(name, paramTypes, returnType, _) => mname == name}
         
         mtypeOpt.toRight(RuntimeError.MethodNotFoundInProxy)
 
@@ -79,14 +79,14 @@ final case class ProxyVal(
 
     private def tEquals(thisType: CleanType, thatType: CleanType): Boolean =
         (thisType, thatType) match
-            case (Type.Number(), Type.Number()) => true
+            case (Type.Number(_), Type.Number(_)) => true
             case (thisShape: CleanShapeType, thatShape: CleanShapeType) =>
                 sEquals(thisShape, thatShape)
             case _ => false 
 
     private def sEquals(thisShape: CleanShapeType, thatShape: CleanShapeType): Boolean =
         (thisShape, thatShape) match
-            case (Type.Shape(ftypes1, mtypes1), Type.Shape(ftypes2, mtypes2)) => 
+            case (Type.Shape(ftypes1, mtypes1, _), Type.Shape(ftypes2, mtypes2, _)) => 
                 // Check if field types match (order-independent)
                 val fieldsMatch = ftypes1.lengthIs == ftypes2.lengthIs &&
                     ftypes1.forall(ft1 => ftypes2.exists(ft2 => fEquals(ft1, ft2))) &&
@@ -101,19 +101,19 @@ final case class ProxyVal(
 
     private def fEquals(thisField: CleanFieldType,thatField: CleanFieldType): Boolean = 
         (thisField, thatField) match
-            case (FieldType(fname1, ftype1), FieldType(fname2, ftype2)) =>
+            case (FieldType(fname1, ftype1, _), FieldType(fname2, ftype2, _)) =>
                 fname1 == fname2 && tEquals(ftype1, ftype2)
 
     private def mEquals(thisMethod: CleanMethodType, thatMethod: CleanMethodType): Boolean =
         (thisMethod, thatMethod) match
-            case (MethodType(mname1, ptypes1, rtype1), MethodType(mname2, ptypes2, rtype2)) => 
+            case (MethodType(mname1, ptypes1, rtype1, _), MethodType(mname2, ptypes2, rtype2, _)) => 
                 mname1 == mname2 && ptypes1.lengthIs == ptypes2.length && ptypes1.zip(ptypes2).forall((ptype1, ptype2) => tEquals(ptype1, ptype2)) && tEquals(rtype1, rtype2)
         
 
 object ProxyVal:
     def conformToType(v : CESKValue, expTyp : CleanType, classDefs: ClassDefs) : Either[RuntimeError, CESKValue] =
         (v, expTyp) match
-            case (num : NumVal, Type.Number()) => 
+            case (num : NumVal, Type.Number(_)) => 
                 Right(num)
 
             case (prx @ ProxyVal(obj, sh), expShape : CleanShapeType) =>
@@ -122,12 +122,12 @@ object ProxyVal:
                 else 
                     Left(RuntimeError.ProxyValDoesntConformToProxyShape)
 
-            case (v @ ObjectVal(cname, fieldValsMap), expTyp @ Type.Shape(ftypes, mtypes)) =>
+            case (v @ ObjectVal(cname, fieldValsMap), expTyp @ Type.Shape(ftypes, mtypes, _)) =>
                 if ftypes.getFTypeNames.toSet != fieldValsMap.keySet then
                     Left(RuntimeError.FieldNamesDontConformToProxyShape) 
 
                 else if !ftypes.forall{
-                    case FieldType(fname, ftype) => 
+                    case FieldType(fname, ftype, _) => 
                         conformToType(fieldValsMap(fname), ftype, classDefs).isRight
                 } then
                     Left(RuntimeError.FieldValsDontConformToProxyShape)

@@ -11,35 +11,38 @@ object VCheckMFPNameDups:
     // Module Valididty
 
     def mfpDupsSys(s: CleanRawSystem): RawSystemWE = s match
-        case RawSystem(modules, imports, progb) =>
+        case RawSystem(modules, imports, progb, range) =>
             WE.Node(RawSystem(
                 modules.map(moduleDupsMFP),
                 imports.map(importToWE),
-                ConverterToWE.progBlockToWE(progb)
+                ConverterToWE.progBlockToWE(progb),
+                range
             ))
 
     def moduleDupsMFP(m: CleanModule): ModuleWE = WE.Node(m match
-        case Module(mname, imports, clas) =>
+        case Module(mname, imports, clas, range) =>
             Module(
                 WE.Node(mname), 
                 imports.map(importToWE), 
                 classDupsMFP(clas), 
+                range
             )
     )
 
     // Type Validity
 
     def typeDupsMFP(t: CleanType) : TypeWE = t match
-        case Type.Number() => 
-            WE.Node(Type.Number())
-        case s @ Type.Shape(ftypes, mtypes) => 
+        case Type.Number(range) => 
+            WE.Node(Type.Number(range))
+        case s @ Type.Shape(ftypes, mtypes, _) => 
             shapeDupsMFP(s)
 
     def shapeDupsMFP(s: CleanShapeType) : ShapeTypeWE = s match
-        case Type.Shape(ftypes, mtypes) =>
+        case Type.Shape(ftypes, mtypes, range) =>
             WE.Node(Type.Shape(
                 ftypesDupsMFP(ftypes), 
-                mtypesDupsMFP(mtypes)
+                mtypesDupsMFP(mtypes),
+                range
             ))
             
     def ftypesDupsMFP(ftypes: List[CleanFieldType]) : List[FieldTypeWE] = 
@@ -47,10 +50,11 @@ object VCheckMFPNameDups:
         val ftypesAndNamesWE = ftypes.zip(fieldNamesWE) 
 
         ftypesAndNamesWE.map{ 
-            case (FieldType(_, fieldType), fnameWE) => 
+            case (FieldType(_, fieldType, range), fnameWE) => 
                 WE.Node(FieldType(
                     fnameWE,
-                    typeDupsMFP(fieldType)
+                    typeDupsMFP(fieldType),
+                    range
                 ))
         }
 
@@ -59,25 +63,27 @@ object VCheckMFPNameDups:
         val mtypesAndNamesWE = mtypes.zip(methodNamesWE) 
 
         mtypesAndNamesWE.map{ 
-            case (MethodType(_, paramTypes, retType), mnameWE) => 
+            case (MethodType(_, paramTypes, retType, range), mnameWE) => 
                 WE.Node(MethodType(
                     mnameWE,
                     paramTypes.map(typeDupsMFP),
-                    typeDupsMFP(retType)
+                    typeDupsMFP(retType),
+                    range
                 ))
         }
 
     // Class Valididty
 
     def mfpDupsProg(p: CleanProgram): ProgramWE = p match
-        case Program(clss, pblock) =>
+        case Program(clss, pblock, range) =>
             WE.Node(Program(
                 clss.map(classDupsMFP),
-                ConverterToWE.progBlockToWE(pblock)
+                ConverterToWE.progBlockToWE(pblock),
+                range
             ))
 
     def classDupsMFP(clss: CleanClass): ClassWE = clss match
-        case Class(cname, fields, methods, shape) =>
+        case Class(cname, fields, methods, shape, range) =>
             val shapeDupsWE = shape match
                 case None => None
                 case Some(shape) => Some(shapeDupsMFP(shape))
@@ -86,7 +92,8 @@ object VCheckMFPNameDups:
                 WE.Node(cname),
                 fields.identifyNameDupsWErr(DuplicateFieldName),
                 processMethodDups(methods),
-                shapeDupsWE
+                shapeDupsWE,
+                range
             ))
 
     def processMethodDups(methods: List[CleanMethod]): List[MethodWE] =
@@ -95,10 +102,11 @@ object VCheckMFPNameDups:
         val methodsAndNamesWE = methods.zip(methodNamesWE) 
 
         methodsAndNamesWE.map{ 
-            case (Method(_, params, pblock), mnameWE) => 
+            case (Method(_, params, pblock, range), mnameWE) => 
                 WE.Node(Method(
                     mnameWE,
                     params.identifyNameDupsWErr(DuplicateParamName),
-                    ConverterToWE.progBlockToWE(pblock)
+                    ConverterToWE.progBlockToWE(pblock),
+                    range
                 ))
         }
