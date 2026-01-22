@@ -11,7 +11,7 @@ import ast.ProgBlock
 class TypecheckerTests extends FunSuite {
 
   TypecheckerTests.testCases.zip(TypecheckerTests.expectedTestCaseResults)foreach{ 
-    case (inputStr, WE.Node(System(expectedMods, expectedImps, expectedProgB, _))) =>
+    case (inputStr, WE.Node(System(expectedMods, expectedImps, expectedProgB, _, _))) =>
       test(inputStr) {
         val inputSexp = BackendFuncs.readSexp(inputStr)  
         val pipeRes =         
@@ -28,7 +28,7 @@ class TypecheckerTests extends FunSuite {
           case None => throw new Exception("Passed invalid test case for Typechecker")
           case Some(cleanProg) =>
             Typechecker.typecheckSystem(cleanProg) match
-              case WE.Node(System(modsWE, impsWE, progWE, _)) => 
+              case WE.Node(System(modsWE, impsWE, progWE, _, _)) => 
                 assertEquals(modsWE, expectedMods)
                 assertEquals(impsWE, expectedImps)
                 assertEquals(progWE, expectedProgB)
@@ -194,80 +194,99 @@ val expectedTestCaseResults = List(
                     WE.Node("y"),
                     WE.Node(Expr.GetField(
                       WE.Node("this"),
-                      WE.Node("y")
-                    ))
+                      WE.Node("y"),
+                      DummyRange
+                    )),
+                    DummyRange
                   ))
                 ),
                 List(
                   WE.Node(Stmt.Assign(
                     WE.Node("x"),
-                    WE.Node(Expr.Num(1.0))
+                    WE.Node(Expr.Num(1.0, DummyRange)),
+                    DummyRange
                   ))
                 ),
                 WE.Node(Expr.BinOpExpr(
                   WE.Node("x"),
                   BinOp.Add,
-                  WE.Node("y")
-                ))
-              ))
+                  WE.Node("y"),
+                  DummyRange
+                )),
+                DummyRange
+              )),
+              DummyRange
             ))
           ),
           Some(WE.Node(Type.Shape(
           List(
             WE.Node(FieldType(
               WE.Node("x"),
-              WE.Node(Type.Number())
+              WE.Node(Type.Number(DummyRange)),
+              DummyRange
             )),
             WE.Node(FieldType(
               WE.Node("y"),
-              WE.Node(Type.Number())
+              WE.Node(Type.Number(DummyRange)),
+              DummyRange
             ))
           ),
           List(
             WE.Node(MethodType(
               WE.Node("delta"),
-              List(WE.Node(Type.Number())),
-              WE.Node(Type.Number())
+              List(WE.Node(Type.Number(DummyRange))),
+              WE.Node(Type.Number(DummyRange)),
+              DummyRange
             ))
-          )
-        ))
-      )))
-        )),
+          ),
+          DummyRange
+        ))),
+        DummyRange
+      ))),
+        DummyRange)),
     ),
-    List(WE.Node(Import.Untyped(WE.Node("Point")))),
+    List(WE.Node(Import.Untyped(WE.Node("Point"), DummyRange))),
     WE.Node(ProgBlock(
       List(
         WE.Node(Decl(
           WE.Node("x"),
-          WE.Node(Expr.Num(1.0))
+          WE.Node(Expr.Num(1.0, DummyRange)),
+          DummyRange
         )),
         WE.Node(Decl(
           WE.Node("point"),
           WE.Node(Expr.NewInstance(
             WE.Node("Point"),
-            List(WE.Node("x"), WE.Node("x"))
-          ))
+            List(WE.Node("x"), WE.Node("x")),
+            DummyRange
+          )),
+          DummyRange
         ))
       ),
       List(
         WE.Node(Stmt.FieldAssign(
           WE.Node("point"),
           WE.Node("x"),
-          WE.Node(Expr.Var(WE.Node("x")))
+          WE.Node(Expr.Var(WE.Node("x"), DummyRange)),
+          DummyRange
         )),
         WE.Node(Stmt.Assign(
           WE.Node("x"),
           WE.Node(Expr.CallMethod(
             WE.Node("point"),
             WE.Node("delta"),
-            List(WE.Node("x"))
-          ))
+            List(WE.Node("x")),
+            DummyRange
+          )),
+          DummyRange
         ))
       ),
-      WE.Node(Expr.Var(WE.Node("x")))
+      WE.Node(Expr.Var(WE.Node("x"), DummyRange)),
+      DummyRange
     )),
-    ModuleData(Nil)
-  )),
+    ModuleData(Nil),
+    DummyRange
+  ),
     WE.Node(System(
     List(
       WE.Node(Module(
@@ -286,45 +305,56 @@ val expectedTestCaseResults = List(
                     WE.Node("y"),
                     WE.Node(Expr.GetField(
                       WE.Node("this"),
-                      WE.Node("y")
-                    ))
+                      WE.Node("y"),
+                      DummyRange
+                    )),
+                    DummyRange
                   ))
                 ),
                 List(
                   WE.Node(Stmt.Assign(
                     WE.Node("x"),
-                    WE.Node(Expr.Num(1.0))
+                    WE.Node(Expr.Num(1.0, DummyRange)),
+                    DummyRange
                   ))
                 ),
                 WE.Node(Expr.BinOpExpr(
                   WE.Node("x"),
                   BinOp.Add,
-                  WE.Node("y")
-                ))
-              ))
+                  WE.Node("y"),
+                  DummyRange
+                )),
+                DummyRange
+              )),
+              DummyRange
             ))
           ),
           Some(WE.Node(Type.Shape(
           List(
             WE.Node(FieldType(
               WE.Node("x"),
-              WE.Node(Type.Number())
+              WE.Node(Type.Number(DummyRange)),
+              DummyRange
             )),
             WE.Node(FieldType(
               WE.Node("y"),
-              WE.Node(Type.Number())
+              WE.Node(Type.Number(DummyRange)),
+              DummyRange
             ))
           ),
           List(
             WE.Node(MethodType(
               WE.Node("delta"),
-              List(WE.Node(Type.Number())),
-              WE.Node(Type.Number())
+              List(WE.Node(Type.Number(DummyRange))),
+              WE.Node(Type.Number(DummyRange)),
+              DummyRange
             ))
-          )
-        ))
+          ),
+          DummyRange
+        ))),
+        DummyRange
       ))),
-        )),
+        DummyRange)),
       WE.Node(Module(
         WE.Node("PointTwo"),
         List(),
@@ -333,75 +363,84 @@ val expectedTestCaseResults = List(
         //   List(
         //     WE.Node(FieldType(
         //       WE.Node("x"),
-        //       WE.Node(Type.Number())
+        //       WE.Node(Type.Number(DummyRange))
         //     )),
         //     WE.Node(FieldType(
         //       WE.Node("y"),
-        //       WE.Node(Type.Number())
+        //       WE.Node(Type.Number(DummyRange))
         //     ))
         //   ),
         //   List(
         //     WE.Node(MethodType(
         //       WE.Node("delta"),
-        //       List(WE.Node(Type.Number())),
+        //       List(WE.Node(Type.Number(DummyRange))),
         //       WE.Node(Type.Shape(
         //         List(
         //           WE.Node(FieldType(
         //             WE.Node("x"),
-        //             WE.Node(Type.Number())
+        //             WE.Node(Type.Number(DummyRange))
         //           )),
         //           WE.Node(FieldType(
         //             WE.Node("y"),
-        //             WE.Node(Type.Number())
+        //             WE.Node(Type.Number(DummyRange))
         //           ))
         //         ),
         //         List(
         //           WE.Node(MethodType(
         //             WE.Node("delta"),
-        //             List(WE.Node(Type.Number())),
-        //             WE.Node(Type.Number())
+        //             List(WE.Node(Type.Number(DummyRange))),
+        //             WE.Node(Type.Number(DummyRange))
         //           ))
         //         )
         //       ))
         //     ))
         //   )
         // ))
+        DummyRange
       ))
     ),
-    List(WE.Node(Import.Untyped(WE.Node("Point")))),
+    List(WE.Node(Import.Untyped(WE.Node("Point"), DummyRange))),
     WE.Node(ProgBlock(
       List(
         WE.Node(Decl(
           WE.Node("x"),
-          WE.Node(Expr.Num(1.0))
+          WE.Node(Expr.Num(1.0, DummyRange)),
+          DummyRange
         )),
         WE.Node(Decl(
           WE.Node("point"),
           WE.Node(Expr.NewInstance(
             WE.Node("Point"),
-            List(WE.Node("x"), WE.Node("x"))
-          ))
+            List(WE.Node("x"), WE.Node("x")),
+            DummyRange
+          )),
+          DummyRange
         ))
       ),
       List(
         WE.Node(Stmt.FieldAssign(
           WE.Node("point"),
           WE.Node("x"),
-          WE.Node(Expr.Var(WE.Node("x")))
+          WE.Node(Expr.Var(WE.Node("x"), DummyRange)),
+          DummyRange
         )),
         WE.Node(Stmt.Assign(
           WE.Node("x"),
           WE.Node(Expr.CallMethod(
             WE.Node("point"),
             WE.Node("delta"),
-            List(WE.Node("x"))
-          ))
+            List(WE.Node("x")),
+            DummyRange
+          )),
+          DummyRange
         ))
       ),
-      WE.Node(Expr.Var(WE.Node("x")))
+      WE.Node(Expr.Var(WE.Node("x"), DummyRange)),
+      DummyRange
     )),
-    ModuleData(Nil)
-  )),
+    ModuleData(Nil),
+    DummyRange
+  ),
   WE.Node(System(
     List(
       WE.Node(Module(
@@ -421,61 +460,75 @@ val expectedTestCaseResults = List(
           List(
             WE.Node(FieldType(
               WE.Node("x"),
-              WE.Node(Type.Number())
+              WE.Node(Type.Number(DummyRange)),
+              DummyRange
             )),
             WE.Node(FieldType(
               WE.Node("z"),
-              WE.Node(Type.Number())
+              WE.Node(Type.Number(DummyRange)),
+              DummyRange
             )),
             WE.Node(FieldType(
               WE.Node("y"),
-              WE.Node(Type.Number())
+              WE.Node(Type.Number(DummyRange)),
+              DummyRange
             ))
           ),
           List(
             WE.Node(MethodType(
               WE.Node("delta"),
-              List(WE.Node(Type.Number())),
-              WE.Node(Type.Number())
+              List(WE.Node(Type.Number(DummyRange))),
+              WE.Node(Type.Number(DummyRange)),
+              DummyRange
             ))
-          )
-        )))
+          ),
+          DummyRange
+        ))),
+        DummyRange
         )),
-      ))
+      DummyRange))
     ),
-    List(WE.Node(Import.Untyped(WE.Node("PointThreeD")))),
+    List(WE.Node(Import.Untyped(WE.Node("PointThreeD"), DummyRange))),
     WE.Node(ProgBlock(
       List(
         WE.Node(Decl(
           WE.Node("x"),
-          WE.Node(Expr.Num(1.0))
+          WE.Node(Expr.Num(1.0, DummyRange)),
+          DummyRange
         )),
         WE.Node(Decl(
           WE.Node("point"),
           WE.Node(Expr.NewInstance(
             WE.Node("PointThreeD"),
-            List(WE.Node("x"), WE.Node("x"), WE.Node("x"))
-          ))
+            List(WE.Node("x"), WE.Node("x"), WE.Node("x")),
+            DummyRange
+          )),
+          DummyRange
         ))
       ),
       List(
         WE.Node(Stmt.FieldAssign(
           WE.Node("point"),
           WE.Node("x"),
-          WE.Node(Expr.Var(WE.Node("x")))
+          WE.Node(Expr.Var(WE.Node("x"), DummyRange)),
+          DummyRange
         )),
         WE.Node(Stmt.Assign(
           WE.Node("x"),
           WE.Node(Expr.CallMethod(
             WE.Node("point"),
             WE.Node("delta"),
-            List(WE.Node("x"))
-          ))
+            List(WE.Node("x")),
+            DummyRange
+          )),
+          DummyRange
         ))
       ),
-      WE.Node(Expr.Var(WE.Node("x")))
+      WE.Node(Expr.Var(WE.Node("x"), DummyRange)),
+      DummyRange
     )),
-    ModuleData(Nil)
+    ModuleData(Nil),
+    DummyRange
   )),
   // ...existing code...
 WE.Node(System(
@@ -496,85 +549,106 @@ WE.Node(System(
                   WE.Node("x"),
                   WE.Node(Expr.GetField(
                     WE.Node("this"),
-                    WE.Node("x")
-                  ))
+                    WE.Node("x"),
+                    DummyRange
+                  )),
+                  DummyRange
                 )),
                 WE.Node(Decl(
                   WE.Node("y"),
                   WE.Node(Expr.GetField(
                     WE.Node("this"),
-                    WE.Node("y")
-                  ))
+                    WE.Node("y"),
+                    DummyRange
+                  )),
+                  DummyRange
                 ))
               ),
               List(),
               WE.Node(Expr.BinOpExpr(
                 WE.Node("x"),
                 BinOp.Add,
-                WE.Node("y")
-              ))
-            ))
+                WE.Node("y"),
+                DummyRange
+              )),
+              DummyRange
+            )),
+            DummyRange
           ))
         ),
         Some(WE.Node(Type.Shape(
         List(
           WE.Node(FieldType(
             WE.Node("x"),
-            WE.Node(Type.Number())
+            WE.Node(Type.Number(DummyRange)),
+            DummyRange
           )),
           WE.Node(FieldType(
             WE.Node("y"),
-            WE.Node(Type.Number())
+            WE.Node(Type.Number(DummyRange)),
+            DummyRange
           )),
           WE.Node(FieldType(
             WE.Node("z"),
-            WE.Node(Type.Number())
+            WE.Node(Type.Number(DummyRange)),
+            DummyRange
           ))
         ),
         List(
           WE.Node(MethodType(
             WE.Node("delta"),
             List(),
-            WE.Node(Type.Number())
+            WE.Node(Type.Number(DummyRange)),
+            DummyRange
           ))
-        )
-      )))
+        ),
+        DummyRange
+      ))),
+      DummyRange
       )),
-    ))
+    DummyRange))
   ),
-  List(WE.Node(Import.Untyped(WE.Node("PointThreeD")))),
+  List(WE.Node(Import.Untyped(WE.Node("PointThreeD"), DummyRange))),
   WE.Node(ProgBlock(
     List(
       WE.Node(Decl(
         WE.Node("x"),
-        WE.Node(Expr.Num(1.0))
+        WE.Node(Expr.Num(1.0, DummyRange)),
+        DummyRange
       )),
       WE.Node(Decl(
         WE.Node("point"),
         WE.Node(Expr.NewInstance(
           WE.Node("PointThreeD"),
-          List(WE.Node("x"), WE.Node("x"), WE.Node("x"))
-        ))
+          List(WE.Node("x"), WE.Node("x"), WE.Node("x")),
+          DummyRange
+        )),
+        DummyRange
       ))
     ),
     List(
       WE.Node(Stmt.FieldAssign(
         WE.Node("point"),
         WE.Node("x"),
-        WE.Node(Expr.Var(WE.Node("x")))
+        WE.Node(Expr.Var(WE.Node("x"), DummyRange)),
+        DummyRange
       )),
       WE.Node(Stmt.Assign(
         WE.Node("x"),
         WE.Node(Expr.CallMethod(
           WE.Node("point"),
           WE.Err(TypeErrorNodes.CallMethodDoesNotExist),
-          List(WE.Node("x"))
-        ))
+          List(WE.Node("x")),
+          DummyRange
+        )),
+        DummyRange
       ))
     ),
-    WE.Node(Expr.Var(WE.Node("x")))
+    WE.Node(Expr.Var(WE.Node("x"), DummyRange)),
+    DummyRange
   )),
-    ModuleData(Nil)
+    ModuleData(Nil),
+    DummyRange
 )),
   WE.Node(System(
   List(
@@ -594,85 +668,106 @@ WE.Node(System(
                   WE.Node("x"),
                   WE.Node(Expr.GetField(
                     WE.Node("this"),
-                    WE.Node("x")
-                  ))
+                    WE.Node("x"),
+                    DummyRange
+                  )),
+                  DummyRange
                 )),
                 WE.Node(Decl(
                   WE.Node("y"),
                   WE.Node(Expr.GetField(
                     WE.Node("this"),
-                    WE.Node("y")
-                  ))
+                    WE.Node("y"),
+                    DummyRange
+                  )),
+                  DummyRange
                 ))
               ),
               List(),
               WE.Node(Expr.BinOpExpr(
                 WE.Node("x"),
                 BinOp.Add,
-                WE.Node("y")
-              ))
-            ))
+                WE.Node("y"),
+                DummyRange
+              )),
+              DummyRange
+            )),
+            DummyRange
           ))
         ),
         Some(WE.Node(Type.Shape(
         List(
           WE.Node(FieldType(
             WE.Node("x"),
-            WE.Node(Type.Number())
+            WE.Node(Type.Number(DummyRange)),
+            DummyRange
           )),
           WE.Node(FieldType(
             WE.Node("y"),
-            WE.Node(Type.Number())
+            WE.Node(Type.Number(DummyRange)),
+            DummyRange
           )),
           WE.Node(FieldType(
             WE.Node("z"),
-            WE.Node(Type.Number())
+            WE.Node(Type.Number(DummyRange)),
+            DummyRange
           ))
         ),
         List(
           WE.Node(MethodType(
             WE.Node("delta"),
             List(),
-            WE.Node(Type.Number())
+            WE.Node(Type.Number(DummyRange)),
+            DummyRange
           ))
-        )
-      )))
+        ),
+        DummyRange
+      ))),
+      DummyRange
       )),
-    ))
+    DummyRange))
   ),
-  List(WE.Node(Import.Untyped(WE.Node("PointThreeD")))),
+  List(WE.Node(Import.Untyped(WE.Node("PointThreeD"), DummyRange))),
   WE.Node(ProgBlock(
     List(
       WE.Node(Decl(
         WE.Node("x"),
-        WE.Node(Expr.Num(1.0))
+        WE.Node(Expr.Num(1.0, DummyRange)),
+        DummyRange
       )),
       WE.Node(Decl(
         WE.Node("point"),
         WE.Node(Expr.NewInstance(
           WE.Node("PointThreeD"),
-          List(WE.Node("x"), WE.Node("x"), WE.Node("x"))
-        ))
+          List(WE.Node("x"), WE.Node("x"), WE.Node("x")),
+          DummyRange
+        )),
+        DummyRange
       ))
     ),
     List(
       WE.Node(Stmt.FieldAssign(
         WE.Node("point"),
         WE.Node("x"),
-        WE.Node(Expr.Var(WE.Node("x")))
+        WE.Node(Expr.Var(WE.Node("x"), DummyRange)),
+        DummyRange
       )),
       WE.Node(Stmt.Assign(
         WE.Node("x"),
         WE.Node(Expr.CallMethod(
           WE.Node("point"),
           WE.Node("delta"),
-          List()
-        ))
+          List(),
+          DummyRange
+        )),
+        DummyRange
       ))
     ),
-    WE.Node(Expr.Var(WE.Node("x")))
+    WE.Node(Expr.Var(WE.Node("x"), DummyRange)),
+    DummyRange
   )),
-    ModuleData(Nil)
+    ModuleData(Nil),
+    DummyRange
 )),
 WE.Node(System(
   List(
@@ -684,77 +779,90 @@ WE.Node(System(
       //   List(
       //     WE.Node(FieldType(
       //       WE.Node("x"),
-      //       WE.Node(Type.Number())
+      //       WE.Node(Type.Number(DummyRange))
       //     )),
       //     WE.Node(FieldType(
       //       WE.Node("y"),
-      //       WE.Node(Type.Number())
+      //       WE.Node(Type.Number(DummyRange))
       //     )),
       //     WE.Node(FieldType(
       //       WE.Node("z"),
-      //       WE.Node(Type.Number())
+      //       WE.Node(Type.Number(DummyRange))
       //     ))
       //   ),
       //   List(
       //     WE.Node(MethodType(
       //       WE.Node("delta"),
       //       List(),
-      //       WE.Node(Type.Number())
+      //       WE.Node(Type.Number(DummyRange))
       //     )),
       //     WE.Node(MethodType(
       //       WE.Node("deltaOne"),
       //       List(),
-      //       WE.Node(Type.Number())
+      //       WE.Node(Type.Number(DummyRange))
       //     ))
       //   )
       // ))
+      DummyRange
     ))
   ),
-  List(WE.Node(Import.Untyped(WE.Node("PointThreeD")))),
+  List(WE.Node(Import.Untyped(WE.Node("PointThreeD"), DummyRange))),
   WE.Node(ProgBlock(
     List(
       WE.Node(Decl(
         WE.Node("x"),
-        WE.Node(Expr.Num(1.0))
+        WE.Node(Expr.Num(1.0, DummyRange)),
+        DummyRange
       )),
       WE.Node(Decl(
         WE.Node("point"),
         WE.Node(Expr.NewInstance(
           WE.Node("PointThreeD"),
-          List(WE.Node("x"), WE.Node("x"), WE.Node("x"))
-        ))
+          List(WE.Node("x"), WE.Node("x"), WE.Node("x")),
+          DummyRange
+        )),
+        DummyRange
       ))
     ),
     List(
       WE.Node(Stmt.Assign(
         WE.Node("x"),
-        WE.Err(TypeErrorNodes.CallMethodWrongNumberOfParams)
+        WE.Err(TypeErrorNodes.CallMethodWrongNumberOfParams),
+        DummyRange
       )),
       WE.Node(Stmt.Assign(
         WE.Node("x"),
         WE.Node(Expr.GetField(
           WE.Node("point"),
-          WE.Err(TypeErrorNodes.FieldDoesNotExist)
-        ))
+          WE.Err(TypeErrorNodes.FieldDoesNotExist),
+          DummyRange
+        )),
+        DummyRange
       )),
       WE.Node(Stmt.Assign(
         WE.Node("x"),
         WE.Node(Expr.GetField(
                     WE.Err(TypeErrorNodes.ExpectedShapeType), 
-                    WE.Node("x"))
-                )
+                    WE.Node("x"),
+                    DummyRange)
+                ),
+        DummyRange
       )),
       WE.Node(Stmt.Assign(
         WE.Node("x"),
         WE.Node(Expr.IsInstanceOf(
             WE.Err(TypeErrorNodes.ExpectedShapeType), 
-            WE.Node("PointThreeD"))
-        )
+            WE.Node("PointThreeD"),
+            DummyRange)
+        ),
+        DummyRange
       ))
     ),
-    WE.Node(Expr.Var(WE.Node("x")))
+    WE.Node(Expr.Var(WE.Node("x"), DummyRange)),
+    DummyRange
   )),
-    ModuleData(Nil)
+    ModuleData(Nil),
+    DummyRange
 )),
 WE.Node(System(
   List(
@@ -772,20 +880,23 @@ WE.Node(System(
               List(
                 WE.Node(Decl(
                   WE.Node("negOne"),
-                  WE.Node(Expr.Num(-1.0))
+                  WE.Node(Expr.Num(-1.0, DummyRange)),
+                  DummyRange
                 )),
                 WE.Node(Decl(
                   WE.Node("result"),
-                  WE.Node(Expr.Num(0.0))
+                  WE.Node(Expr.Num(0.0, DummyRange)),
+                  DummyRange
                 )),
                 WE.Node(Decl(
                   WE.Node("keepRunning"),
-                  WE.Node(Expr.Num(0.0))
+                  WE.Node(Expr.Num(0.0, DummyRange)),
+                  DummyRange
                 ))
               ),
               List(
                 WE.Node(Stmt.While(
-                  WE.Node(Expr.Var(WE.Node("keepRunning"))),
+                  WE.Node(Expr.Var(WE.Node("keepRunning"), DummyRange)),
                   WE.Node(StmtBlock.Many(
                     List(),
                     List(
@@ -794,38 +905,51 @@ WE.Node(System(
                         WE.Node(Expr.BinOpExpr(
                           WE.Node("result"),
                           BinOp.Add,
-                          WE.Node("m")
-                        ))
+                          WE.Node("m"),
+                          DummyRange
+                        )),
+                        DummyRange
                       )),
                       WE.Node(Stmt.Assign(
                         WE.Node("n"),
                         WE.Node(Expr.BinOpExpr(
                           WE.Node("n"),
                           BinOp.Add,
-                          WE.Node("negOne")
-                        ))
+                          WE.Node("negOne"),
+                          DummyRange
+                        )),
+                        DummyRange
                       )),
                       WE.Node(Stmt.Ifelse(
-                        WE.Node(Expr.Var(WE.Node("n"))),
+                        WE.Node(Expr.Var(WE.Node("n"), DummyRange)),
                         WE.Node(StmtBlock.One(
                           WE.Node(Stmt.Assign(
                             WE.Node("keepRunning"),
-                            WE.Node(Expr.Num(1.0))
-                          ))
+                            WE.Node(Expr.Num(1.0, DummyRange)),
+                            DummyRange
+                          )),
+                          DummyRange
                         )),
                         WE.Node(StmtBlock.One(
                           WE.Node(Stmt.Assign(
                             WE.Node("keepRunning"),
-                            WE.Node(Expr.Num(0.0))
-                          ))
-                        ))
+                            WE.Node(Expr.Num(0.0, DummyRange)),
+                            DummyRange
+                          )),
+                          DummyRange
+                        )),
+                        DummyRange
                       ))
-                    )
-                  ))
+                    ),
+                    DummyRange
+                  )),
+                  DummyRange
                 ))
               ),
-              WE.Node(Expr.Var(WE.Node("result")))
-            ))
+              WE.Node(Expr.Var(WE.Node("result"), DummyRange)),
+              DummyRange
+            )),
+            DummyRange
           ))
         ),
       Some(WE.Node(Type.Shape(
@@ -833,16 +957,19 @@ WE.Node(System(
         List(
           WE.Node(MethodType(
             WE.Node("times"),
-            List(WE.Node(Type.Number()), WE.Node(Type.Number())),
-            WE.Node(Type.Number())
+            List(WE.Node(Type.Number(DummyRange)), WE.Node(Type.Number(DummyRange))),
+            WE.Node(Type.Number(DummyRange)),
+            DummyRange
           ))
-        )
-      )))
+        ),
+        DummyRange
+      ))),
+      DummyRange
       )),
-    )),
+    DummyRange)),
     WE.Node(Module(
       WE.Node("Fact"),
-      List(WE.Node(Import.Untyped(WE.Node("Mult")))),
+      List(WE.Node(Import.Untyped(WE.Node("Mult"), DummyRange))),
       WE.Node(Class(
         WE.Node("Fact"),
         List(),
@@ -854,46 +981,56 @@ WE.Node(System(
               List(
                 WE.Node(Decl(
                   WE.Node("result"),
-                  WE.Node(Expr.Num(1.0))
+                  WE.Node(Expr.Num(1.0, DummyRange)),
+                  DummyRange
                 ))
               ),
               List(
                 WE.Node(Stmt.Ifelse(
-                  WE.Node(Expr.Var(WE.Node("n"))),
+                  WE.Node(Expr.Var(WE.Node("n"), DummyRange)),
                   WE.Node(StmtBlock.One(
                     WE.Node(Stmt.Assign(
                       WE.Node("result"),
-                      WE.Node(Expr.Num(1.0))
-                    ))
+                      WE.Node(Expr.Num(1.0, DummyRange)),
+                      DummyRange
+                    )),
+                    DummyRange
                   )),
                   WE.Node(StmtBlock.Many(
                     List(
                       WE.Node(Decl(
                         WE.Node("negOne"),
-                        WE.Node(Expr.Num(-1.0))
+                        WE.Node(Expr.Num(-1.0, DummyRange)),
+                        DummyRange
                       )),
                       WE.Node(Decl(
                         WE.Node("nMinOne"),
                         WE.Node(Expr.BinOpExpr(
                           WE.Node("n"),
                           BinOp.Add,
-                          WE.Node("negOne")
-                        ))
+                          WE.Node("negOne"),
+                          DummyRange
+                        )),
+                        DummyRange
                       )),
                       WE.Node(Decl(
                         WE.Node("calcNminOne"),
                         WE.Node(Expr.CallMethod(
                           WE.Node("this"),
                           WE.Node("calcN"),
-                          List(WE.Node("nMinOne"))
-                        ))
+                          List(WE.Node("nMinOne")),
+                          DummyRange
+                        )),
+                        DummyRange
                       )),
                       WE.Node(Decl(
                         WE.Node("multiplier"),
                         WE.Node(Expr.NewInstance(
                           WE.Node("Multiplier"),
-                          List()
-                        ))
+                          List(),
+                          DummyRange
+                        )),
+                        DummyRange
                       ))
                     ),
                     List(
@@ -902,15 +1039,21 @@ WE.Node(System(
                         WE.Node(Expr.CallMethod(
                           WE.Node("multiplier"),
                           WE.Node("times"),
-                          List(WE.Node("n"), WE.Node("calcNminOne"))
-                        ))
+                          List(WE.Node("n"), WE.Node("calcNminOne")),
+                          DummyRange
+                        )),
+                        DummyRange
                       ))
-                    )
-                  ))
+                    ),
+                    DummyRange
+                  )),
+                  DummyRange
                 ))
               ),
-              WE.Node(Expr.Var(WE.Node("result")))
-            ))
+              WE.Node(Expr.Var(WE.Node("result"), DummyRange)),
+              DummyRange
+            )),
+            DummyRange
           ))
         ),
         Some(WE.Node(Type.Shape(
@@ -918,37 +1061,47 @@ WE.Node(System(
         List(
           WE.Node(MethodType(
             WE.Node("calcN"),
-            List(WE.Node(Type.Number())),
-            WE.Node(Type.Number())
+            List(WE.Node(Type.Number(DummyRange))),
+            WE.Node(Type.Number(DummyRange)),
+            DummyRange
           ))
-        )
-      )))
+        ),
+        DummyRange
+      ))),
+      DummyRange
       )),
+      DummyRange
     ))
   ),
-  List(WE.Node(Import.Untyped(WE.Node("Fact")))),
+  List(WE.Node(Import.Untyped(WE.Node("Fact"), DummyRange))),
   WE.Node(ProgBlock(
     List(
       WE.Node(Decl(
         WE.Node("factorial"),
         WE.Node(Expr.NewInstance(
           WE.Node("Fact"),
-          List()
-        ))
+          List(),
+          DummyRange
+        )),
+        DummyRange
       )),
       WE.Node(Decl(
         WE.Node("n"),
-        WE.Node(Expr.Num(5.0))
+        WE.Node(Expr.Num(5.0, DummyRange)),
+        DummyRange
       ))
     ),
     List(),
     WE.Node(Expr.CallMethod(
       WE.Node("factorial"),
       WE.Node("calcN"),
-      List(WE.Node("n"))
-    ))
+      List(WE.Node("n")),
+      DummyRange
+    )),
+    DummyRange
   )),
-    ModuleData(Nil)
+    ModuleData(Nil),
+    DummyRange
 ))    
 )
 
@@ -959,7 +1112,7 @@ WE.Node(System(
   //     WE.Node(ProgBlock(
   //       List(),
   //       List(),
-  //       WE.Node(Expr.Num(0.0))
+  //       WE.Node(Expr.Num(0.0, DummyRange))
   //     ))
   //   )),
   //    WE.Node(System(
@@ -968,7 +1121,7 @@ WE.Node(System(
   //     WE.Node(ProgBlock(
   //       List(),
   //       List(),
-  //       WE.Node(Expr.Num(0.0))
+  //       WE.Node(Expr.Num(0.0, DummyRange))
   //     ))
   //   ))
   //   ,
@@ -978,7 +1131,7 @@ WE.Node(System(
   //     WE.Node(ProgBlock(
   //       List(),
   //       List(),
-  //       WE.Node(Expr.Num(0.0))
+  //       WE.Node(Expr.Num(0.0, DummyRange))
   //     ))
   //   ))
   // )

@@ -11,7 +11,7 @@ class VCheckImportsTest extends FunSuite:
 
     def makeScopedMap(expectedMap : Map[String, Option[CleanShapeType]]) : ScopedModuleData =
         val entries = expectedMap.toList.map((mname, shape) => 
-            ModuleDataEntry(Module(mname, Nil, Class("dummy", Nil, Nil, shape, DummyRange)), DummyRange))
+            ModuleDataEntry(Module[Clean](mname, Nil, Class[Clean]("dummy", Nil, Nil, shape, DummyRange), DummyRange)))
         ScopedModuleData(entries)
 
     test("checkImportsModules - mixed mods, no imports") {
@@ -88,7 +88,8 @@ class VCheckImportsTest extends FunSuite:
     }
 
     test("checkMixedImports - typed import of same untyped module with same shape twice succeeds") {
-        val shape : CleanShapeType = Type.Shape(List(FieldType("x", Type.Number(DummyRange), DummyRange), DummyRange), Nil, DummyRange)
+        val shape : CleanShapeType =
+            Type.Shape(List(FieldType[Clean]("x", Type.Number[Clean](DummyRange), DummyRange)), Nil, DummyRange)
         val imports = List(
             Import.Typed[Clean]("UntypedMod", shape, DummyRange),
             Import.Untyped[Clean]("TypedMod", DummyRange),
@@ -102,8 +103,10 @@ class VCheckImportsTest extends FunSuite:
     }
 
     test("checkMixedImports - typed import of same untyped module with different shapes errors") {
-        val shape1 : CleanShapeType = Type.Shape(List(FieldType("x", Type.Number(DummyRange)), DummyRange), Nil, DummyRange)
-        val shape2 : CleanShapeType = Type.Shape(List(FieldType("y", Type.Number(DummyRange)), DummyRange), Nil, DummyRange)
+        val shape1 : CleanShapeType =
+            Type.Shape(List(FieldType[Clean]("x", Type.Number[Clean](DummyRange), DummyRange)), Nil, DummyRange)
+        val shape2 : CleanShapeType =
+            Type.Shape(List(FieldType[Clean]("y", Type.Number[Clean](DummyRange), DummyRange)), Nil, DummyRange)
         val imports = List(
             Import.Typed[Clean]("UntypedMod", shape1, DummyRange),
             Import.Typed[Clean]("UntypedMod", shape2, DummyRange)
@@ -118,8 +121,10 @@ class VCheckImportsTest extends FunSuite:
     }
 
     test("checkMixedImports - multiple imports with mixed validity") {
-        val shape1 : CleanShapeType = Type.Shape(List(FieldType("a", Type.Number(DummyRange)), DummyRange), Nil, DummyRange)
-        val shape2 : CleanShapeType = Type.Shape(List(FieldType("b", Type.Number(DummyRange)), DummyRange), Nil, DummyRange)
+        val shape1 : CleanShapeType =
+            Type.Shape(List(FieldType[Clean]("a", Type.Number[Clean](DummyRange), DummyRange)), Nil, DummyRange)
+        val shape2 : CleanShapeType =
+            Type.Shape(List(FieldType[Clean]("b", Type.Number[Clean](DummyRange), DummyRange)), Nil, DummyRange)
         
         val imports = List(
             Import.Untyped[Clean]("TypedMod", DummyRange),           // OK - untyped import of typed
@@ -144,7 +149,8 @@ class VCheckImportsTest extends FunSuite:
     }
 
     test("checkImportsSys - end-to-end system validation (does not flag undefined imports)") {
-        val shape : CleanShapeType = Type.Shape(List(FieldType("field", Type.Number(DummyRange)), DummyRange), Nil, DummyRange)
+        val shape : CleanShapeType =
+            Type.Shape(List(FieldType[Clean]("field", Type.Number[Clean](DummyRange), DummyRange)), Nil, DummyRange)
         val modules : List[CleanModule] = List(
                 Module(
                     "ModA",
@@ -179,10 +185,10 @@ class VCheckImportsTest extends FunSuite:
                     Class("ClassB", Nil, Nil, None, DummyRange),
                     DummyRange,
                 ),
-                Module(
+                Module[Clean](
                     "TypedMod",
                     List(Import.Untyped("UntypedMod", DummyRange)), // This should error
-                    Class("ClassA", Nil, Nil, Some(Type.Shape(Nil, Nil, DummyRange))),
+                    Class[Clean]("ClassA", Nil, Nil, Some(Type.Shape[Clean](Nil, Nil, DummyRange)), DummyRange),
                     DummyRange,
                 )                
             )
