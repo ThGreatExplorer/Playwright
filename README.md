@@ -22,7 +22,7 @@ sequenceDiagram
 At a glance:
 - The **VS Code client** (TypeScript) starts and manages the server process, forwarding editor events as LSP JSON-RPC messages.
 - The **Scala LSP server** handles parsing, analysis, and LSP responses using LSP4J for protocol plumbing.
-- The server can delegate to the Playwright compiler/runtime for semantic information used in diagnostics or editor features.
+- The server delegates to the rest of the Playwright backend for parsing, validity checking, typechecking, linking, and the interpreter in order to provide semantic information used in diagnostics or editor features.
 
 ## Project layout
 
@@ -76,7 +76,8 @@ The repository includes a debug launcher in `.vscode/launch.json` for testing th
 1. Build the server and client (see build steps above).
 2. Open the repo root in VS Code.
 3. Open the **Run and Debug** panel and select the **Launch Client** configuration.
-4. Press **F5** to start debugging. VS Code will open a new **Extension Development Host** window where you can install and test the extension.
+4. Press **F5** to start debugging. VS Code will open a new **Extension Development Host** window where you can test the extension.
+5. Log messages will be tracked in the console output in *Toy LSP* or *Toy LSP Trace* panels
 
 ## Useful resources
 
