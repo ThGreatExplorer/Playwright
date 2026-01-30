@@ -761,7 +761,7 @@ object ParserTests:
           decls = List(
             WE.Node(Decl(
               WE.Node("x"),
-              WE.Node(Expr.Num(1.0))
+              WE.Node(Expr.Num(1.0)),
             )),
             WE.Node(Decl(
               WE.Node("y"),

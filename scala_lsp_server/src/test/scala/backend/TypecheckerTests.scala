@@ -240,10 +240,10 @@ val expectedTestCaseResults = List(
             ))
           ),
           DummyRange
-        ))),
+          ))),
         DummyRange
-      ))),
-        DummyRange)),
+      )),
+      DummyRange)),
     ),
     List(WE.Node(Import.Untyped(WE.Node("Point"), DummyRange))),
     WE.Node(ProgBlock(
@@ -286,8 +286,8 @@ val expectedTestCaseResults = List(
     )),
     ModuleData(Nil),
     DummyRange
-  ),
-    WE.Node(System(
+  )),
+  WE.Node(System(
     List(
       WE.Node(Module(
         WE.Node("Point"),
@@ -351,10 +351,10 @@ val expectedTestCaseResults = List(
             ))
           ),
           DummyRange
-        ))),
+          ))),
         DummyRange
-      ))),
-        DummyRange)),
+        )),
+      DummyRange)),
       WE.Node(Module(
         WE.Node("PointTwo"),
         List(),
@@ -440,7 +440,7 @@ val expectedTestCaseResults = List(
     )),
     ModuleData(Nil),
     DummyRange
-  ),
+  )),
   WE.Node(System(
     List(
       WE.Node(Module(
