@@ -28,10 +28,13 @@ class TypecheckerTests extends FunSuite {
           case None => throw new Exception("Passed invalid test case for Typechecker")
           case Some(cleanProg) =>
             Typechecker.typecheckSystem(cleanProg) match
-              case WE.Node(System(modsWE, impsWE, progWE, _, _)) => 
-                assertEquals(modsWE, expectedMods)
-                assertEquals(impsWE, expectedImps)
-                assertEquals(progWE, expectedProgB)
+              case systemWE @ WE.Node(System(_, _, _, _, _)) =>
+                stripRanges(systemWE) match
+                  case WE.Node(System(modsWE, impsWE, progWE, _, _)) =>
+                    assertEquals(modsWE, expectedMods)
+                    assertEquals(impsWE, expectedImps)
+                    assertEquals(progWE, expectedProgB)
+                  case _ => fail("Top level node is an error")
               case _ => fail("Top level node is an error")
       }  
     case _ => throw new Exception("Passed invalid test case for Typechecker")

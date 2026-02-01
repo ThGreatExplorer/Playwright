@@ -13,21 +13,21 @@ class ParserTests extends FunSuite {
   
   def processTypedSysParse(input : String) : (RawSystemWE, Boolean) =
     val inputSexp = BackendFuncs.readSexp(input);
-    val system    = Parser.parseTypedSys(inputSexp); 
+    val system    = Parser.parseTypedSys(inputSexp);
     val hasError  = rawSystemToClean(system).isEmpty;
-    (system, hasError)
+    (stripRanges(system), hasError)
 
   def processProgParse(input : String) : (ProgramWE, Boolean) = 
     val inputSexp = BackendFuncs.readSexp(input);
-    val prog      = Parser.parseProg(inputSexp); 
+    val prog      = Parser.parseProg(inputSexp);
     val hasError  = progToClean(prog).isEmpty;
-    (prog, hasError)
+    (stripRanges(prog), hasError)
 
   def processSysParse(input : String) : (RawSystemWE, Boolean) = 
     val inputSexp = BackendFuncs.readSexp(input);
-    val system    = Parser.parseMixedSys(inputSexp); 
+    val system    = Parser.parseMixedSys(inputSexp);
     val hasError  = rawSystemToClean(system).isEmpty;
-    (system, hasError)
+    (stripRanges(system), hasError)
 
   val allTests = Seq(
     ("Typed System", processTypedSysParse, ParserTests.validTypedModuleCases, ParserTests.invalidTypedModuleCases),
