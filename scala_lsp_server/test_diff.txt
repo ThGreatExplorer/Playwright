@@ -1,0 +1,4833 @@
+[info] welcome to sbt 1.11.5 (Eclipse Adoptium Java 21.0.8)
+[info] loading settings for project scala_lsp_server-build-build-build from metals.sbt...
+[info] loading project definition from /home/daniel/Projects/Playwright/scala_lsp_server/project/project/project
+[info] loading settings for project scala_lsp_server-build-build from metals.sbt...
+[info] loading project definition from /home/daniel/Projects/Playwright/scala_lsp_server/project/project
+[success] Generated .bloop/scala_lsp_server-build-build.json
+[success] Total time: 1 s, completed Jan 30, 2026, 1:44:46 PM
+[info] loading settings for project scala_lsp_server-build from metals.sbt, plugins.sbt...
+[info] loading project definition from /home/daniel/Projects/Playwright/scala_lsp_server/project
+[success] Generated .bloop/scala_lsp_server-build.json
+[success] Total time: 0 s, completed Jan 30, 2026, 1:44:46 PM
+[info] loading settings for project root from build.sbt...
+[info] set current project to hw1 (in build file:/home/daniel/Projects/Playwright/scala_lsp_server/)
+test.backend.SExprParserTests:
+  + Parser should set range for atom 0.02s
+  + Parser should set range for list spanning tokens 0.001s
+  + Parser should set range for nested list 0.001s
+test.backend.SynthesizerTest:
+  + synthesizeImports - typed import of untyped module creates new typed module 0.011s
+  + synthesizeImports - mixed typed and untyped imports 0.002s
+  + synthesizeImports - mixed typed and untyped imports, only distinct typed imports produce clones 0.001s
+  + synthesizeImports - preserves imports from original untyped module 0.001s
+  + synthesizeModules - untyped modules pass through unchanged 0.001s
+  + synthesizeModules - typed module with typed import creates new module 0.001s
+  + synthesizeModules - multiple typed modules with typed imports 0.003s
+  + synthesizeSystem - end-to-end with typed import in system body 0.0s
+  + synthesizeSystem - complex nested typed imports 0.003s
+test.backend.VCheckImportsTest:
+  + checkImportsModules - mixed mods, no imports 0.013s
+  + checkMixedImports - imports of undefined modules don't produce errors 0.002s
+  + checkMixedImports - untyped import of untyped module from typed context errors 0.002s
+  + checkMixedImports - untyped import of typed module succeeds 0.001s
+  + checkMixedImports - typed import of typed module errors 0.001s
+  + checkMixedImports - typed import of untyped module succeeds 0.001s
+  + checkMixedImports - typed import of same untyped module with same shape twice succeeds 0.002s
+  + checkMixedImports - typed import of same untyped module with different shapes errors 0.001s
+  + checkMixedImports - multiple imports with mixed validity 0.001s
+  + checkImportsSys - end-to-end system validation (does not flag undefined imports) 0.003s
+  + checkImportsSys - detects import errors in nested modules 0.001s
+test.backend.MySuite:
+  + Lexer should tokenize parentheses 0.019s
+  + Lexer should tokenize integer 0.002s
+  + Lexer should tokenize negative integer 0.001s
+  + Lexer should tokenize double without whole part 0.001s
+  + Lexer should tokenize negative double without whole part 0.001s
+  + Lexer should tokenize double 0.0s
+  + Lexer should tokenize negative double 0.001s
+  + Lexer handles - as symbol 0.003s
+  + Lexer should tokenize symbol 0.001s
+  + Lexer should tokenize string literal 0.001s
+  + Lexer should track range across lines 0.001s
+test.backend.ExampleRunnerTest:
+  + ExampleChecker catches numbers in names 0.028s
+  + ExampleChecker catches long names 0.0s
+  + ExampleChecker catches bad positive numbers 0.001s
+  + ExampleChecker catches bad negative numbers 0.001s
+  + ExampleChecker catches non doubles 0.001s
+test.test.RunnerTests:
+  + Debug launch 0.052s
+test.backend.CESKTests:
+  + Test malformed input triggers exception 0.015s
+  + Test Store 0.004s
+  + Test Env 0.0s
+  + Test KontStack 0.002s
+  + Simple numeric literal returns the number 0.001s
+  + Variable declaration and lookup 0.001s
+  + Binary addition of two variables 0.001s
+  + Binary division of two variables 0.001s
+  + Division by zero produces runtime error 0.001s
+  + Equality comparison returns truthy for equal values 0.001s
+  + Equality comparison returns falsy for unequal values 0.0s
+  + Equality Comparison among objects and objects vs Nums 0.026s
+  + BinOps Invalid Comparisons between Num and Obj 0.003s
+  + Object creation, field access and no variable aliasing 0.001s
+  + Test Field Access with Typed Classes 0.001s
+  + Structural equality of Proxy Instances 0.0s
+  + Test Field Access with Typed Classes Violation 0.001s
+  + Object creation with wrong number of Fields 0.001s
+  + Object creation and invalid field access 0.001s
+  + Object method call with parameters 0.002s
+  + Object method call for instance of Typed Class 0.002s
+  + Object method call for instance of Typed Class Violation 0.0s
+  + Object method call for instance of Typed Class Violation With Wrong Num Params 0.001s
+  + Object method call with wrong number of parameters 0.001s
+  + IsInstanceOf returns true for correct type 0.001s
+  + IsInstanceOf returns True for Typed Class 0.0s
+  + IsInstanceOf returns false for incorrect type 0.001s
+  + IsInstanceOf returns false for incorrect type-1 0.0s
+  + Variable assignment updates value 0.0s
+  + Field assignment updates object field 0.001s
+  + Field assignment updates object field Typed Class 0.001s
+  + Field assignment updates object field Typed Class Violation 0.0s
+  + Field assignment tries updates object field that does not exist 0.001s
+  + Objects fail to conform to Proxy types 0.002s
+  + Proxy to conforms an outer to Proxy type 0.002s
+  + If-else takes true branch when condition is truthy 0.001s
+  + If-else takes false branch when condition is falsy 0.0s
+  + If else has object at guard position 0.0s
+  + While loop executes correctly 0.001s
+  + While has object at guard position 0.0s
+  + Field access on numeric value produces error 0.001s
+  + Method call on numeric value produces error 0.0s
+  + Complex program with multiple operations 0.001s
+  + Method accessing this reference 0.001s
+  + Valid Parser Prog CESK Tests: ((def foo 123.4) (foo = 100.0) foo) 0.0s
+  + Valid Parser Prog CESK Tests: ((def a 1.0) (def b 2.0) (a = (a + b)) (a / b)) 0.001s
+  + Valid Parser Prog CESK Tests: ((def x 10.0) (if0 x (block (def y 2.0) (y = 5.0)) (block (def z 3.0) (z = 7.0))) x) 0.0s
+  + Valid Parser Prog CESK Tests: ((def guard 1.0) (while0 guard (block (def i 0.0) (i = (i + guard)))) guard) 0.0s
+  + Valid Parser Prog CESK Tests: ((def a 10.0) (def b 20.0) (a = (a + b)) (if0 a (block (def c 1.0) (c = (a / b))) (block (def d 2.0) (d = (b / a)))) (a == b)) 0.0s
+  + Valid Parser Prog CESK Tests: ((class A ()) (class B (owo) (method uwu (num) (def foo 123.4) (foo = num) this) (method fave () (def o (new A ())) 413.0)) (def o (new A ())) (o isa A)) 0.001s
+  + Valid Parser Prog CESK Tests: ((class B (owo) (method uwu (num) (def foo 123.4) (foo = num) this)) (def num 413.0) (def o (new B (num))) (o --> notafield = (o --> somemethod (num))) (o --> alsonotafield)) 0.0s
+test.backend.LinkerTests:
+  + \n    (\n      (module ModuleA (class ClassA ()))\n      0.0\n    )\n     0.04s
+  + \n    (\n      (module ModuleA (class ClassA ()))\n      (module ModuleB (import ModuleA) (class ClassB ()))\n      (import ModuleB)\n      0.0\n    )\n     0.003s
+  + \n    (\n      (module ModuleA (class ClassA ()))\n      (import ModuleA)\n      0.0\n    )\n     0.001s
+  + \n    (\n      (module ModuleA (class ClassA ()))\n      (module ModuleB (import ModuleA) (class ClassB ()))\n      (module ModuleC (import ModuleA) (import ModuleB) (class ClassC ()))\n      (import ModuleC)\n      0.0\n    )\n     0.001s
+  + \n    (\n      (module ModuleA (class ClassA ()))\n      (module ModuleB (class ClassA ()))\n      (module ModuleC (import ModuleA) (import ModuleB) (class ClassA ()))\n      0.0\n    )\n     0.001s
+  + \n    (\n      (module ModuleX (class ClassX ()))\n      (module ModuleA (import ModuleX) (class ClassA ()))\n      (module ModuleB (import ModuleX) (class ClassB ()))\n      (module ModuleC (import ModuleA) (import ModuleB) (class ClassC ()))\n      0.0\n    )\n     0.004s
+  + \n    (\n      (module ModuleA (class ClassA ()))\n      (module ModuleB (import ModuleA) (class ClassB ()))\n      (module ModuleC (import ModuleB) (class ClassC ()))\n      (module ModuleD (import ModuleC) (class ClassD ()))\n      (import ModuleB)\n      (import ModuleD)\n      (import ModuleC)\n      0.0\n    )\n     0.006s
+  + \n    (\n      (module ModuleA (class ClassA ()))\n      (module ModuleB (class ClassA ()))\n      (import ModuleA)\n      (import ModuleB)\n      0.0\n    )\n     0.001s
+  + \n    (\n      (module ModuleA (class ClassA ()))\n      (module ModuleB (import ModuleA) (class ClassA ()))\n      (import ModuleB)\n      (import ModuleA)\n      0.0\n    )\n     0.001s
+  + \n    (\n      (module ModuleAOne (class A ()))\n      (module ModuleATwo (class A ()))\n      (module ModuleBATwo (import ModuleAOne) (import ModuleATwo) (class B () \n        (method newA ()\n          (new A ())\n        )\n      ))\n      (module ModuleBAOne (import ModuleATwo) (import ModuleAOne) (class B () \n        (method newA ()\n          (new A ())\n        )\n      ))\n      (import ModuleAOne)\n      (import ModuleBAOne)\n      (def b (new B ()))\n      (def aOne (b --> newA ()))\n      (def aOneO (new A ()))\n      (aOneO == aOne)\n    )\n     0.002s
+==> X test.backend.LinkerTests.\n      ((module Mone (class cone () (method m (x) x)))\n      (tmodule\n        Mtwo\n        (timport Mone (() ((m (Number) Number))))\n        (class ctwo () (method m (x) x))\n        (() ((m ((() ((m (Number) Number)))) (() ((m (Number) Number)))))))\n      (timport Mone (() ((m (Number) Number))))\n      (import Mtwo)\n      (def mone (new cone ()))\n      (def mtwo (new ctwo ()))\n      (def monetoo (mtwo --> m (mone)))\n      (def two 2.0)\n      (monetoo --> m (two)))\n      0.028s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/LinkerTests.scala:39
+38:            val renamedSys = SystemToClassLinker.renameClassesUsingDependencyGraph(sys)
+39:            assertEquals(baseModule.toString().strip(), expectedDepGraph.strip())
+40:            // assertEquals(removeWhiteSpace(renamedSys.toString()), removeWhiteSpace(expectedAST.toString()))
+values are not the same
+=> Obtained
+#topLevelModName@
+├──[Shape(List(),List(MethodType(m,List(Number(Range(Position(8,30),Position(8,36)))),Number(Range(Position(8,38),Position(8,44))),Range(Position(8,26),Position(8,45)))),Range(Position(8,21),Position(8,47)))] Mone
+└── Mtwo
+    └──[Shape(List(),List(MethodType(m,List(Number(Range(Position(5,32),Position(5,38)))),Number(Range(Position(5,40),Position(5,46))),Range(Position(5,28),Position(5,47)))),Range(Position(5,23),Position(5,49)))] Mone
+=> Diff (- obtained, + expected)
+ #topLevelModName@
+-├──[Shape(List(),List(MethodType(m,List(Number(Range(Position(8,30),Position(8,36)))),Number(Range(Position(8,38),Position(8,44))),Range(Position(8,26),Position(8,45)))),Range(Position(8,21),Position(8,47)))] Mone
++├──[Shape(List(),List(MethodType(m,List(Number()),Number())))] Mone
+ └── Mtwo
+-    └──[Shape(List(),List(MethodType(m,List(Number(Range(Position(5,32),Position(5,38)))),Number(Range(Position(5,40),Position(5,46))),Range(Position(5,28),Position(5,47)))),Range(Position(5,23),Position(5,49)))] Mone
++    └──[Shape(List(),List(MethodType(m,List(Number()),Number())))] Mone (already shown)
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.LinkerTests.\n    (\n      (module A (class A () ))\n      (tmodule B (timport A (() ())) (class B ()) (() ()))\n      (timport A (((x Number)) ()))\n      (import B)\n      (timport A (((x Number)) ()))\n      1.0\n    )\n      0.002s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/LinkerTests.scala:39
+38:            val renamedSys = SystemToClassLinker.renameClassesUsingDependencyGraph(sys)
+39:            assertEquals(baseModule.toString().strip(), expectedDepGraph.strip())
+40:            // assertEquals(removeWhiteSpace(renamedSys.toString()), removeWhiteSpace(expectedAST.toString()))
+values are not the same
+=> Obtained
+#topLevelModName@
+├──[Shape(List(FieldType(x,Number(Range(Position(5,23),Position(5,29))),Range(Position(5,20),Position(5,30)))),List(),Range(Position(5,18),Position(5,35)))] A
+├── B
+│   └──[Shape(List(),List(),Range(Position(4,29),Position(4,36)))] A
+└──[Shape(List(FieldType(x,Number(Range(Position(7,23),Position(7,29))),Range(Position(7,20),Position(7,30)))),List(),Range(Position(7,18),Position(7,35)))] A
+=> Diff (- obtained, + expected)
+ #topLevelModName@
+-├──[Shape(List(FieldType(x,Number(Range(Position(5,23),Position(5,29))),Range(Position(5,20),Position(5,30)))),List(),Range(Position(5,18),Position(5,35)))] A
++├──[Shape(List(FieldType(x,Number())),List())] A
+ ├── B
+-│   └──[Shape(List(),List(),Range(Position(4,29),Position(4,36)))] A
+-└──[Shape(List(FieldType(x,Number(Range(Position(7,23),Position(7,29))),Range(Position(7,20),Position(7,30)))),List(),Range(Position(7,18),Position(7,35)))] A
++│   └──[Shape(List(),List())] A
++└──[Shape(List(FieldType(x,Number())),List())] A (already shown)
+    at munit.Assertions.failComparison(Assertions.scala:278)
+test.backend.TypecheckerTests:
+==> X test.backend.TypecheckerTests.\n  ((tmodule\n  Point\n  (class Point (x y) (method delta (x) (def y (this --> y)) (x = 1.0) (x + y)))\n  (((x Number) (y Number)) ((delta (Number) Number))))\n (import Point)\n (def x 1.0)\n (def point (new Point (x x)))\n (point --> x = x)\n (x = (point --> delta (x)))\n x)\n    0.089s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/TypecheckerTests.scala:32
+31:              case WE.Node(System(modsWE, impsWE, progWE, _, _)) => 
+32:                assertEquals(modsWE, expectedMods)
+33:                assertEquals(impsWE, expectedImps)
+values are not the same
+=> Diff (- obtained, + expected)
+                                 start = Position(
+-                                  line = 4,
+-                                  col = 47
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 4,
+-                                  col = 59
++                                  line = 0,
++                                  col = 0
+                                 )
+                             start = Position(
+-                              line = 4,
+-                              col = 40
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 4,
+-                              col = 60
++                              line = 0,
++                              col = 0
+                             )
+                                 start = Position(
+-                                  line = 4,
+-                                  col = 66
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 4,
+-                                  col = 69
++                                  line = 0,
++                                  col = 0
+                                 )
+                             start = Position(
+-                              line = 4,
+-                              col = 61
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 4,
+-                              col = 70
++                              line = 0,
++                              col = 0
+                             )
+                           start = Position(
+-                            line = 4,
+-                            col = 71
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 4,
+-                            col = 78
++                            line = 0,
++                            col = 0
+                           )
+                       start = Position(
+-                        line = 4,
+-                        col = 40
++                        line = 0,
++                        col = 0
+                       ),
+                       end = Position(
+-                        line = 4,
+-                        col = 78
++                        line = 0,
++                        col = 0
+                       )
+                   start = Position(
+-                    line = 4,
+-                    col = 22
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 4,
+-                    col = 79
++                    line = 0,
++                    col = 0
+                   )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.TypecheckerTests.\n  ((tmodule\n  Point\n  (class Point (x y) (method delta (x) (def y (this --> y)) (x = 1.0) (x + y)))\n  (((x Number) (y Number)) ((delta (Number) Number))))\n (tmodule\n  PointTwo\n  (class Point\n    (x y z)\n    (method delta () (def x (this --> x)) (def y (this --> y)) (x + y)))\n  (((x Number) (y Number))\n   ((delta (Number) (((x Number) (y Number)) ((delta (Number) Number)))))))\n (import Point)\n (def x 1.0)\n (def point (new Point (x x)))\n (point --> x = x)\n (x = (point --> delta (x)))\n x)\n    0.009s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/TypecheckerTests.scala:32
+31:              case WE.Node(System(modsWE, impsWE, progWE, _, _)) => 
+32:                assertEquals(modsWE, expectedMods)
+33:                assertEquals(impsWE, expectedImps)
+values are not the same
+=> Diff (- obtained, + expected)
+                                 start = Position(
+-                                  line = 4,
+-                                  col = 47
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 4,
+-                                  col = 59
++                                  line = 0,
++                                  col = 0
+                                 )
+                             start = Position(
+-                              line = 4,
+-                              col = 40
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 4,
+-                              col = 60
++                              line = 0,
++                              col = 0
+                             )
+                                 start = Position(
+-                                  line = 4,
+-                                  col = 66
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 4,
+-                                  col = 69
++                                  line = 0,
++                                  col = 0
+                                 )
+                             start = Position(
+-                              line = 4,
+-                              col = 61
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 4,
+-                              col = 70
++                              line = 0,
++                              col = 0
+                             )
+                           start = Position(
+-                            line = 4,
+-                            col = 71
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 4,
+-                            col = 78
++                            line = 0,
++                            col = 0
+                           )
+                       start = Position(
+-                        line = 4,
+-                        col = 40
++                        line = 0,
++                        col = 0
+                       ),
+                       end = Position(
+-                        line = 4,
+-                        col = 78
++                        line = 0,
++                        col = 0
+                       )
+                   start = Position(
+-                    line = 4,
+-                    col = 22
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 4,
+-                    col = 79
++                    line = 0,
++                    col = 0
+                   )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.TypecheckerTests.\n  ((tmodule\n  PointThreeD\n  (class PointThreeD\n    (x y z)\n    (method delta () (def x (this --> x)) (def y (this --> y)) (x + y)))\n  (((x Number) (z Number) (y Number)) ((delta (Number) Number))))\n (import PointThreeD)\n (def x 1.0)\n (def point (new PointThreeD (x x x)))\n (point --> x = x)\n (x = (point --> delta (x)))\n x)\n    0.01s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/TypecheckerTests.scala:32
+31:              case WE.Node(System(modsWE, impsWE, progWE, _, _)) => 
+32:                assertEquals(modsWE, expectedMods)
+33:                assertEquals(impsWE, expectedImps)
+values are not the same
+=> Diff (- obtained, + expected)
+                             start = Position(
+-                              line = 7,
+-                              col = 8
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 7,
+-                              col = 14
++                              line = 0,
++                              col = 0
+                             )
+                         start = Position(
+-                          line = 7,
+-                          col = 5
++                          line = 0,
++                          col = 0
+                         ),
+                         end = Position(
+-                          line = 7,
+-                          col = 15
++                          line = 0,
++                          col = 0
+                         )
+                             start = Position(
+-                              line = 7,
+-                              col = 19
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 7,
+-                              col = 25
++                              line = 0,
++                              col = 0
+                             )
+                         start = Position(
+-                          line = 7,
+-                          col = 16
++                          line = 0,
++                          col = 0
+                         ),
+                         end = Position(
+-                          line = 7,
+-                          col = 26
++                          line = 0,
++                          col = 0
+                         )
+                             start = Position(
+-                              line = 7,
+-                              col = 30
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 7,
+-                              col = 36
++                              line = 0,
++                              col = 0
+                             )
+                         start = Position(
+-                          line = 7,
+-                          col = 27
++                          line = 0,
++                          col = 0
+                         ),
+                         end = Position(
+-                          line = 7,
+-                          col = 37
++                          line = 0,
++                          col = 0
+                         )
+                               start = Position(
+-                                line = 7,
+-                                col = 48
++                                line = 0,
++                                col = 0
+                               ),
+                               end = Position(
+-                                line = 7,
+-                                col = 54
++                                line = 0,
++                                col = 0
+                               )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.TypecheckerTests.\n  ((tmodule\n  PointThreeD\n  (class PointThreeD\n    (x y z)\n    (method delta () (def x (this --> x)) (def y (this --> y)) (x + y)))\n  (((x Number) (y Number) (z Number)) ((delta () Number))))\n (import PointThreeD)\n (def x 1.0)\n (def point (new PointThreeD (x x x)))\n (point --> x = x)\n (x = (point --> deltaOne (x)))\n x)\n    0.006s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/TypecheckerTests.scala:32
+31:              case WE.Node(System(modsWE, impsWE, progWE, _, _)) => 
+32:                assertEquals(modsWE, expectedMods)
+33:                assertEquals(impsWE, expectedImps)
+values are not the same
+=> Diff (- obtained, + expected)
+                                 start = Position(
+-                                  line = 6,
+-                                  col = 29
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 6,
+-                                  col = 41
++                                  line = 0,
++                                  col = 0
+                                 )
+                             start = Position(
+-                              line = 6,
+-                              col = 22
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 6,
+-                              col = 42
++                              line = 0,
++                              col = 0
+                             )
+                                 start = Position(
+-                                  line = 6,
+-                                  col = 50
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 6,
+-                                  col = 62
++                                  line = 0,
++                                  col = 0
+                                 )
+                             start = Position(
+-                              line = 6,
+-                              col = 43
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 6,
+-                              col = 63
++                              line = 0,
++                              col = 0
+                             )
+                           start = Position(
+-                            line = 6,
+-                            col = 64
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 6,
+-                            col = 71
++                            line = 0,
++                            col = 0
+                           )
+                       start = Position(
+-                        line = 6,
+-                        col = 22
++                        line = 0,
++                        col = 0
+                       ),
+                       end = Position(
+-                        line = 6,
+-                        col = 71
++                        line = 0,
++                        col = 0
+                       )
+                   start = Position(
+-                    line = 6,
+-                    col = 5
++                    line = 0,
++                    col = 0
+                   ),
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.TypecheckerTests.\n  ((tmodule\n  PointThreeD\n  (class PointThreeD\n    (x y z)\n    (method delta () (def x (this --> x)) (def y (this --> y)) (x + y)))\n  (((x Number) (y Number) (z Number)) ((delta () Number))))\n (import PointThreeD)\n (def x 1.0)\n (def point (new PointThreeD (x x x)))\n (point --> x = x)\n (x = (point --> delta ()))\n x)\n    0.006s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/TypecheckerTests.scala:32
+31:              case WE.Node(System(modsWE, impsWE, progWE, _, _)) => 
+32:                assertEquals(modsWE, expectedMods)
+33:                assertEquals(impsWE, expectedImps)
+values are not the same
+=> Diff (- obtained, + expected)
+                                 start = Position(
+-                                  line = 6,
+-                                  col = 29
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 6,
+-                                  col = 41
++                                  line = 0,
++                                  col = 0
+                                 )
+                             start = Position(
+-                              line = 6,
+-                              col = 22
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 6,
+-                              col = 42
++                              line = 0,
++                              col = 0
+                             )
+                                 start = Position(
+-                                  line = 6,
+-                                  col = 50
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 6,
+-                                  col = 62
++                                  line = 0,
++                                  col = 0
+                                 )
+                             start = Position(
+-                              line = 6,
+-                              col = 43
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 6,
+-                              col = 63
++                              line = 0,
++                              col = 0
+                             )
+                           start = Position(
+-                            line = 6,
+-                            col = 64
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 6,
+-                            col = 71
++                            line = 0,
++                            col = 0
+                           )
+                       start = Position(
+-                        line = 6,
+-                        col = 22
++                        line = 0,
++                        col = 0
+                       ),
+                       end = Position(
+-                        line = 6,
+-                        col = 71
++                        line = 0,
++                        col = 0
+                       )
+                   start = Position(
+-                    line = 6,
+-                    col = 5
++                    line = 0,
++                    col = 0
+                   ),
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.TypecheckerTests.\n ((tmodule\n  PointThreeD\n  (class PointThreeD\n    (x y z)\n    (method delta () (def x (this --> x)) (def y (this --> y)) (x + y)))\n  (((x Number) (y Number) (z Number)) ((delta () Number) (deltaOne () Number))))\n (import PointThreeD) \n (def x 1.0)\n (def point (new PointThreeD (x x x)))\n (x = (point --> delta (x x)))\n (x = (point --> m))\n (x = (x --> x))\n (x = (x isa PointThreeD))\n x)\n  0.003s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/TypecheckerTests.scala:32
+31:              case WE.Node(System(modsWE, impsWE, progWE, _, _)) => 
+32:                assertEquals(modsWE, expectedMods)
+33:                assertEquals(impsWE, expectedImps)
+values are not the same
+=> Obtained
+List(
+  Node(
+    n = Module(
+      mname = Node(
+        n = "PointThreeD"
+      ),
+      imports = Nil,
+      clas = Err(
+        e = ShapeTypeWrongNumberOfMethods()
+      ),
+      range = Range(
+        start = Position(
+          line = 2,
+          col = 3
+        ),
+        end = Position(
+          line = 7,
+          col = 81
+        )
+      )
+    )
+  )
+)
+=> Diff (- obtained, + expected)
+         start = Position(
+-          line = 2,
+-          col = 3
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 7,
+-          col = 81
++          line = 0,
++          col = 0
+         )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.TypecheckerTests.\n( \n  (tmodule Mult (class Multiplier ()\n    (method times (m n)\n      (def negOne -1.0)\n      (def result 0.0) \n      (def keepRunning 0.0)\n\n      (while0 keepRunning\n        (block \n          (result = (result + m))\n          (n = (n + negOne))\n          (if0 n\n            (keepRunning = 1.0)\n            (keepRunning = 0.0))\n          ))\n      result))\n    (() ((times (Number Number) Number))))\n\n  (tmodule Fact (import Mult) \n    (class Fact ()\n      (method calcN (n)\n        (def result 1.0)\n        (if0 n\n          (result = 1.0)\n          (block\n            (def negOne -1.0)\n            (def nMinOne (n + negOne))\n            (def calcNminOne (this --> calcN (nMinOne)))\n\n            (def multiplier (new Multiplier ()))\n            (result = (multiplier --> times (n calcNminOne)))\n          ))\n        result))\n      (() ((calcN (Number) Number))))\n\n  (import Fact)\n  \n  (def factorial (new Fact ()))\n  (def n 5.0)\n  (factorial --> calcN (n))\n)\n  0.014s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/TypecheckerTests.scala:32
+31:              case WE.Node(System(modsWE, impsWE, progWE, _, _)) => 
+32:                assertEquals(modsWE, expectedMods)
+33:                assertEquals(impsWE, expectedImps)
+values are not the same
+=> Diff (- obtained, + expected)
+                                 start = Position(
+-                                  line = 5,
+-                                  col = 19
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 5,
+-                                  col = 23
++                                  line = 0,
++                                  col = 0
+                                 )
+                             start = Position(
+-                              line = 5,
+-                              col = 7
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 5,
+-                              col = 24
++                              line = 0,
++                              col = 0
+                             )
+                                 start = Position(
+-                                  line = 6,
+-                                  col = 19
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 6,
+-                                  col = 22
++                                  line = 0,
++                                  col = 0
+                                 )
+                             start = Position(
+-                              line = 6,
+-                              col = 7
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 6,
+-                              col = 23
++                              line = 0,
++                              col = 0
+                             )
+                                 start = Position(
+-                                  line = 7,
+-                                  col = 24
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 7,
+-                                  col = 27
++                                  line = 0,
++                                  col = 0
+                                 )
+                             start = Position(
+-                              line = 7,
+-                              col = 7
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 7,
+-                              col = 28
++                              line = 0,
++                              col = 0
+                             )
+                                 start = Position(
+-                                  line = 9,
+-                                  col = 15
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 9,
++                                  line = 0,
+                                   col = ...
+    at munit.Assertions.failComparison(Assertions.scala:278)
+test.backend.RunnerTests:
+==> X test.backend.RunnerTests.Assignment 12 Runner test for: \n    ((module\n      Point\n      (class Point (x y) (method delta (x) (def y (this --> y)) (x = 1.0) this)))\n    (timport Point (((x Number) (y Number)) ((delta (Number) Number))))\n    (timport Point (((x Number) (y Number)) ((delta (Number) Number))))\n    (def x 1.0)\n    (def point (new Point (x x)))\n    (point --> x = x)\n    (x = (point --> delta (x)))\n    x)\n      0.089s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/RunnerTests.scala:728
+727:        val outString = result.outputString
+728:        assertEquals(result, expectedResult)
+729:        assertEquals(outString, expectedString)
+values are not the same
+=> Obtained
+BadImport()
+=> Diff (- obtained, + expected)
+-BadImport()
++RuntimeError()
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.RunnerTests.Assignment 12 Runner test for: \n      ((module\n        Point\n        (class Point (x y) (method delta (x) (def y (this --> y)) (x = 1.0) (x + y))))\n      (timport Point (((x Number) (y Number)) ((delta (Number) Number))))\n      (timport Point (((x Number) (y Number)) ((delta (Number) Number))))\n      (def x 1.0)\n      (def point (new Point (x x)))\n      (point --> x = x)\n      (x = (point --> delta (x)))\n      x)\n        0.003s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/RunnerTests.scala:728
+727:        val outString = result.outputString
+728:        assertEquals(result, expectedResult)
+729:        assertEquals(outString, expectedString)
+values are not the same
+=> Obtained
+BadImport()
+=> Diff (- obtained, + expected)
+-BadImport()
++SuccNum(
++  n = 2.0
++)
+    at munit.Assertions.failComparison(Assertions.scala:278)
+  + Assignment 11 Runner test for: \n      (\n        (tmodule Body (class A () (method f () 413.0)) (() ((f () Number))))\n        (import Body)\n        (def objA (new A()))\n        (objA --> f())\n      )\n       0.0s
+  + Assignment 11 Runner test for: \n      (\n        (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))\n        (module A (class A () (method g () 413.0)))\n        (import A)\n        (def objA (new A()))\n        (objA --> f())\n      )\n       0.0s
+  + Assignment 11 Runner test for: \n      (\n      (tmodule A (class B (a b) (method f () 413.0)) (() ((f () Number) (f () Number))))\n      (import B)\n      (def objB (new B()))\n      (objB --> f())\n      )\n       0.001s
+  + Assignment 11 Runner test for: \n      (\n        (module A (class A () (method f () 413.0)))\n        (tmodule B (timport A (() ((f () Number)))) (timport A (() ((g () Number))))\n          (class B () (method g () 413.0)) \n          (() ((g () Number))))\n        (import B)\n        (def objB (new B()))\n        objB\n      )\n       0.002s
+  + Assignment 11 Runner test for: \n      (\n      (tmodule A (class B () (method f () 413.0)) (() ((f () Number))))\n      (import B)\n      (def objB (new B()))\n      (objB --> f())\n      )\n       0.001s
+==> X test.backend.RunnerTests.Assignment 11 Runner test for: \n      ((module A (class c ()))\n      (tmodule B (class c () (method m () 2.0)) (() ((m () Number))))\n      (timport A (() ()))\n      (import B)\n      (timport A (() ()))\n      (import B)\n      (timport A (() ()))\n      (import B)\n      (timport A (() ()))\n      (def ex (new c ()))\n      (def res (ex --> m ()))\n      res)\n        0.001s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/RunnerTests.scala:728
+727:        val outString = result.outputString
+728:        assertEquals(result, expectedResult)
+729:        assertEquals(outString, expectedString)
+values are not the same
+=> Obtained
+BadImport()
+=> Diff (- obtained, + expected)
+-BadImport()
++TypeError()
+    at munit.Assertions.failComparison(Assertions.scala:278)
+  + Assignment 11 Runner test for: \n      (\n        (tmodule Helper\n          (class Helper () (method faveNum () 413.0))\n          (() ((faveNum () Number)))\n        )\n        (module Insidious (import Helper)\n          (class Insidious () \n            (method violation () \n              (def o (new Helper ()))\n              (def val (o --> faveNum()))\n              (val isa Helper)\n            )\n          )\n        )\n        (timport Insidious (() ((violation () Number))))\n        (def o (new Insidious ()))\n        (o --> violation ())\n      )\n       0.002s
+  + Assignment 11 Runner test for: \n      (\n        (module Cowboy (class Cowboy() (method draw() 1.0)))\n        (module Artist (class Artist() (method draw() 666.0)))\n        (module MiniMain \n          (import Cowboy)\n          (import Artist)\n          (class MiniMain()\n            (method main() \n              (def a (new Artist ()))\n              (def c (new Cowboy ()))\n              (def x 0.0)\n              (if0 1.0 (x = a) (x = c))\n              (x = (x --> draw ()))\n              x)\n          )\n        )\n        (timport MiniMain (()((main () Number))))\n        (def obj (new MiniMain()))\n        (obj --> main())\n      )\n       0.002s
+  + Assignment 10 Runner test for: \n      (\n        (module A (class A () (method f () 413.0)))\n        (module B (timport A (() ((f () Number)))) (class B () (method g () 413.0)))\n        (import B)\n        (def objB (new B()))\n        objB\n      )\n       0.001s
+  + Assignment 10 Runner test for: \n      (\n        (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))\n        (module A (class A () (method g () 413.0)))\n        (import A)\n        (def objA (new A()))\n        (objA --> f())\n      )\n       0.003s
+  + Assignment 10 Runner test for: \n      (\n      (tmodule A (class B (a b) (method f () 413.0)) (() ((f () Number) (f () Number))))\n      (import B)\n      (def objB (new B()))\n      (objB --> f())\n      )\n       0.0s
+  + Assignment 10 Runner test for: \n      (\n        (module A (class A () (method f () 413.0)))\n        (tmodule B (timport A (() ((f () Number)))) (timport A (() ((g () Number))))\n          (class B () (method g () 413.0)) \n          (() ((g () Number))))\n        (import B)\n        (def objB (new B()))\n        objB\n      )\n       0.001s
+  + Assignment 10 Runner test for: \n      (\n      (tmodule A (class B () (method f () 413.0)) (() ((f () Number))))\n      (import B)\n      (def objB (new B()))\n      (objB --> f())\n      )\n       0.001s
+  + Assignment 10 Runner test for: \n      (\n        (module A (class A () (method f () 413.0)))\n        (tmodule B (timport A (() ((f () Number))))\n          (class B () \n            (method g () \n              (def objA (new A())) \n              (def val (objA --> f()))\n              (val isa A))) \n          (() ((g () Number))))\n        (import B)\n        (def objB (new B()))\n        objB\n      )\n       0.002s
+  + Assignment 10 Runner test for: \n      (\n        (tmodule Helper\n          (class Helper () (method faveNum () 413.0))\n          (() ((faveNum () Number)))\n        )\n        (module Insidious (import Helper)\n          (class Insidious () \n            (method violation () \n              (def o (new Helper ()))\n              (def val (o --> faveNum()))\n              (val isa Helper)\n            )\n          )\n        )\n        (timport Insidious (() ((violation () Number))))\n        (def o (new Insidious ()))\n        (o --> violation ())\n      )\n       0.003s
+  + Assignment 10 Runner test for: \n      (\n        (module Blatant \n          (class Blatant () \n            (method violation () \n              this\n            )\n          )\n        )\n        (timport Blatant (() ((violation () Number))))\n        (def bla (new Blatant ()))\n        (bla --> violation ())\n      )\n       0.001s
+  + Assignment 10 Runner test for: \n      (\n      (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))\n      (import A)\n      (def objA (new A()))\n      (def num (objA --> f()))\n      (def zero 0.0)\n      (num / zero)\n      )\n       0.002s
+  + Assignment 9 Runner test for: \n      (\n        (module A (class A () (method f () 413.0)))\n        (import A)\n        (def objA (new A()))\n        (objA --> f())\n      )\n       0.001s
+  + Assignment 9 Runner test for: \n      (\n        (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))\n        (tmodule A (class A () (method g () 413.0)) (() ((g () Number))))\n        (import A)\n        (def objA (new A()))\n        (objA --> f())\n      )\n       0.0s
+  + Assignment 9 Runner test for: \n      (\n        (tmodule A (class B (a b) (method f () 413.0)) (() ((f () Number) (f () Number))))\n        (import B)\n        (def objB (new B()))\n        (objB --> f())\n      )\n       0.001s
+  + Assignment 9 Runner test for: \n      (\n        (tmodule A (class B () (method f () 413.0)) (() ((f () Number))))\n        (import B)\n        (def objB (new B()))\n        (objB --> f())\n      )\n       0.001s
+  + Assignment 9 Runner test for: \n      (\n        (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))\n        (tmodule B (class B () (method g () 413.0)) (() ((g () Number))))\n        (import A)\n        (import B)\n        (def objA (new A()))\n        (def objB (new B()))\n        (objA = objB)\n        objA\n      )\n       0.001s
+  + Assignment 9 Runner test for: \n      (\n        (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))\n        (import A)\n        (def objA (new A()))\n        (objA --> f())\n      )\n       0.001s
+  + Assignment 9 Runner test for: \n      (\n        (tmodule A (class A () (method f () 413.0)) (() ((f () Number))))\n        (import A)\n        (def objA (new A()))\n        (def num (objA --> f()))\n        (def zero 0.0)\n        (num / zero)\n      )\n       0.002s
+  + Assignment 8 Runner test for: \n      ((module) 413.0)\n       0.0s
+  + Assignment 8 Runner test for: \n      ((module UWU (class OWO ())) (module UWU (class OWO ())) 413.0)\n       0.001s
+  + Assignment 8 Runner test for: \n      ((module UWU (class OWO (a a))) 413.0)\n       0.0s
+  + Assignment 8 Runner test for: \n      ((module UWU (class OWO (a) (method wow (hai) a))) 413.0)\n       0.001s
+  + Assignment 8 Runner test for: \n      ((module OWO \n       (class UWU (a) \n         (method wow (x) (new UWU (x)))\n       ))\n       (import OWO)\n        (def x 413.0) \n        (def o (new UWU (x))) \n        (o --> wow (x)))\n       0.001s
+  + Assignment 8 Runner test for: \n      ((module OWO \n       (class UWU (a)))\n       (import OWO)\n        (def x 413.0) \n        (def o (new UWU (x))) \n        (o --> a))\n       0.001s
+  + Assignment 8 Runner test for: \n      ((module OWO \n       (class UWU (a)))\n       (import OWO)\n        (def x 413.0) \n        (def o (new UWU (x))) \n        (x --> a = 612.0)\n        x)\n       0.001s
+  + Assignment 7 Runner test for: \n      ((class) 413.0)\n       0.0s
+  + Assignment 7 Runner test for: \n      ((class OWO ()) (class OWO ()) 413.0)\n       0.001s
+  + Assignment 7 Runner test for: \n      ((class OWO ()) (class UWU (a a)) 413.0)\n       0.0s
+  + Assignment 7 Runner test for: \n      ((class OWO ()) (class UWU (a) (method wow (hai) a)) 413.0)\n       0.001s
+  + Assignment 7 Runner test for: \n      ((class OWO ()) \n       (class UWU (a) \n         (method wow (x) (new UWU (x)))\n       )\n        (def x 413.0) \n        (def o (new UWU (x))) \n        (o --> wow (x)))\n       0.001s
+  + Assignment 7 Runner test for: \n      ((class OWO (a)) \n        (def x 413.0) \n        (def o (new OWO (x))) \n        (o --> a))\n       0.0s
+  + Assignment 7 Runner test for: \n      ((class OWO (a)) \n        (def x 413.0) \n        (def o (new OWO (x))) \n        (x --> a = 612.0)\n        x)\n       0.001s
+  + Assignment 6 Runner test for: \n      ((class) 413.0)\n       0.001s
+  + Assignment 6 Runner test for: \n      ((class OWO ()) (class OWO ()) 413.0)\n       0.001s
+  + Assignment 6 Runner test for: \n      ((class OWO ()) (class UWU (a a)) 413.0)\n       0.002s
+  + Assignment 6 Runner test for: \n      ((class OWO ()) (class UWU (a) (method wow (hai) a)) 413.0)\n       0.002s
+  + Assignment 6 Runner test for: \n      ((class OWO ()) (class UWU (a) (method wow (hai) this)) 413.0)\n       0.001s
+  + Assignment 5 Runner test for: \n      ((def x 1.0) (def y x) (x = 0.0) x y)\n       0.001s
+  + Assignment 5 Runner test for: \n      ((def y 1.0) (x = 1.0) x)\n       0.001s
+  + Assignment 5 Runner test for: \n      ((def x 0.0) (x = 0.0) (while0 x (x = 2.0)) x)\n       0.002s
+  + Assignment 5 Runner test for: \n      ((def x 0.0) (x / x))\n       0.001s
+  + Assignment 4 Runner test for: \n      ((def x 1.0) (def y x) (x = 0.0) x y)\n       0.001s
+  + Assignment 4 Runner test for: \n      ((def y 1.0) (x = 1.0) x)\n       0.001s
+  + Assignment 4 Runner test for: \n      ((def x 0.0) (x = 0.0) (while0 x (x = 2.0)) x)\n       0.001s
+  + Assignment 2 Runner test for: \n      ((if0 (c + d) (x = y) a (block (a = b) (while0 8.0 (variable = (liz == l))))) (x / y))\n       0.0s
+  + Assignment 2 Runner test for: \n      ((x = 0.0) (x while0 (if0 (x == x) (x = 1.0) (x = 2.0))) x)\n       0.001s
+  + Assignment 2 Runner test for: \n      ((x = 10.) (y = 10.) (if0 (x == y) (block (x = 5.5)) (block (y = 2.3))) 11.0)\n       0.001s
+  + Assignment 1 Runner test for: ((Someone has created files that contain information of this shape)\n        (An Example is one of)\n            (a Name like this)\n            (a Number like this 22.5 or this -14.3 or this -999.9 or this 999.9)\n            (a sequence of space separated Examples wrapped in ( and ))\n        () () ()\n      ) 0.002s
+test.backend.ParserTests:
+==> X test.backend.ParserTests.Well-formed Typed System: Parse + hasError test for input: \n    (\n    (tmodule A (class Point (x y) \n        (method addCoords ()\n          (def tempX (this --> x))\n          (def tempY (this --> y))\n          (tempX + tempY)  \n        )) \n      (((x Number) (y Number)) ((addCoords () Number))))\n    4.0\n  )\n      0.089s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:43
+42:        val (parsed, hasError) = processorFun(input)
+43:        assertEquals(parsed, expected)
+44:        assertEquals(hasError, false)
+values are not the same
+=> Diff (- obtained, + expected)
+                                     start = Position(
+-                                      line = 5,
+-                                      col = 22
++                                      line = 0,
++                                      col = 0
+                                     ),
+                                     end = Position(
+-                                      line = 5,
+-                                      col = 34
++                                      line = 0,
++                                      col = 0
+                                     )
+                                 start = Position(
+-                                  line = 5,
+-                                  col = 11
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 5,
+-                                  col = 35
++                                  line = 0,
++                                  col = 0
+                                 )
+                                     start = Position(
+-                                      line = 6,
+-                                      col = 22
++                                      line = 0,
++                                      col = 0
+                                     ),
+                                     end = Position(
+-                                      line = 6,
+-                                      col = 34
++                                      line = 0,
++                                      col = 0
+                                     )
+                                 start = Position(
+-                                  line = 6,
+-                                  col = 11
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 6,
+-                                  col = 35
++                                  line = 0,
++                                  col = 0
+                                 )
+                               start = Position(
+-                                line = 7,
+-                                col = 11
++                                line = 0,
++                                col = 0
+                               ),
+                               end = Position(
+-                                line = 7,
+-                                col = 26
++                                line = 0,
++                                col = 0
+                               )
+                           start = Position(
+-                            line = 5,
+-                            col = 11
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 7,
+-                            col = 26
++                            line = 0,
++                            col = 0
+                           )
+                       start = Position(
+-                        line = 4,
+-                        col = 9
++                        line = 0,
++                        col = 0
+                       ),
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Ill-formed Typed System: Parse + hasError test for input: (\n      (tmodule  A (class Point (x y)))\n      (module A (class Point (x y)))\n      4.0\n      )  0.003s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Obtained
+Node(
+  n = RawSystem(
+    modules = List(
+      Err(
+        e = ModuleMalformed()
+      )
+    ),
+    imports = Nil,
+    progb = Node(
+      n = ProgBlock(
+        decls = Nil,
+        stmts = List(
+          Err(
+            e = StmtMalformed()
+          )
+        ),
+        expr = Node(
+          n = Num(
+            n = 4.0,
+            range = Range(
+              start = Position(
+                line = 4,
+                col = 7
+              ),
+              end = Position(
+                line = 4,
+                col = 10
+              )
+            )
+          )
+        ),
+        range = Range(
+          start = Position(
+            line = 3,
+            col = 7
+          ),
+          end = Position(
+            line = 4,
+            col = 10
+          )
+        )
+      )
+    ),
+    range = Range(
+      start = Position(
+        line = 1,
+        col = 1
+      ),
+      end = Position(
+        line = 5,
+        col = 8
+      )
+    )
+  )
+)
+=> Diff (- obtained, + expected)
+               start = Position(
+-                line = 4,
+-                col = 7
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 4,
+-                col = 10
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 3,
+-            col = 7
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 4,
+-            col = 10
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 5,
+-        col = 8
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Ill-formed Typed System: Parse + hasError test for input: (\n      (tmodule A (class Point (x y)) ((x Number) (y Number) ()))\n      (tmodule B (class Point (x y) \n          (method addCoords ()\n            (def tempX (this --> x))\n            (def tempY (this --> y))\n            (tempX + tempY)  \n          )) \n       (((x) (y Number)) ((addCoords Number))))\n      4.0\n      )  0.008s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Diff (- obtained, + expected)
+                 start = Position(
+-                  line = 2,
+-                  col = 18
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 2,
+-                  col = 37
++                  line = 0,
++                  col = 0
+                 )
+             start = Position(
+-              line = 2,
+-              col = 7
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 2,
+-              col = 65
++              line = 0,
++              col = 0
+             )
+                                     start = Position(
+-                                      line = 5,
+-                                      col = 24
++                                      line = 0,
++                                      col = 0
+                                     ),
+                                     end = Position(
+-                                      line = 5,
+-                                      col = 36
++                                      line = 0,
++                                      col = 0
+                                     )
+                                 start = Position(
+-                                  line = 5,
+-                                  col = 13
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 5,
+-                                  col = 37
++                                  line = 0,
++                                  col = 0
+                                 )
+                                     start = Position(
+-                                      line = 6,
+-                                      col = 24
++                                      line = 0,
++                                      col = 0
+                                     ),
+                                     end = Position(
+-                                      line = 6,
+-                                      col = 36
++                                      line = 0,
++                                      col = 0
+                                     )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Well-formed System: Parse + hasError test for input: ((foo = 123.4) bar)  0.004s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:43
+42:        val (parsed, hasError) = processorFun(input)
+43:        assertEquals(parsed, expected)
+44:        assertEquals(hasError, false)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 1,
+-                      col = 9
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 14
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 2
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 15
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 1,
+-                col = 16
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 19
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 19
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 20
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Well-formed System: Parse + hasError test for input: (\n      (module A \n        (class Point (x y) \n          (method addCoords ()\n            (def tempX (this --> x))\n            (def tempY (this --> y))\n            (tempX + tempY)  \n          )\n        )\n      )\n      (import A)\n      (def x 3.0)\n      (def y 2.0)\n      (def pointA (new Point (x y)))\n      (pointA --> addCoords ())\n      )  0.005s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:43
+42:        val (parsed, hasError) = processorFun(input)
+43:        assertEquals(parsed, expected)
+44:        assertEquals(hasError, false)
+values are not the same
+=> Diff (- obtained, + expected)
+                                     start = Position(
+-                                      line = 5,
+-                                      col = 24
++                                      line = 0,
++                                      col = 0
+                                     ),
+                                     end = Position(
+-                                      line = 5,
+-                                      col = 36
++                                      line = 0,
++                                      col = 0
+                                     )
+                                 start = Position(
+-                                  line = 5,
+-                                  col = 13
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 5,
+-                                  col = 37
++                                  line = 0,
++                                  col = 0
+                                 )
+                                     start = Position(
+-                                      line = 6,
+-                                      col = 24
++                                      line = 0,
++                                      col = 0
+                                     ),
+                                     end = Position(
+-                                      line = 6,
+-                                      col = 36
++                                      line = 0,
++                                      col = 0
+                                     )
+                                 start = Position(
+-                                  line = 6,
+-                                  col = 13
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 6,
+-                                  col = 37
++                                  line = 0,
++                                  col = 0
+                                 )
+                               start = Position(
+-                                line = 7,
+-                                col = 13
++                                line = 0,
++                                col = 0
+                               ),
+                               end = Position(
+-                                line = 7,
+-                                col = 28
++                                line = 0,
++                                col = 0
+                               )
+                           start = Position(
+-                            line = 5,
+-                            col = 13
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 7,
+-                            col = 28
++                            line = 0,
++                            col = 0
+                           )
+                       start = Position(
+-                        line = 4,
+-                        col = 11
++                        line = 0,
++                        col = 0
+                       ),
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Well-formed System: Parse + hasError test for input: (\n      (module A (class Point (x y)))\n      (module B (import A) (class Point (x y)))\n      (import B)\n      4.0\n      )  0.008s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:43
+42:        val (parsed, hasError) = processorFun(input)
+43:        assertEquals(parsed, expected)
+44:        assertEquals(hasError, false)
+values are not the same
+=> Diff (- obtained, + expected)
+                 start = Position(
+-                  line = 2,
+-                  col = 17
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 2,
+-                  col = 36
++                  line = 0,
++                  col = 0
+                 )
+             start = Position(
+-              line = 2,
+-              col = 7
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 2,
+-              col = 37
++              line = 0,
++              col = 0
+             )
+                   start = Position(
+-                    line = 3,
+-                    col = 17
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 3,
+-                    col = 27
++                    line = 0,
++                    col = 0
+                   )
+                 start = Position(
+-                  line = 3,
+-                  col = 28
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 3,
+-                  col = 47
++                  line = 0,
++                  col = 0
+                 )
+             start = Position(
+-              line = 3,
+-              col = 7
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 3,
+-              col = 48
++              line = 0,
++              col = 0
+             )
+             start = Position(
+-              line = 4,
+-              col = 7
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 4,
+-              col = 17
++              line = 0,
++              col = 0
+             )
+               start = Position(
+-                line = 5,
+-                col = 7
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 5,
+-                col = 10
++                line = 0,
++                col = 0
+               )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+  + Ill-formed System: Parse + hasError test for input: () 0.0s
+  + Ill-formed System: Parse + hasError test for input: 413.0 0.0s
+==> X test.backend.ParserTests.Ill-formed System: Parse + hasError test for input: (\n      (module)\n      (module A (class Point (x y)))\n      (module B (import A))\n      (import B)\n      (import A B)\n      4.0\n      )  0.003s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Diff (- obtained, + expected)
+                 start = Position(
+-                  line = 3,
+-                  col = 17
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 3,
+-                  col = 36
++                  line = 0,
++                  col = 0
+                 )
+             start = Position(
+-              line = 3,
+-              col = 7
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 3,
+-              col = 37
++              line = 0,
++              col = 0
+             )
+             start = Position(
+-              line = 5,
+-              col = 7
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 5,
+-              col = 17
++              line = 0,
++              col = 0
+             )
+               start = Position(
+-                line = 7,
+-                col = 7
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 7,
+-                col = 10
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 7,
+-            col = 7
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 7,
+-            col = 10
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 8,
+-        col = 8
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Well-formed Prog: Parse + hasError test for input: ((foo = 123.4) bar)  0.002s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:43
+42:        val (parsed, hasError) = processorFun(input)
+43:        assertEquals(parsed, expected)
+44:        assertEquals(hasError, false)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 1,
+-                      col = 9
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 14
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 2
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 15
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 1,
+-                col = 16
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 19
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 19
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 20
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Well-formed Prog: Parse + hasError test for input: ((if0 bar (block (baz = 1.0)) (block (qux = -2.3))) foo)  0.009s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:43
+42:        val (parsed, hasError) = processorFun(input)
+43:        assertEquals(parsed, expected)
+44:        assertEquals(hasError, false)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 1,
+-                      col = 7
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 10
++                      line = 0,
++                      col = 0
+                     )
+                               start = Position(
+-                                line = 1,
+-                                col = 25
++                                line = 0,
++                                col = 0
+                               ),
+                               end = Position(
+-                                line = 1,
+-                                col = 28
++                                line = 0,
++                                col = 0
+                               )
+                           start = Position(
+-                            line = 1,
+-                            col = 18
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 1,
+-                            col = 29
++                            line = 0,
++                            col = 0
+                           )
+                     start = Position(
+-                      line = 1,
+-                      col = 11
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 30
++                      line = 0,
++                      col = 0
+                     )
+                               start = Position(
+-                                line = 1,
+-                                col = 45
++                                line = 0,
++                                col = 0
+                               ),
+                               end = Position(
+-                                line = 1,
+-                                col = 49
++                                line = 0,
++                                col = 0
+                               )
+                           start = Position(
+-                            line = 1,
+-                            col = 38
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 1,
+-                            col = 50
++                            line = 0,
++                            col = 0
+                           )
+                     start = Position(
+-                      line = 1,
+-                      col = 31
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 51
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 2
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 52
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 1,
+-                col = 53
++                line = 0,
++                col = 0
+               ),
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Well-formed Prog: Parse + hasError test for input: ((while0 10.0 (block (foo = 10.0) (bar = -5.5))) (foo == bar))  0.008s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:43
+42:        val (parsed, hasError) = processorFun(input)
+43:        assertEquals(parsed, expected)
+44:        assertEquals(hasError, false)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 1,
+-                      col = 10
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 14
++                      line = 0,
++                      col = 0
+                     )
+                               start = Position(
+-                                line = 1,
+-                                col = 29
++                                line = 0,
++                                col = 0
+                               ),
+                               end = Position(
+-                                line = 1,
+-                                col = 33
++                                line = 0,
++                                col = 0
+                               )
+                           start = Position(
+-                            line = 1,
+-                            col = 22
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 1,
+-                            col = 34
++                            line = 0,
++                            col = 0
+                           )
+                               start = Position(
+-                                line = 1,
+-                                col = 42
++                                line = 0,
++                                col = 0
+                               ),
+                               end = Position(
+-                                line = 1,
+-                                col = 46
++                                line = 0,
++                                col = 0
+                               )
+                           start = Position(
+-                            line = 1,
+-                            col = 35
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 1,
+-                            col = 47
++                            line = 0,
++                            col = 0
+                           )
+                     start = Position(
+-                      line = 1,
+-                      col = 15
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 48
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 2
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 49
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 1,
+-                col = 50
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 62
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 62
++            line = 0,
++            col = 0
+           )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Well-formed Prog: Parse + hasError test for input: ((foo = (bar + baz)) (if0 qux (block (baz = 1.0)) (block (foo = -0.5))) bar)  0.005s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:43
+42:        val (parsed, hasError) = processorFun(input)
+43:        assertEquals(parsed, expected)
+44:        assertEquals(hasError, false)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 1,
+-                      col = 9
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 20
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 2
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 21
++                  line = 0,
++                  col = 0
+                 )
+                     start = Position(
+-                      line = 1,
+-                      col = 27
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 30
++                      line = 0,
++                      col = 0
+                     )
+                               start = Position(
+-                                line = 1,
+-                                col = 45
++                                line = 0,
++                                col = 0
+                               ),
+                               end = Position(
+-                                line = 1,
+-                                col = 48
++                                line = 0,
++                                col = 0
+                               )
+                           start = Position(
+-                            line = 1,
+-                            col = 38
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 1,
+-                            col = 49
++                            line = 0,
++                            col = 0
+                           )
+                     start = Position(
+-                      line = 1,
+-                      col = 31
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 50
++                      line = 0,
++                      col = 0
+                     )
+                               start = Position(
+-                                line = 1,
+-                                col = 65
++                                line = 0,
++                                col = 0
+                               ),
+                               end = Position(
+-                                line = 1,
+-                                col = 69
++                                line = 0,
++                                col = 0
+                               )
+                           start = Position(
+-                            line = 1,
+-                            col = 58
++                            line = 0,
++                            col = 0
+                           ),
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Well-formed Prog: Parse + hasError test for input: (\n      (class Point (x y) \n        (method addCoords ()\n          (def tempX (this --> x))\n          (def tempY (this --> y))\n          (tempX + tempY)  \n        )\n      )\n      (def x 3.0)\n      (def y 2.0)\n      (def pointA (new Point (x y)))\n      (pointA --> addCoords ())\n      )  0.004s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:43
+42:        val (parsed, hasError) = processorFun(input)
+43:        assertEquals(parsed, expected)
+44:        assertEquals(hasError, false)
+values are not the same
+=> Diff (- obtained, + expected)
+                                 start = Position(
+-                                  line = 4,
+-                                  col = 22
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 4,
+-                                  col = 34
++                                  line = 0,
++                                  col = 0
+                                 )
+                             start = Position(
+-                              line = 4,
+-                              col = 11
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 4,
+-                              col = 35
++                              line = 0,
++                              col = 0
+                             )
+                                 start = Position(
+-                                  line = 5,
+-                                  col = 22
++                                  line = 0,
++                                  col = 0
+                                 ),
+                                 end = Position(
+-                                  line = 5,
+-                                  col = 34
++                                  line = 0,
++                                  col = 0
+                                 )
+                             start = Position(
+-                              line = 5,
+-                              col = 11
++                              line = 0,
++                              col = 0
+                             ),
+                             end = Position(
+-                              line = 5,
+-                              col = 35
++                              line = 0,
++                              col = 0
+                             )
+                           start = Position(
+-                            line = 6,
+-                            col = 11
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 6,
+-                            col = 26
++                            line = 0,
++                            col = 0
+                           )
+                       start = Position(
+-                        line = 4,
+-                        col = 11
++                        line = 0,
++                        col = 0
+                       ),
+                       end = Position(
+-                        line = 6,
+-                        col = 26
++                        line = 0,
++                        col = 0
+                       )
+                   start = Position(
+-                    line = 3,
+-                    col = 9
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 7,
+-                    col = 10
++                    line = 0,
++                    col = 0
+                   )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Ill-formed Prog: Parse + hasError test for input: ((Someone has created files that contain information of this shape)\n        (An Example is one of)\n            (a Name like this)\n            (a Number like this 22.5 or this -14.3 or this -999.9 or this 999.9)\n            (a sequence of space separated Examples wrapped in ( and ))\n        () () ()\n    )  0.002s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Obtained
+Node(
+  n = Program(
+    clss = Nil,
+    progb = Node(
+      n = ProgBlock(
+        decls = Nil,
+        stmts = List(
+          Err(
+            e = StmtMalformed()
+          ),
+          Err(
+            e = StmtMalformed()
+          ),
+          Err(
+            e = StmtMalformed()
+          ),
+          Err(
+            e = StmtMalformed()
+          ),
+          Err(
+            e = StmtMalformed()
+          ),
+          Err(
+            e = StmtMalformed()
+          ),
+          Err(
+            e = StmtMalformed()
+          )
+        ),
+        expr = Err(
+          e = ExprMalformed()
+        ),
+        range = Range(
+          start = Position(
+            line = 1,
+            col = 2
+          ),
+          end = Position(
+            line = 6,
+            col = 17
+          )
+        )
+      )
+    ),
+    range = Range(
+      start = Position(
+        line = 1,
+        col = 1
+      ),
+      end = Position(
+        line = 7,
+        col = 6
+      )
+    )
+  )
+)
+=> Diff (- obtained, + expected)
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 6,
+-            col = 17
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 7,
+-        col = 6
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Ill-formed Prog: Parse + hasError test for input: \n      ((foo = ) =)\n        0.001s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Obtained
+Node(
+  n = Program(
+    clss = Nil,
+    progb = Node(
+      n = ProgBlock(
+        decls = Nil,
+        stmts = List(
+          Err(
+            e = AssignRhsMalformed()
+          )
+        ),
+        expr = Node(
+          n = Var(
+            x = Err(
+              e = NameIsKeyword()
+            ),
+            range = Range(
+              start = Position(
+                line = 2,
+                col = 17
+              ),
+              end = Position(
+                line = 2,
+                col = 18
+              )
+            )
+          )
+        ),
+        range = Range(
+          start = Position(
+            line = 2,
+            col = 8
+          ),
+          end = Position(
+            line = 2,
+            col = 18
+          )
+        )
+      )
+    ),
+    range = Range(
+      start = Position(
+        line = 2,
+        col = 7
+      ),
+      end = Position(
+        line = 2,
+        col = 19
+      )
+    )
+  )
+)
+=> Diff (- obtained, + expected)
+               start = Position(
+-                line = 2,
+-                col = 17
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 2,
+-                col = 18
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 2,
+-            col = 8
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 2,
+-            col = 18
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 2,
+-        col = 7
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 2,
+-        col = 19
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+  + Ill-formed Prog: Parse + hasError test for input: () 0.001s
+==> X test.backend.ParserTests.Ill-formed Prog: Parse + hasError test for input: ((def x 1.0) (def y 2.0) (def x) (x + y))  0.002s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 1,
+-                      col = 9
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 12
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 2
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 13
++                  line = 0,
++                  col = 0
+                 )
+                     start = Position(
+-                      line = 1,
+-                      col = 21
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 24
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 14
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 25
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 1,
+-                col = 34
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 41
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 41
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 42
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Ill-formed Prog: Parse + hasError test for input: ((while0 10.0 (block )) (foo == bar))  0.002s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 1,
+-                      col = 10
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 14
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 2
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 24
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 1,
+-                col = 25
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 37
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 37
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 38
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+  + Ill-formed Prog: Parse + hasError test for input: a 0.0s
+==> X test.backend.ParserTests.Ill-formed Prog: Parse + hasError test for input: ((1.0 = 1.0))  0.001s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Obtained
+Node(
+  n = Program(
+    clss = Nil,
+    progb = Node(
+      n = ProgBlock(
+        decls = Nil,
+        stmts = Nil,
+        expr = Err(
+          e = ExprBadOperand()
+        ),
+        range = Range(
+          start = Position(
+            line = 1,
+            col = 2
+          ),
+          end = Position(
+            line = 1,
+            col = 13
+          )
+        )
+      )
+    ),
+    range = Range(
+      start = Position(
+        line = 1,
+        col = 1
+      ),
+      end = Position(
+        line = 1,
+        col = 14
+      )
+    )
+  )
+)
+=> Diff (- obtained, + expected)
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 13
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 14
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Ill-formed Prog: Parse + hasError test for input: ((1.0 == 1.0))  0.002s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Obtained
+Node(
+  n = Program(
+    clss = Nil,
+    progb = Node(
+      n = ProgBlock(
+        decls = Nil,
+        stmts = Nil,
+        expr = Node(
+          n = BinOpExpr(
+            lhs = Err(
+              e = NotAName()
+            ),
+            op = Equals(),
+            rhs = Err(
+              e = NotAName()
+            ),
+            range = Range(
+              start = Position(
+                line = 1,
+                col = 2
+              ),
+              end = Position(
+                line = 1,
+                col = 14
+              )
+            )
+          )
+        ),
+        range = Range(
+          start = Position(
+            line = 1,
+            col = 2
+          ),
+          end = Position(
+            line = 1,
+            col = 14
+          )
+        )
+      )
+    ),
+    range = Range(
+      start = Position(
+        line = 1,
+        col = 1
+      ),
+      end = Position(
+        line = 1,
+        col = 15
+      )
+    )
+  )
+)
+=> Diff (- obtained, + expected)
+               start = Position(
+-                line = 1,
+-                col = 2
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 14
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 14
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 15
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Ill-formed Prog: Parse + hasError test for input: ((def x 1.0) (x = 0.0) (def y x) y)  0.003s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 1,
+-                      col = 9
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 12
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 2
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 13
++                  line = 0,
++                  col = 0
+                 )
+                     start = Position(
+-                      line = 1,
+-                      col = 19
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 22
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 14
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 23
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 1,
+-                col = 34
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 35
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 35
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 36
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Ill-formed Prog: Parse + hasError test for input: ((def x 0.0) (while0 x (x + 1.0)) (foo == bar))  0.003s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 1,
+-                      col = 9
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 12
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 2
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 13
++                  line = 0,
++                  col = 0
+                 )
+                     start = Position(
+-                      line = 1,
+-                      col = 22
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 23
++                      line = 0,
++                      col = 0
+                     )
+                     start = Position(
+-                      line = 1,
+-                      col = 24
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 33
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 14
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 34
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 1,
+-                col = 35
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 47
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 47
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 48
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Ill-formed Prog: Parse + hasError test for input: ((while0 0.3 (block (def x -3.0))) 1.0)  0.002s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 1,
+-                      col = 10
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 13
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 2
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 35
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 1,
+-                col = 36
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 39
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 39
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 40
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Ill-formed Prog: Parse + hasError test for input: ((while0 ) 1.0)  0.001s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Obtained
+Node(
+  n = Program(
+    clss = Nil,
+    progb = Node(
+      n = ProgBlock(
+        decls = Nil,
+        stmts = List(
+          Err(
+            e = WhileMalformed()
+          )
+        ),
+        expr = Node(
+          n = Num(
+            n = 1.0,
+            range = Range(
+              start = Position(
+                line = 1,
+                col = 12
+              ),
+              end = Position(
+                line = 1,
+                col = 15
+              )
+            )
+          )
+        ),
+        range = Range(
+          start = Position(
+            line = 1,
+            col = 2
+          ),
+          end = Position(
+            line = 1,
+            col = 15
+          )
+        )
+      )
+    ),
+    range = Range(
+      start = Position(
+        line = 1,
+        col = 1
+      ),
+      end = Position(
+        line = 1,
+        col = 16
+      )
+    )
+  )
+)
+=> Diff (- obtained, + expected)
+               start = Position(
+-                line = 1,
+-                col = 12
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 15
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 15
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 16
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Ill-formed Prog: Parse + hasError test for input: (\n      (class Point)\n      (def clark (new Point ()))\n      (clark isa Point)\n      )  0.002s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 3,
+-                      col = 18
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 3,
+-                      col = 32
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 3,
+-                  col = 7
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 3,
+-                  col = 33
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 4,
+-                col = 7
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 4,
+-                col = 24
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 3,
+-            col = 7
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 4,
+-            col = 24
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 5,
+-        col = 8
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Ill-formed Prog: Parse + hasError test for input: \n      (\n      (class Point (x) \n        (method dummy x)\n        (method addy (y) (x + y))\n      )\n      (def this 2.0)\n      (def three 3.0)\n      (def new (new Point (this)))\n      (new --> x = 4.0)\n      (new --> addy (3.0))\n      )\n        0.004s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Diff (- obtained, + expected)
+                           start = Position(
+-                            line = 5,
+-                            col = 26
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 5,
+-                            col = 33
++                            line = 0,
++                            col = 0
+                           )
+                       start = Position(
+-                        line = 5,
+-                        col = 26
++                        line = 0,
++                        col = 0
+                       ),
+                       end = Position(
+-                        line = 5,
+-                        col = 33
++                        line = 0,
++                        col = 0
+                       )
+                   start = Position(
+-                    line = 5,
+-                    col = 9
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 5,
+-                    col = 34
++                    line = 0,
++                    col = 0
+                   )
+             start = Position(
+-              line = 3,
+-              col = 7
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 6,
+-              col = 8
++              line = 0,
++              col = 0
+             )
+                     start = Position(
+-                      line = 7,
+-                      col = 17
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 7,
+-                      col = 20
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 7,
+-                  col = 7
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 7,
+-                  col = 21
++                  line = 0,
++                  col = 0
+                 )
+                     start = Position(
+-                      line = 8,
+-                      col = 18
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 8,
+-                      col = 21
++                      line = 0,
++                      col = 0
+                     )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ParserTests.Ill-formed Prog: Parse + hasError test for input: \n      (\n      (class Point (x) \n        (method addy (y))\n      )\n      2.0\n      )\n        0.002s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ParserTests.scala:51
+50:        val (parsed, hasError) = processorFun(input)
+51:        assertEquals(parsed, expected)
+52:        assertEquals(hasError, true)
+values are not the same
+=> Diff (- obtained, + expected)
+                   start = Position(
+-                    line = 4,
+-                    col = 9
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 4,
+-                    col = 26
++                    line = 0,
++                    col = 0
+                   )
+             start = Position(
+-              line = 3,
+-              col = 7
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 5,
+-              col = 8
++              line = 0,
++              col = 0
+             )
+               start = Position(
+-                line = 6,
+-                col = 7
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 6,
+-                col = 10
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 6,
+-            col = 7
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 6,
+-            col = 10
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 2,
+-        col = 7
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 7,
+-        col = 8
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+test.backend.ValidityTest:
+==> X test.backend.ValidityTest.Well-formed Valid Prog: validity pipeline for input: ((def foo 123.4) (foo = 100.0) foo)  0.089s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:53
+52:                    case Right(cleanProg) => 
+53:                        assertEquals(cleanProg, expectedAST)
+54:                        assertEquals(false, isErrExpected)
+values are not the same
+=> Diff (- obtained, + expected)
+             start = Position(
+-              line = 1,
+-              col = 11
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 16
++              line = 0,
++              col = 0
+             )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 17
++            line = 0,
++            col = 0
+           )
+             start = Position(
+-              line = 1,
+-              col = 25
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 30
++              line = 0,
++              col = 0
+             )
+           start = Position(
+-            line = 1,
+-            col = 18
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 31
++            line = 0,
++            col = 0
+           )
+         start = Position(
+-          line = 1,
+-          col = 32
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 1,
+-          col = 35
++          line = 0,
++          col = 0
+         )
+       start = Position(
+-        line = 1,
+-        col = 2
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 35
++        line = 0,
++        col = 0
+       )
+     start = Position(
+-      line = 1,
+-      col = 1
++      line = 0,
++      col = 0
+     ),
+     end = Position(
+-      line = 1,
+-      col = 36
++      line = 0,
++      col = 0
+     )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Valid Prog: validity pipeline for input: ((def a 1.0) (def b 2.0) (a = (a + b)) (a / b))  0.006s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:53
+52:                    case Right(cleanProg) => 
+53:                        assertEquals(cleanProg, expectedAST)
+54:                        assertEquals(false, isErrExpected)
+values are not the same
+=> Diff (- obtained, + expected)
+             start = Position(
+-              line = 1,
+-              col = 9
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 12
++              line = 0,
++              col = 0
+             )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 13
++            line = 0,
++            col = 0
+           )
+             start = Position(
+-              line = 1,
+-              col = 21
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 24
++              line = 0,
++              col = 0
+             )
+           start = Position(
+-            line = 1,
+-            col = 14
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 25
++            line = 0,
++            col = 0
+           )
+             start = Position(
+-              line = 1,
+-              col = 31
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 38
++              line = 0,
++              col = 0
+             )
+           start = Position(
+-            line = 1,
+-            col = 26
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 39
++            line = 0,
++            col = 0
+           )
+         start = Position(
+-          line = 1,
+-          col = 40
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 1,
+-          col = 47
++          line = 0,
++          col = 0
+         )
+       start = Position(
+-        line = 1,
+-        col = 2
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 47
++        line = 0,
++        col = 0
+       )
+     start = Position(
+-      line = 1,
+-      col = 1
++      line = 0,
++      col = 0
+     ),
+     end = Position(
+-      line = 1,
+-      col = 48
++      line = 0,
++      col = 0
+     )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Valid Prog: validity pipeline for input: ((def x 10.0) (if0 x (block (def y 2.0) (y = 5.0)) (block (def z 3.0) (z = 7.0))) x)  0.014s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:53
+52:                    case Right(cleanProg) => 
+53:                        assertEquals(cleanProg, expectedAST)
+54:                        assertEquals(false, isErrExpected)
+values are not the same
+=> Diff (- obtained, + expected)
+             start = Position(
+-              line = 1,
+-              col = 9
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 13
++              line = 0,
++              col = 0
+             )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 14
++            line = 0,
++            col = 0
+           )
+             start = Position(
+-              line = 1,
+-              col = 20
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 21
++              line = 0,
++              col = 0
+             )
+                   start = Position(
+-                    line = 1,
+-                    col = 36
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 1,
+-                    col = 39
++                    line = 0,
++                    col = 0
+                   )
+                 start = Position(
+-                  line = 1,
+-                  col = 29
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 40
++                  line = 0,
++                  col = 0
+                 )
+                   start = Position(
+-                    line = 1,
+-                    col = 46
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 1,
+-                    col = 49
++                    line = 0,
++                    col = 0
+                   )
+                 start = Position(
+-                  line = 1,
+-                  col = 41
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 50
++                  line = 0,
++                  col = 0
+                 )
+             start = Position(
+-              line = 1,
+-              col = 22
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 51
++              line = 0,
++              col = 0
+             )
+                   start = Position(
+-                    line = 1,
+-                    col = 66
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 1,
+-                    col = 69
++                    line = 0,
++                    col = 0
+                   )
+                 start = Position(
+-                  line = 1,
+-                  col = 59
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 70
++                  line = 0,
++                  col = 0
+                 )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Valid Prog: validity pipeline for input: ((def guard 1.0) (while0 guard (block (def i 0.0) (i = (i + guard)))) guard)  0.005s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:53
+52:                    case Right(cleanProg) => 
+53:                        assertEquals(cleanProg, expectedAST)
+54:                        assertEquals(false, isErrExpected)
+values are not the same
+=> Diff (- obtained, + expected)
+             start = Position(
+-              line = 1,
+-              col = 13
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 16
++              line = 0,
++              col = 0
+             )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 17
++            line = 0,
++            col = 0
+           )
+             start = Position(
+-              line = 1,
+-              col = 26
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 31
++              line = 0,
++              col = 0
+             )
+                   start = Position(
+-                    line = 1,
+-                    col = 46
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 1,
+-                    col = 49
++                    line = 0,
++                    col = 0
+                   )
+                 start = Position(
+-                  line = 1,
+-                  col = 39
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 50
++                  line = 0,
++                  col = 0
+                 )
+                   start = Position(
+-                    line = 1,
+-                    col = 56
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 1,
+-                    col = 67
++                    line = 0,
++                    col = 0
+                   )
+                 start = Position(
+-                  line = 1,
+-                  col = 51
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 68
++                  line = 0,
++                  col = 0
+                 )
+             start = Position(
+-              line = 1,
+-              col = 32
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 69
++              line = 0,
++              col = 0
+             )
+           start = Position(
+-            line = 1,
+-            col = 18
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 70
++            line = 0,
++            col = 0
+           )
+         start = Position(
+-          line = 1,
+-          col = 71
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 1,
+-          col = 76
++          line = 0,
++          col = 0
+         )
+       start = Position(
+-        line = 1,
++        line = 0,
+         col = ...
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Valid Prog: validity pipeline for input: ((def a 10.0) (def b 20.0) (a = (a + b)) (if0 a (block (def c 1.0) (c = (a / b))) (block (def d 2.0) (d = (b / a)))) (a == b))  0.005s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:53
+52:                    case Right(cleanProg) => 
+53:                        assertEquals(cleanProg, expectedAST)
+54:                        assertEquals(false, isErrExpected)
+values are not the same
+=> Diff (- obtained, + expected)
+             start = Position(
+-              line = 1,
+-              col = 9
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 13
++              line = 0,
++              col = 0
+             )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 14
++            line = 0,
++            col = 0
+           )
+             start = Position(
+-              line = 1,
+-              col = 22
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 26
++              line = 0,
++              col = 0
+             )
+           start = Position(
+-            line = 1,
+-            col = 15
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 27
++            line = 0,
++            col = 0
+           )
+             start = Position(
+-              line = 1,
+-              col = 33
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 40
++              line = 0,
++              col = 0
+             )
+           start = Position(
+-            line = 1,
+-            col = 28
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 41
++            line = 0,
++            col = 0
+           )
+             start = Position(
+-              line = 1,
+-              col = 47
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 48
++              line = 0,
++              col = 0
+             )
+                   start = Position(
+-                    line = 1,
+-                    col = 63
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 1,
+-                    col = 66
++                    line = 0,
++                    col = 0
+                   )
+                 start = Position(
+-                  line = 1,
+-                  col = 56
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 67
++                  line = 0,
++                  col = 0
+                 )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Valid Prog: validity pipeline for input: ((class A ()) (class B (owo) (method uwu (num) (def foo 123.4) (foo = num) this) (method fave () (def o (new A ())) 413.0)) (def o (new A ())) (o isa A))  0.004s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:53
+52:                    case Right(cleanProg) => 
+53:                        assertEquals(cleanProg, expectedAST)
+54:                        assertEquals(false, isErrExpected)
+values are not the same
+=> Diff (- obtained, + expected)
+         start = Position(
+-          line = 1,
+-          col = 2
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 1,
+-          col = 14
++          line = 0,
++          col = 0
+         )
+                     start = Position(
+-                      line = 1,
+-                      col = 57
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 62
++                      line = 0,
++                      col = 0
+                     )
+                   start = Position(
+-                    line = 1,
+-                    col = 48
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 1,
+-                    col = 63
++                    line = 0,
++                    col = 0
+                   )
+                     start = Position(
+-                      line = 1,
+-                      col = 71
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 74
++                      line = 0,
++                      col = 0
+                     )
+                   start = Position(
+-                    line = 1,
+-                    col = 64
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 1,
+-                    col = 75
++                    line = 0,
++                    col = 0
+                   )
+                 start = Position(
+-                  line = 1,
+-                  col = 76
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 80
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 1,
+-                col = 48
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 80
++                line = 0,
++                col = 0
+               )
+             start = Position(
+-              line = 1,
+-              col = 30
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 81
++              line = 0,
++              col = 0
+             )
+                     start = Position(
+-                      line = 1,
+-                      col = 105
++                      line = 0,
++                      col = 0
+                     ),
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Valid Prog: validity pipeline for input: ((class B (owo) (method uwu (num) (def foo 123.4) (foo = num) this)) (def num 413.0) (def o (new B (num))) (o --> notafield = (o --> somemethod (num))) (o --> alsonotafield))  0.01s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:53
+52:                    case Right(cleanProg) => 
+53:                        assertEquals(cleanProg, expectedAST)
+54:                        assertEquals(false, isErrExpected)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 1,
+-                      col = 44
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 49
++                      line = 0,
++                      col = 0
+                     )
+                   start = Position(
+-                    line = 1,
+-                    col = 35
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 1,
+-                    col = 50
++                    line = 0,
++                    col = 0
+                   )
+                     start = Position(
+-                      line = 1,
+-                      col = 58
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 61
++                      line = 0,
++                      col = 0
+                     )
+                   start = Position(
+-                    line = 1,
+-                    col = 51
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 1,
+-                    col = 62
++                    line = 0,
++                    col = 0
+                   )
+                 start = Position(
+-                  line = 1,
+-                  col = 63
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 67
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 1,
+-                col = 35
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 67
++                line = 0,
++                col = 0
+               )
+             start = Position(
+-              line = 1,
+-              col = 17
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 68
++              line = 0,
++              col = 0
+             )
+         start = Position(
+-          line = 1,
+-          col = 2
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 1,
+-          col = 69
++          line = 0,
++          col = 0
+         )
+             start = Position(
+-              line = 1,
+-              col = 79
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 84
++              line = 0,
++              col = 0
+             )
+           start = Position(
+-            line = 1,
+-            col = 70
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
++            line = 0,
+             col = ...
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Invalid Prog: validity pipeline for input: ((class A ()) (class A ()) 413.0)  0.006s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:50
+49:                    case Left(progWE)     => 
+50:                        assertEquals(progWE, expectedAST)
+51:                        assertEquals(true, isErrExpected)
+values are not the same
+=> Diff (- obtained, + expected)
+             start = Position(
+-              line = 1,
+-              col = 2
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 14
++              line = 0,
++              col = 0
+             )
+             start = Position(
+-              line = 1,
+-              col = 15
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 27
++              line = 0,
++              col = 0
+             )
+               start = Position(
+-                line = 1,
+-                col = 28
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 33
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 1,
+-            col = 28
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 33
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 34
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Invalid Prog: validity pipeline for input: ((class A (a)) (class B (a a) (method owo (a a) 612.0) (method owo () -413.0)) 413.0)  0.005s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:50
+49:                    case Left(progWE)     => 
+50:                        assertEquals(progWE, expectedAST)
+51:                        assertEquals(true, isErrExpected)
+values are not the same
+=> Diff (- obtained, + expected)
+             start = Position(
+-              line = 1,
+-              col = 2
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 15
++              line = 0,
++              col = 0
+             )
+                           start = Position(
+-                            line = 1,
+-                            col = 49
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 1,
+-                            col = 54
++                            line = 0,
++                            col = 0
+                           )
+                       start = Position(
+-                        line = 1,
+-                        col = 49
++                        line = 0,
++                        col = 0
+                       ),
+                       end = Position(
+-                        line = 1,
+-                        col = 54
++                        line = 0,
++                        col = 0
+                       )
+                   start = Position(
+-                    line = 1,
+-                    col = 31
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 1,
+-                    col = 55
++                    line = 0,
++                    col = 0
+                   )
+                           start = Position(
+-                            line = 1,
+-                            col = 71
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 1,
+-                            col = 77
++                            line = 0,
++                            col = 0
+                           )
+                       start = Position(
+-                        line = 1,
+-                        col = 71
++                        line = 0,
++                        col = 0
+                       ),
+                       end = Position(
+-                        line = 1,
+-                        col = 77
++                        line = 0,
++                        col = 0
+                       )
+                   start = Position(
+-                    line = 1,
+-                    col = 56
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 1,
+-                    col = 78
++                    line = 0,
++                    col = 0
+                   )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Invalid Prog: validity pipeline for input: ((class A (a)) (a + this))  0.003s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:50
+49:                    case Left(progWE)     => 
+50:                        assertEquals(progWE, expectedAST)
+51:                        assertEquals(true, isErrExpected)
+values are not the same
+=> Diff (- obtained, + expected)
+             start = Position(
+-              line = 1,
+-              col = 2
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 1,
+-              col = 15
++              line = 0,
++              col = 0
+             )
+               start = Position(
+-                line = 1,
+-                col = 16
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 26
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 1,
+-            col = 16
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 26
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 27
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Invalid Prog: validity pipeline for input: ((def o (new A ())) (o isa A))  0.002s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:50
+49:                    case Left(progWE)     => 
+50:                        assertEquals(progWE, expectedAST)
+51:                        assertEquals(true, isErrExpected)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 1,
+-                      col = 9
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 1,
+-                      col = 19
++                      line = 0,
++                      col = 0
+                     )
+                 start = Position(
+-                  line = 1,
+-                  col = 2
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 1,
+-                  col = 20
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 1,
+-                col = 21
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 1,
+-                col = 30
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 1,
+-            col = 2
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 1,
+-            col = 30
++            line = 0,
++            col = 0
+           )
+       start = Position(
+-        line = 1,
+-        col = 1
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 1,
+-        col = 31
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Valid System: validity pipeline for input: \n        ((def guard 1.0) \n         (while0 guard \n                 (block (def i 0.0) \n                        (i = (i + guard)))) \n         guard)\n          0.006s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:89
+88:                        assertEquals(imps, expectedImps)
+89:                        assertEquals(prog, expectedProgB)
+90:                        assertEquals(false, isErrExpected)
+values are not the same
+=> Diff (- obtained, + expected)
+           start = Position(
+-            line = 2,
+-            col = 21
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 2,
+-            col = 24
++            line = 0,
++            col = 0
+           )
+         start = Position(
+-          line = 2,
+-          col = 10
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 2,
+-          col = 25
++          line = 0,
++          col = 0
+         )
+           start = Position(
+-            line = 3,
+-            col = 18
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 3,
+-            col = 23
++            line = 0,
++            col = 0
+           )
+                 start = Position(
+-                  line = 4,
+-                  col = 32
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 4,
+-                  col = 35
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 4,
+-                col = 25
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 4,
+-                col = 36
++                line = 0,
++                col = 0
+               )
+                 start = Position(
+-                  line = 5,
+-                  col = 30
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 5,
+-                  col = 41
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 5,
+-                col = 25
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 5,
+-                col = 42
++                line = 0,
++                col = 0
+               )
+           start = Position(
+-            line = 4,
+-            col = 18
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 5,
+-            col = 43
++            line = 0,
++            col = 0
+           )
+         start = Position(
+-          line = 3,
+-          col = 10
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 5,
+-          col = 44
++          line = 0,
++          col = 0
+         )
+       start = Position(
+-        line = 6,
+-        col = 10
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 6,
+-        col = 15
++        line = 0,
++        col = 0
+       )
+     start = Position(
+-      line = 2,
+-      col = 10
++      line = 0,
++      col = 0
+     ),
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Valid System: validity pipeline for input: \n        ((module OWO (class A ())) \n         (module UWU (import OWO)\n          (class B (owo) \n            (method fave () \n               (def fave 413.0)\n               (def o1 (new A ())) \n               (def o2 (new B (fave)))\n               (this --> owo))))\n         (import UWU)\n         (import UWU)\n         (def o (new B ())) \n         (o isa B))\n          0.003s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:87
+86:                    case (Right(System(mods, imps, prog, _, _)), System[Clean](expectedMods, expectedImps, expectedProgB, _, _)) => 
+87:                        assertEquals(mods, expectedMods)
+88:                        assertEquals(imps, expectedImps)
+values are not the same
+=> Diff (- obtained, + expected)
+         start = Position(
+-          line = 2,
+-          col = 22
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 2,
+-          col = 34
++          line = 0,
++          col = 0
+         )
+       start = Position(
+-        line = 2,
+-        col = 10
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 2,
+-        col = 35
++        line = 0,
++        col = 0
+       )
+           start = Position(
+-            line = 3,
+-            col = 22
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 3,
+-            col = 34
++            line = 0,
++            col = 0
+           )
+                     start = Position(
+-                      line = 6,
+-                      col = 26
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 6,
+-                      col = 31
++                      line = 0,
++                      col = 0
+                     )
+                   start = Position(
+-                    line = 6,
+-                    col = 16
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 6,
+-                    col = 32
++                    line = 0,
++                    col = 0
+                   )
+                     start = Position(
+-                      line = 7,
+-                      col = 24
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 7,
+-                      col = 34
++                      line = 0,
++                      col = 0
+                     )
+                   start = Position(
+-                    line = 7,
+-                    col = 16
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 7,
+-                    col = 35
++                    line = 0,
++                    col = 0
+                   )
+                     start = Position(
+-                      line = 8,
+-                      col = 24
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 8,
+-                      col = 38
++                      line = 0,
++                      col = 0
+                     )
+                   start = Position(
+-                    line = 8,
+-                    col = 16
++                    line = 0,
++                    col = 0
+                   ),
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Valid System: validity pipeline for input: \n        ((module OWO (class A ())) \n         (module UWU (import OWO)\n          (class B (owo) \n            (method uwu (num) \n               (def foo 123.4) \n               (foo = num) \n               this) \n            (method fave () \n               (def o (new A ())) \n               413.0)))\n         (import UWU)\n         (import UWU)\n         (def o (new B ())) \n         (o isa B))\n          0.006s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:87
+86:                    case (Right(System(mods, imps, prog, _, _)), System[Clean](expectedMods, expectedImps, expectedProgB, _, _)) => 
+87:                        assertEquals(mods, expectedMods)
+88:                        assertEquals(imps, expectedImps)
+values are not the same
+=> Diff (- obtained, + expected)
+         start = Position(
+-          line = 2,
+-          col = 22
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 2,
+-          col = 34
++          line = 0,
++          col = 0
+         )
+       start = Position(
+-        line = 2,
+-        col = 10
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 2,
+-        col = 35
++        line = 0,
++        col = 0
+       )
+           start = Position(
+-            line = 3,
+-            col = 22
++            line = 0,
++            col = 0
+           ),
+           end = Position(
+-            line = 3,
+-            col = 34
++            line = 0,
++            col = 0
+           )
+                     start = Position(
+-                      line = 6,
+-                      col = 25
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 6,
+-                      col = 30
++                      line = 0,
++                      col = 0
+                     )
+                   start = Position(
+-                    line = 6,
+-                    col = 16
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 6,
+-                    col = 31
++                    line = 0,
++                    col = 0
+                   )
+                     start = Position(
+-                      line = 7,
+-                      col = 23
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 7,
+-                      col = 26
++                      line = 0,
++                      col = 0
+                     )
+                   start = Position(
+-                    line = 7,
+-                    col = 16
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 7,
+-                    col = 27
++                    line = 0,
++                    col = 0
+                   )
+                 start = Position(
+-                  line = 8,
+-                  col = 16
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 8,
+-                  col = 20
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 6,
+-                col = 16
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 8,
+-                col = 20
++                line = 0,
++                col = 0
+               )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Valid System: validity pipeline for input: \n        ((module WAOW (class B (owo) \n            (method uwu (num) \n                (def foo 123.4) \n                (foo = num) this)))\n         (module WOAW (class B ()))\n         (import WAOW)\n         (import WOAW)\n         (def num 413.0) \n         (def o (new B (num))) \n         (o --> notafield = (o --> somemethod (num))) \n         (o --> alsonotafield))\n          0.006s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:87
+86:                    case (Right(System(mods, imps, prog, _, _)), System[Clean](expectedMods, expectedImps, expectedProgB, _, _)) => 
+87:                        assertEquals(mods, expectedMods)
+88:                        assertEquals(imps, expectedImps)
+values are not the same
+=> Diff (- obtained, + expected)
+                     start = Position(
+-                      line = 4,
+-                      col = 26
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 4,
+-                      col = 31
++                      line = 0,
++                      col = 0
+                     )
+                   start = Position(
+-                    line = 4,
+-                    col = 17
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 4,
+-                    col = 32
++                    line = 0,
++                    col = 0
+                   )
+                     start = Position(
+-                      line = 5,
+-                      col = 24
++                      line = 0,
++                      col = 0
+                     ),
+                     end = Position(
+-                      line = 5,
+-                      col = 27
++                      line = 0,
++                      col = 0
+                     )
+                   start = Position(
+-                    line = 5,
+-                    col = 17
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 5,
+-                    col = 28
++                    line = 0,
++                    col = 0
+                   )
+                 start = Position(
+-                  line = 5,
+-                  col = 29
++                  line = 0,
++                  col = 0
+                 ),
+                 end = Position(
+-                  line = 5,
+-                  col = 33
++                  line = 0,
++                  col = 0
+                 )
+               start = Position(
+-                line = 4,
+-                col = 17
++                line = 0,
++                col = 0
+               ),
+               end = Position(
+-                line = 5,
+-                col = 33
++                line = 0,
++                col = 0
+               )
+             start = Position(
+-              line = 3,
+-              col = 13
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 5,
+-              col = 34
++              line = 0,
++              col = 0
+             )
+         start = Position(
+-          line = 2,
+-          col = 23
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 5,
+-          col = 35
++          line = 0,
++          col = 0
+         )
+       start = Position(
+-        line = 2,
+-        col = 10
++        line = 0,
++        col = 0
+       ),
+       end = Position(
+-        line = 5,
+-        col = 36
++        line = 0,
++        col = 0
+       )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Invalid System: validity pipeline for input: \n        ((module A (class C ())) \n         (module A (class D ())) \n         413.0)\n          0.004s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:77
+76:                    case (Left(WE.Node(RawSystem(modsWE, impsWE, progWE, _))), WE.Node(RawSystem[WE](expectedMods, expectedImps, expectedProgB, _)))  => 
+77:                        assertEquals(modsWE, expectedMods)
+78:                        assertEquals(impsWE, expectedImps)
+values are not the same
+=> Diff (- obtained, + expected)
+             start = Position(
+-              line = 2,
+-              col = 20
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 2,
+-              col = 32
++              line = 0,
++              col = 0
+             )
+         start = Position(
+-          line = 2,
+-          col = 10
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 2,
+-          col = 33
++          line = 0,
++          col = 0
+         )
+             start = Position(
+-              line = 3,
+-              col = 20
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 3,
+-              col = 32
++              line = 0,
++              col = 0
+             )
+         start = Position(
+-          line = 3,
+-          col = 10
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 3,
+-          col = 33
++          line = 0,
++          col = 0
+         )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Invalid System: validity pipeline for input: \n        ((module A (class C ())) \n         (import C)\n         413.0)\n          0.003s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:82
+81:                    case (Left(WE.Node(System(modsWE, impsWE, progWE, _, _))), WE.Node(System[WE](expectedMods, expectedImps, expectedProgB, _, _)))  => 
+82:                        assertEquals(modsWE, expectedMods)
+83:                        assertEquals(impsWE, expectedImps)
+values are not the same
+=> Obtained
+List(
+  Node(
+    n = Module(
+      mname = Node(
+        n = "A"
+      ),
+      imports = Nil,
+      clas = Node(
+        n = Class(
+          cname = Node(
+            n = "C"
+          ),
+          fields = Nil,
+          methods = Nil,
+          shape = None,
+          range = Range(
+            start = Position(
+              line = 2,
+              col = 20
+            ),
+            end = Position(
+              line = 2,
+              col = 32
+            )
+          )
+        )
+      ),
+      range = Range(
+        start = Position(
+          line = 2,
+          col = 10
+        ),
+        end = Position(
+          line = 2,
+          col = 33
+        )
+      )
+    )
+  )
+)
+=> Diff (- obtained, + expected)
+             start = Position(
+-              line = 2,
+-              col = 20
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 2,
+-              col = 32
++              line = 0,
++              col = 0
+             )
+         start = Position(
+-          line = 2,
+-          col = 10
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 2,
+-          col = 33
++          line = 0,
++          col = 0
+         )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Invalid System: validity pipeline for input: \n        ((module A \n            (class A (A)\n                (method A (A) A)))\n         (module B \n            (class B (a a) \n                (method owo (a a) 612.0) \n                (method owo () -413.0))) \n         413.0)\n          0.003s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:77
+76:                    case (Left(WE.Node(RawSystem(modsWE, impsWE, progWE, _))), WE.Node(RawSystem[WE](expectedMods, expectedImps, expectedProgB, _)))  => 
+77:                        assertEquals(modsWE, expectedMods)
+78:                        assertEquals(impsWE, expectedImps)
+values are not the same
+=> Diff (- obtained, + expected)
+                           start = Position(
+-                            line = 4,
+-                            col = 31
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 4,
+-                            col = 32
++                            line = 0,
++                            col = 0
+                           )
+                       start = Position(
+-                        line = 4,
+-                        col = 31
++                        line = 0,
++                        col = 0
+                       ),
+                       end = Position(
+-                        line = 4,
+-                        col = 32
++                        line = 0,
++                        col = 0
+                       )
+                   start = Position(
+-                    line = 4,
+-                    col = 17
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 4,
+-                    col = 33
++                    line = 0,
++                    col = 0
+                   )
+             start = Position(
+-              line = 3,
+-              col = 13
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 4,
+-              col = 34
++              line = 0,
++              col = 0
+             )
+         start = Position(
+-          line = 2,
+-          col = 10
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 4,
+-          col = 35
++          line = 0,
++          col = 0
+         )
+                           start = Position(
+-                            line = 7,
+-                            col = 35
++                            line = 0,
++                            col = 0
+                           ),
+    at munit.Assertions.failComparison(Assertions.scala:278)
+==> X test.backend.ValidityTest.Well-formed Invalid System: validity pipeline for input: \n        ((module Amod (import Bmod)\n            (class A (A)\n                (method A (A) A))) \n         (module Bmod (import A)\n            (class B (B)))\n         (import Bmod) \n         (def x 413.0)\n         (new A (x)))\n          0.003s munit.ComparisonFailException: /home/daniel/Projects/Playwright/scala_lsp_server/src/test/scala/backend/ValidityTest.scala:82
+81:                    case (Left(WE.Node(System(modsWE, impsWE, progWE, _, _))), WE.Node(System[WE](expectedMods, expectedImps, expectedProgB, _, _)))  => 
+82:                        assertEquals(modsWE, expectedMods)
+83:                        assertEquals(impsWE, expectedImps)
+values are not the same
+=> Diff (- obtained, + expected)
+                           start = Position(
+-                            line = 4,
+-                            col = 31
++                            line = 0,
++                            col = 0
+                           ),
+                           end = Position(
+-                            line = 4,
+-                            col = 32
++                            line = 0,
++                            col = 0
+                           )
+                       start = Position(
+-                        line = 4,
+-                        col = 31
++                        line = 0,
++                        col = 0
+                       ),
+                       end = Position(
+-                        line = 4,
+-                        col = 32
++                        line = 0,
++                        col = 0
+                       )
+                   start = Position(
+-                    line = 4,
+-                    col = 17
++                    line = 0,
++                    col = 0
+                   ),
+                   end = Position(
+-                    line = 4,
+-                    col = 33
++                    line = 0,
++                    col = 0
+                   )
+             start = Position(
+-              line = 3,
+-              col = 13
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 4,
+-              col = 34
++              line = 0,
++              col = 0
+             )
+         start = Position(
+-          line = 2,
+-          col = 10
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 4,
+-          col = 35
++          line = 0,
++          col = 0
+         )
+             start = Position(
+-              line = 6,
+-              col = 13
++              line = 0,
++              col = 0
+             ),
+             end = Position(
+-              line = 6,
+-              col = 26
++              line = 0,
++              col = 0
+             )
+         start = Position(
+-          line = 5,
+-          col = 10
++          line = 0,
++          col = 0
+         ),
+         end = Position(
+-          line = 6,
+-          col = 27
++          line = 0,
++          col = 0
+         )
+    at munit.Assertions.failComparison(Assertions.scala:278)
+[error] Failed: Total 214, Failed 56, Errors 0, Passed 158
+[error] Failed tests:
+[error] 	test.backend.TypecheckerTests
+[error] 	test.backend.ValidityTest
+[error] 	test.backend.LinkerTests
+[error] 	test.backend.ParserTests
+[error] 	test.backend.RunnerTests
+[error] (Test / testOnly) sbt.TestsFailedException: Tests unsuccessful
+[error] Total time: 1 s, completed Jan 30, 2026, 1:44:48 PM

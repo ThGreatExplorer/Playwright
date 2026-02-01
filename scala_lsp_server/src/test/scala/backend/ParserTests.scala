@@ -96,9 +96,9 @@ object ParserTests:
                                   Expr.GetField(
                                     instance = WE.Node("this"),
                                     field = WE.Node("x")
-                                  )
+                                  , DummyRange)
                                 )
-                              )
+                              , DummyRange)
                             ),
                             WE.Node(
                               Decl(
@@ -107,9 +107,9 @@ object ParserTests:
                                   Expr.GetField(
                                     instance = WE.Node("this"),
                                     field = WE.Node("y")
-                                  )
+                                  , DummyRange)
                                 )
-                              )
+                              , DummyRange)
                             )
                           ),
                           stmts = Nil,
@@ -118,27 +118,27 @@ object ParserTests:
                               lhs = WE.Node("tempX"),
                               op = BinOp.Add,
                               rhs = WE.Node("tempY")
-                            )
-                          ))
+                            , DummyRange)
+                          ), DummyRange)
                       )
-                    ))
+                    , DummyRange))
                   ),
                   shape= Some(WE.Node(Type.Shape(
-                    fieldTypes = List(WE.Node(FieldType(WE.Node("x"), WE.Node(Type.Number()))), WE.Node(FieldType(WE.Node("y"), WE.Node(Type.Number())))),
-                    methodTypes = List(WE.Node(MethodType(WE.Node("addCoords"), List(), WE.Node(Type.Number()))))
-                  )))
-                )
-              ), 
-            ))
+                    fieldTypes = List(WE.Node(FieldType(WE.Node("x"), WE.Node(Type.Number(DummyRange)), DummyRange)), WE.Node(FieldType(WE.Node("y"), WE.Node(Type.Number(DummyRange)), DummyRange))),
+                    methodTypes = List(WE.Node(MethodType(WE.Node("addCoords"), List(), WE.Node(Type.Number(DummyRange)), DummyRange)))
+                  , DummyRange)))
+                , DummyRange)
+              ),
+            DummyRange))
           ),
           imports = List(),
           progb = WE.Node(ProgBlock(
             decls = Nil,
             stmts = Nil,
-            expr = WE.Node(Expr.Num(4.0))
-          )
-        ))
-      , DummyRange)
+            expr = WE.Node(Expr.Num(4.0, DummyRange))
+          , DummyRange)
+        ), 
+      DummyRange))
   )
 )
 
@@ -158,10 +158,10 @@ object ParserTests:
           progb = WE.Node(ProgBlock(
             decls = Nil,
             stmts = List(WE.Err(StmtMalformed)),
-            expr = WE.Node(Expr.Num(4.0))
-          )
-        ))
-      , DummyRange)
+            expr = WE.Node(Expr.Num(4.0, DummyRange))
+          , DummyRange)
+        ), 
+      DummyRange))
     ),
     (
       """(
@@ -187,10 +187,9 @@ object ParserTests:
                   fields = List(WE.Node("x"), WE.Node("y")),
                   methods = List(),
                   shape = Some(WE.Err(ShapeMalformed))
-                )
+                , DummyRange)
               ),
-              
-            )),
+            DummyRange)),
             WE.Node(Module(
               mname = WE.Node("B"),
               imports = List(),
@@ -212,9 +211,9 @@ object ParserTests:
                                   Expr.GetField(
                                     instance = WE.Node("this"),
                                     field = WE.Node("x")
-                                  )
+                                  , DummyRange)
                                 )
-                              )
+                              , DummyRange)
                             ),
                             WE.Node(
                               Decl(
@@ -223,9 +222,9 @@ object ParserTests:
                                   Expr.GetField(
                                     instance = WE.Node("this"),
                                     field = WE.Node("y")
-                                  )
+                                  , DummyRange)
                                 )
-                              )
+                              , DummyRange)
                             )
                           ),
                           stmts = Nil,
@@ -234,27 +233,27 @@ object ParserTests:
                               lhs = WE.Node("tempX"),
                               op = BinOp.Add,
                               rhs = WE.Node("tempY")
-                            )
-                          ))
+                            , DummyRange)
+                          ), DummyRange)
                       )
-                    ))
+                    , DummyRange))
                   ),
                   shape = Some(WE.Node(Type.Shape(
-                    fieldTypes = List(WE.Err(FieldTypeMalformed), WE.Node(FieldType(WE.Node("y"), WE.Node(Type.Number())))),
+                    fieldTypes = List(WE.Err(FieldTypeMalformed), WE.Node(FieldType(WE.Node("y"), WE.Node(Type.Number(DummyRange)), DummyRange))),
                     methodTypes = List(WE.Err(MethodTypeMalformed))
-                  )))
-                )
+                  , DummyRange)))
+                , DummyRange)
               ),
-            ))
+            DummyRange))
           ),
           imports = List(),
           progb = WE.Node(ProgBlock(
             decls = Nil,
             stmts = Nil,
-            expr = WE.Node(Expr.Num(4.0))
-          )
-        ))
-      , DummyRange)
+            expr = WE.Node(Expr.Num(4.0, DummyRange))
+          , DummyRange)
+        ), 
+      DummyRange))
     )
   )
 
@@ -268,11 +267,11 @@ object ParserTests:
           decls = List(),
           stmts = List(WE.Node(Stmt.Assign(
             lhs = WE.Node("foo"), 
-            rhs = WE.Node(Expr.Num(123.4))
-          ))),
-          expr = WE.Node(Expr.Var(WE.Node("bar")))
-        ))
-      ), DummyRange)
+            rhs = WE.Node(Expr.Num(123.4, DummyRange))
+          , DummyRange))),
+          expr = WE.Node(Expr.Var(WE.Node("bar"), DummyRange))
+        , DummyRange)),
+      DummyRange))
     ),
     (
       """(
@@ -315,9 +314,9 @@ object ParserTests:
                                   Expr.GetField(
                                     instance = WE.Node("this"),
                                     field = WE.Node("x")
-                                  )
+                                  , DummyRange)
                                 )
-                              )
+                              , DummyRange)
                             ),
                             WE.Node(
                               Decl(
@@ -326,9 +325,9 @@ object ParserTests:
                                   Expr.GetField(
                                     instance = WE.Node("this"),
                                     field = WE.Node("y")
-                                  )
+                                  , DummyRange)
                                 )
-                              )
+                              , DummyRange)
                             )
                           ),
                           stmts = Nil,
@@ -337,30 +336,30 @@ object ParserTests:
                               lhs = WE.Node("tempX"),
                               op = BinOp.Add,
                               rhs = WE.Node("tempY")
-                            )
-                          ))
+                            , DummyRange)
+                          ), DummyRange)
                       )
-                    ))
+                    , DummyRange))
                   ),
                   None
-                )
+                , DummyRange)
               )
-            ))
+            , DummyRange))
           ),
-          imports = List(WE.Node(Import.Untyped(WE.Node("A")))),
+          imports = List(WE.Node(Import.Untyped(WE.Node("A"), DummyRange))),
           progb = WE.Node(ProgBlock(
             decls = List(
               WE.Node(
                 Decl(
                   varDecl = WE.Node("x"),
-                  rhs = WE.Node(Expr.Num(3.0))
-                )
+                  rhs = WE.Node(Expr.Num(3.0, DummyRange))
+                , DummyRange)
               ),
               WE.Node(
                 Decl(
                   varDecl = WE.Node("y"),
-                  rhs = WE.Node(Expr.Num(2.0))
-                )
+                  rhs = WE.Node(Expr.Num(2.0, DummyRange))
+                , DummyRange)
               ),
               WE.Node(
                 Decl(
@@ -372,9 +371,9 @@ object ParserTests:
                         WE.Node("x"),
                         WE.Node("y")
                       )
-                    )
+                    , DummyRange)
                   )
-                )
+                , DummyRange)
               )
             ),
             stmts = Nil,
@@ -383,11 +382,11 @@ object ParserTests:
                 instance = WE.Node("pointA"),
                 method = WE.Node("addCoords"),
                 args = Nil
-              )
+              , DummyRange)
             )
-          )
-        ))
-      , DummyRange)
+          , DummyRange)
+        ), 
+      DummyRange))
     ),
     (
       """(
@@ -408,30 +407,30 @@ object ParserTests:
                   fields = List(WE.Node("x"), WE.Node("y")),
                   methods = List(),
                   None
-                )
+                , DummyRange)
               )
-            )),
+            , DummyRange)),
             WE.Node(Module(
               mname = WE.Node("B"),
-              imports = List(WE.Node(Import.Untyped(WE.Node("A")))),
+              imports = List(WE.Node(Import.Untyped(WE.Node("A"), DummyRange))),
               clas = 
                 WE.Node(Class(
                   cname = WE.Node("Point"),
                   fields = List(WE.Node("x"), WE.Node("y")),
                   methods = List(),
                   None
-                )
+                , DummyRange)
               )
-            )),
+            , DummyRange)),
           ),
-          imports = List(WE.Node(Import.Untyped(WE.Node("B")))),
+          imports = List(WE.Node(Import.Untyped(WE.Node("B"), DummyRange))),
           progb = WE.Node(ProgBlock(
             decls = Nil,
             stmts = Nil,
-            expr = WE.Node(Expr.Num(4.0))
-          )
-        ))
-      , DummyRange)
+            expr = WE.Node(Expr.Num(4.0, DummyRange))
+          , DummyRange)
+        ), 
+      DummyRange))
     )
   )
 
@@ -466,19 +465,19 @@ object ParserTests:
                   fields = List(WE.Node("x"), WE.Node("y")),
                   methods = List(),
                   None
-                )
+                , DummyRange)
               )
-            )),
+            , DummyRange)),
             WE.Err(ModuleMalformed)
           ),
-          imports = List(WE.Node(Import.Untyped(WE.Node("B"))), WE.Err(ImportMalformed)),
+          imports = List(WE.Node(Import.Untyped(WE.Node("B"), DummyRange)), WE.Err(ImportMalformed)),
           progb = WE.Node(ProgBlock(
             decls = Nil,
             stmts = Nil,
-            expr = WE.Node(Expr.Num(4.0))
-          )
-        ))
-      , DummyRange)
+            expr = WE.Node(Expr.Num(4.0, DummyRange))
+          , DummyRange)
+        ), 
+      DummyRange))
     )
   )
 
@@ -491,11 +490,11 @@ object ParserTests:
           decls = List(),
           stmts = List(WE.Node(Stmt.Assign(
             lhs = WE.Node("foo"), 
-            rhs = WE.Node(Expr.Num(123.4))
-          ))),
-          expr = WE.Node(Expr.Var(WE.Node("bar")))
-        ))
-      ), DummyRange)
+            rhs = WE.Node(Expr.Num(123.4, DummyRange))
+          , DummyRange))),
+          expr = WE.Node(Expr.Var(WE.Node("bar"), DummyRange))
+        , DummyRange))
+      , DummyRange))
     ),
     (
       """((if0 bar (block (baz = 1.0)) (block (qux = -2.3))) foo)""",
@@ -505,29 +504,30 @@ object ParserTests:
           decls = List(),
           stmts = List(
             WE.Node(Stmt.Ifelse(
-              WE.Node(Expr.Var(WE.Node("bar"))),
+              WE.Node(Expr.Var(WE.Node("bar"), DummyRange)),
               WE.Node(StmtBlock.Many(
                 List(),
                 List(
                   WE.Node(Stmt.Assign(
                     lhs = WE.Node("baz"),
-                    rhs = WE.Node(Expr.Num(1.0))
-                  ))
+                    rhs = WE.Node(Expr.Num(1.0, DummyRange))
+                  , DummyRange))
                 )
-              )),
+              , DummyRange)),
               WE.Node(StmtBlock.Many(
                 List(),
                 List(
                   WE.Node(Stmt.Assign(
                     WE.Node("qux"),
-                    WE.Node(Expr.Num(-2.3))
-                  ))
+                    WE.Node(Expr.Num(-2.3, DummyRange))
+                  , DummyRange))
                 )
-              ))
-            )
+              , DummyRange))
+            , DummyRange)
           )),
-          expr = WE.Node(Expr.Var(WE.Node("foo")))
-        ))), DummyRange)
+          expr = WE.Node(Expr.Var(WE.Node("foo"), DummyRange))
+        , DummyRange)), 
+      DummyRange))
     ),
     (
       """((while0 10.0 (block (foo = 10.0) (bar = -5.5))) (foo == bar))""",
@@ -537,28 +537,29 @@ object ParserTests:
           decls = List(),
           stmts = List(
             WE.Node(Stmt.While(
-              guard = WE.Node(Expr.Num(10.0)),
+              guard = WE.Node(Expr.Num(10.0, DummyRange)),
               body = WE.Node(StmtBlock.Many(
                   List(),
                 stmts = List(
                   WE.Node(Stmt.Assign(
                     WE.Node("foo"),
-                    WE.Node(Expr.Num(10.0))
-                  )),
+                    WE.Node(Expr.Num(10.0, DummyRange))
+                  , DummyRange)),
                   WE.Node(Stmt.Assign(
                     WE.Node("bar"),
-                    WE.Node(Expr.Num(-5.5))
-                  ))
+                    WE.Node(Expr.Num(-5.5, DummyRange))
+                  , DummyRange))
                 )
-              )
-            ))
+              , DummyRange)
+            ), DummyRange)
           )),
           expr = WE.Node(Expr.BinOpExpr(
             WE.Node("foo"), 
             BinOp.Equals, 
             WE.Node("bar")
-          )))
-      )), DummyRange)
+          , DummyRange)), 
+        DummyRange)), 
+      DummyRange))
     ),
     (
       """((foo = (bar + baz)) (if0 qux (block (baz = 1.0)) (block (foo = -0.5))) bar)""",
@@ -573,33 +574,33 @@ object ParserTests:
                 WE.Node("bar"), 
                 BinOp.Add, 
                 WE.Node("baz")
-              ))
-            )),
+              , DummyRange))
+            , DummyRange)),
             WE.Node(Stmt.Ifelse(
-              guard = WE.Node(Expr.Var(WE.Node("qux"))),
+              guard = WE.Node(Expr.Var(WE.Node("qux"), DummyRange)),
               tbranch = WE.Node(StmtBlock.Many(
                   List(),
                 List(
                   WE.Node(Stmt.Assign(
                     WE.Node("baz"),
-                    WE.Node(Expr.Num(1.0))
-                  ))
+                    WE.Node(Expr.Num(1.0, DummyRange))
+                  , DummyRange))
                 )
-              )),
+              , DummyRange)),
               ebranch = WE.Node(StmtBlock.Many(
                   List(),
                 List(
                   WE.Node(Stmt.Assign(
                     WE.Node("foo"),
-                    WE.Node(Expr.Num(-0.5))
-                  ))
+                    WE.Node(Expr.Num(-0.5, DummyRange))
+                  , DummyRange))
                 )
-              ))
-            ))
+              , DummyRange))
+            , DummyRange))
           ),
-          expr = WE.Node(Expr.Var(WE.Node("bar")))
-        )
-      )), DummyRange)
+          expr = WE.Node(Expr.Var(WE.Node("bar"), DummyRange)), 
+        DummyRange)), 
+      DummyRange))
     ),
     (
       """(
@@ -636,9 +637,9 @@ object ParserTests:
                                 Expr.GetField(
                                   instance = WE.Node("this"),
                                   field = WE.Node("x")
-                                )
+                                , DummyRange)
                               )
-                            )
+                            , DummyRange)
                           ),
                           WE.Node(
                             Decl(
@@ -647,9 +648,9 @@ object ParserTests:
                                 Expr.GetField(
                                   instance = WE.Node("this"),
                                   field = WE.Node("y")
-                                )
+                                , DummyRange)
                               )
-                            )
+                            , DummyRange)
                           )
                         ),
                         stmts = Nil,
@@ -658,13 +659,13 @@ object ParserTests:
                             lhs = WE.Node("tempX"),
                             op = BinOp.Add,
                             rhs = WE.Node("tempY")
-                          )
-                        ))
-                    ))
+                          , DummyRange)
+                        ), DummyRange)
+                    ), DummyRange)
                   )
                 ),
                 None
-              )
+              , DummyRange)
             )
           ),
           progb = WE.Node(ProgBlock(
@@ -672,14 +673,14 @@ object ParserTests:
               WE.Node(
                 Decl(
                   varDecl = WE.Node("x"),
-                  rhs = WE.Node(Expr.Num(3.0))
-                )
+                  rhs = WE.Node(Expr.Num(3.0, DummyRange))
+                , DummyRange)
               ),
               WE.Node(
                 Decl(
                   varDecl = WE.Node("y"),
-                  rhs = WE.Node(Expr.Num(2.0))
-                )
+                  rhs = WE.Node(Expr.Num(2.0, DummyRange))
+                , DummyRange)
               ),
               WE.Node(
                 Decl(
@@ -691,9 +692,9 @@ object ParserTests:
                         WE.Node("x"),
                         WE.Node("y")
                       )
-                    )
+                    , DummyRange)
                   )
-                )
+                , DummyRange)
               )
             ),
             stmts = Nil,
@@ -702,11 +703,11 @@ object ParserTests:
                 instance = WE.Node("pointA"),
                 method = WE.Node("addCoords"),
                 args = Nil
-              )
+              , DummyRange)
             )
-          )
-        ))
-      , DummyRange)
+          , DummyRange)
+        ), 
+      DummyRange))
     ), 
   )
 
@@ -732,8 +733,8 @@ object ParserTests:
             WE.Err(StmtMalformed),
             WE.Err(StmtMalformed)
           ),
-          expr = WE.Err(ExprMalformed) )
-      )), DummyRange)
+          expr = WE.Err(ExprMalformed) , DummyRange)
+      ), DummyRange))
     ),
     (
       """
@@ -746,8 +747,8 @@ object ParserTests:
           stmts = List(
             WE.Err(AssignRhsMalformed)
           ),
-          expr = WE.Node(Expr.Var(WE.Err(NameIsKeyword))))
-      )), DummyRange)
+          expr = WE.Node(Expr.Var(WE.Err(NameIsKeyword), DummyRange)), DummyRange)
+      ), DummyRange))
     ),
     (
       "()",
@@ -761,20 +762,20 @@ object ParserTests:
           decls = List(
             WE.Node(Decl(
               WE.Node("x"),
-              WE.Node(Expr.Num(1.0)),
-            )),
+              WE.Node(Expr.Num(1.0, DummyRange))
+            , DummyRange)),
             WE.Node(Decl(
               WE.Node("y"),
-              WE.Node(Expr.Num(2.0))
-            )),
+              WE.Node(Expr.Num(2.0, DummyRange))
+            , DummyRange)),
             WE.Err(DeclMalformed),
           ),
           stmts = List(),
           WE.Node(Expr.BinOpExpr(
             WE.Node("x"),
             BinOp.Add,
-            WE.Node("y"))))
-      )), DummyRange)
+            WE.Node("y"), DummyRange)), DummyRange)
+      ), DummyRange))
     ),
     (
       """((while0 10.0 (block )) (foo == bar))""",
@@ -784,16 +785,16 @@ object ParserTests:
           decls = List(),
           stmts = List(
             WE.Node(Stmt.While(
-              guard = WE.Node(Expr.Num(10.0)),
+              guard = WE.Node(Expr.Num(10.0, DummyRange)),
               body = WE.Err(BlockManyNoStmts)
-            ))
+            , DummyRange))
           ),
           expr = WE.Node(Expr.BinOpExpr(
             WE.Node("foo"), 
             BinOp.Equals, 
             WE.Node("bar")
-          ))
-      ))), DummyRange)
+          , DummyRange))
+      , DummyRange)), DummyRange))
     ),
     (
       "a",
@@ -806,8 +807,8 @@ object ParserTests:
         progb = WE.Node(ProgBlock(
           decls = List(),
           stmts = List(),
-          expr = WE.Err(ExprBadOperand))
-      )), DummyRange)
+          expr = WE.Err(ExprBadOperand), DummyRange)
+      ), DummyRange))
     ),
     (
       "((1.0 == 1.0))",
@@ -820,8 +821,8 @@ object ParserTests:
             WE.Err(NotAName),
             BinOp.Equals,
             WE.Err(NotAName)
-          )))
-      )), DummyRange)
+          , DummyRange)), DummyRange)
+      ), DummyRange))
     ),
     (
       "((def x 1.0) (x = 0.0) (def y x) y)",
@@ -831,19 +832,19 @@ object ParserTests:
           decls = List(
             WE.Node(Decl(
               WE.Node("x"),
-              WE.Node(Expr.Num(1.0))
-            ))
+              WE.Node(Expr.Num(1.0, DummyRange))
+            , DummyRange))
           ),
           stmts = List(
             WE.Node(Stmt.Assign(
               WE.Node("x"),
-              WE.Node(Expr.Num(0.0))
-            )),
+              WE.Node(Expr.Num(0.0, DummyRange))
+            , DummyRange)),
             WE.Err(DeclAtStmtPosition)
           ),
-          expr = WE.Node(Expr.Var(WE.Node("y")))
-        )
-      )), DummyRange)
+          expr = WE.Node(Expr.Var(WE.Node("y"), DummyRange))
+        , DummyRange)
+      ), DummyRange))
     ),
     (
       """((def x 0.0) (while0 x (x + 1.0)) (foo == bar))""",
@@ -853,22 +854,22 @@ object ParserTests:
           decls = List(
             WE.Node(Decl(
               WE.Node("x"),
-              WE.Node(Expr.Num(0.0))
-            ))
+              WE.Node(Expr.Num(0.0, DummyRange))
+            , DummyRange))
           ),
           stmts = List(
             WE.Node(Stmt.While(
-              guard = WE.Node(Expr.Var(WE.Node("x"))),
+              guard = WE.Node(Expr.Var(WE.Node("x"), DummyRange)),
               body = WE.Node(
-                StmtBlock.One(WE.Err(StmtMalformed)))
-            ))
+                StmtBlock.One(WE.Err(StmtMalformed), DummyRange))
+            , DummyRange))
           ),
           expr = WE.Node(Expr.BinOpExpr(
             WE.Node("foo"), 
             BinOp.Equals, 
             WE.Node("bar")
-          )))
-      )), DummyRange)
+          , DummyRange)), DummyRange)
+      ), DummyRange))
     ),
     (
       "((while0 0.3 (block (def x -3.0))) 1.0)",
@@ -878,13 +879,13 @@ object ParserTests:
           decls = List(),
           stmts = List(
             WE.Node(Stmt.While(
-              guard = WE.Node(Expr.Num(0.3)),
+              guard = WE.Node(Expr.Num(0.3, DummyRange)),
               body = WE.Err(BlockManyNoStmts)
-            ))
+            , DummyRange))
           ),
-          expr = WE.Node(Expr.Num(1.0))
-        )
-      )), DummyRange)
+          expr = WE.Node(Expr.Num(1.0, DummyRange))
+        , DummyRange)
+      ), DummyRange))
     ),
     (
       "((while0 ) 1.0)",
@@ -895,9 +896,9 @@ object ParserTests:
           stmts = List(
             WE.Err(WhileMalformed)
           ),
-          expr = WE.Node(Expr.Num(1.0))
-        )
-      )), DummyRange)
+          expr = WE.Node(Expr.Num(1.0, DummyRange))
+        , DummyRange)
+      ), DummyRange))
     ),
     (
       """(
@@ -919,9 +920,9 @@ object ParserTests:
                     Expr.NewInstance(
                       cname = WE.Node("Point"),
                       args = List()
-                    )
+                    , DummyRange)
                   )
-                )
+                , DummyRange)
               )
             ),
             stmts = List(),
@@ -929,11 +930,11 @@ object ParserTests:
               Expr.IsInstanceOf(
                 instance = WE.Node("clark"),
                 cname = WE.Node("Point")
-              )
+              , DummyRange)
             )
-          )
-        ))
-      , DummyRange)
+          , DummyRange)
+        ), 
+      DummyRange))
     ),
     (
       """
@@ -974,13 +975,13 @@ object ParserTests:
                             lhs = WE.Node("x"),
                             op = BinOp.Add,
                             rhs = WE.Node("y")
-                          )
-                        ))
-                    ))
+                          , DummyRange)
+                        ), DummyRange)
+                    ), DummyRange)
                   )
                 ),
                 None
-              )
+              , DummyRange)
             )
           ),
           progb = WE.Node(ProgBlock(
@@ -988,14 +989,14 @@ object ParserTests:
               WE.Node(
                 Decl(
                   varDecl = WE.Node("this"),
-                  rhs = WE.Node(Expr.Num(2.0))
-                )
+                  rhs = WE.Node(Expr.Num(2.0, DummyRange))
+                , DummyRange)
               ),
               WE.Node(
                 Decl(
                   varDecl = WE.Node("three"),
-                  rhs = WE.Node(Expr.Num(3.0))
-                )
+                  rhs = WE.Node(Expr.Num(3.0, DummyRange))
+                , DummyRange)
               ),
               WE.Node(
                 Decl(
@@ -1006,9 +1007,9 @@ object ParserTests:
                       args = List(
                         WE.Node("this")
                       )
-                    )
+                    , DummyRange)
                   )
-                )
+                , DummyRange)
               )
               
             ),
@@ -1017,8 +1018,8 @@ object ParserTests:
                 Stmt.FieldAssign(
                   instance = WE.Err(NameIsKeyword),
                   field = WE.Node("x"),
-                  rhs = WE.Node(Expr.Num(4.0))
-                )
+                  rhs = WE.Node(Expr.Num(4.0, DummyRange))
+                , DummyRange)
               )
             ),
             expr = WE.Node(
@@ -1028,11 +1029,10 @@ object ParserTests:
                 args = List(
                   WE.Err(NotAName)
                 )
-              )
-            )
-          )
-       ))
-      , DummyRange)
+              , DummyRange)
+            ), 
+          DummyRange)), 
+      DummyRange))
     ),
     (
       """
@@ -1050,16 +1050,16 @@ object ParserTests:
               Class(
                 cname = WE.Node("Point"),
                 fields = List(WE.Node("x")),
-                methods = List(WE.Node(Method(WE.Node("addy"), List(WE.Node("y")), WE.Err(ProgBlockNoExpr)))),
+                methods = List(WE.Node(Method(WE.Node("addy"), List(WE.Node("y")), WE.Err(ProgBlockNoExpr), DummyRange))),
                 None
-              )
+              , DummyRange)
             )
           ),
           progb = WE.Node(ProgBlock(
             decls = List(),
             stmts = List(),
-            expr = WE.Node(Expr.Num(2.0)))
-       ))
-      , DummyRange)
+            expr = WE.Node(Expr.Num(2.0, DummyRange)), DummyRange)
+        ), 
+      DummyRange))
     )
   )
