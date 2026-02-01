@@ -47,10 +47,10 @@ class ValidityTest extends FunSuite {
 
                 pipeRes match 
                     case Left(progWE)     => 
-                        assertEquals(progWE, expectedAST)
+                        assertEquals(stripRanges(progWE), expectedAST)
                         assertEquals(true, isErrExpected)
                     case Right(cleanProg) => 
-                        assertEquals(cleanProg, expectedAST)
+                        assertEquals(stripRanges(cleanProg), expectedAST)
                         assertEquals(false, isErrExpected)
 
             }
@@ -72,7 +72,17 @@ class ValidityTest extends FunSuite {
                     yield 
                         validSys
 
-                (pipeRes, expectedAST) match 
+                val normalizedPipeRes = pipeRes match
+                    case Left(sysWE) => Left(stripRanges(sysWE))
+                    case Right(cleanSys) => Right(stripRanges(cleanSys))
+
+                val normalizedExpected = expectedAST match
+                    case we @ WE.Node(_: RawSystem[WE]) => stripRanges(we)
+                    case we @ WE.Node(_: System[WE]) => stripRanges(we)
+                    case we: WE.Err => we
+                    case clean: CleanSystem => stripRanges(clean)
+
+                (normalizedPipeRes, normalizedExpected) match 
                     case (Left(WE.Node(RawSystem(modsWE, impsWE, progWE, _))), WE.Node(RawSystem[WE](expectedMods, expectedImps, expectedProgB, _)))  => 
                         assertEquals(modsWE, expectedMods)
                         assertEquals(impsWE, expectedImps)
